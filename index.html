@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homelab Enterprise Architecture / Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Texture Overlay -->
+    <div class="noise-overlay"></div>
+    <!-- Moving Glows -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+
+    <header class="hero" style="height: auto; text-align: left; padding: 4rem 2rem 2rem; display: block; overflow: visible;">
+        <div class="hero-content" style="display: flex; flex-direction: column; width: 100%; max-width: 1300px; margin: 0 auto; padding-top: 2rem;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 2rem;">
+                <div>
+                    <div class="status-badge pulse-container" style="margin-bottom: 1.5rem;">
+                        <span class="pulse-dot"></span> 
+                        <span class="status-text">FLEET RECONCILED &copy; LIVE LAB</span>
+                    </div>
+                    <h1 style="font-size: 3.5rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 0.5rem; line-height: 1;">Khurram <span class="gradient-text">Nazir</span></h1>
+                    <h2 style="font-size: 1.4rem; color: #a5b4fc; font-weight: 500; margin-bottom: 1rem;">DevOps & Infrastructure Analyst  &bull;  Homelabber</h2>
+                    <p class="hero-subtext" style="font-size: 1.1rem; max-width: 700px; text-align: left;">Showcasing a production-grade, declarative home datacenter built <strong>entirely on Linux</strong>. This living portfolio demonstrates full-stack expertise in virtualization, GitOps CI/CD, and zero-trust edge networking.</p>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; padding-bottom: 0.5rem;" class="portfolio-links">
+                    <a href="https://github.com/reprodev" target="_blank" class="cv-link">GitHub <span style="opacity: 0.5;">&#8599;</span></a>
+                    <a href="https://www.linkedin.com/in/khurram-nazir-50b6a13aa/" target="_blank" class="cv-link">LinkedIn <span style="opacity: 0.5;">&#8599;</span></a>
+                    <a href="https://reprodev.com" target="_blank" class="cv-link">Website <span style="opacity: 0.5;">&#8599;</span></a>
+                </div>
+            </div>
+            
+            <div style="margin-top: 3rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                <span class="skill-badge main-skill">100% Linux Ecosystem</span>
+                <span class="skill-badge main-skill">Terraform Core</span>
+                <span class="skill-badge main-skill">Kubernetes (K3s)</span>
+                <span class="skill-badge main-skill">Ansible Automation</span>
+                <span class="skill-badge main-skill">Proxmox Bare-metal</span>
+                <span class="skill-badge main-skill">Zero Trust Edge</span>
+            </div>
+            
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <!-- TIER 1: THE EDGE -->
+        <div class="tier-header">
+            <h3>Layer 1: The Edge & Ingress</h3>
+            <span class="tier-desc">Core Skills: <strong>Zero Trust Architecture, Cloudflare HA, Tailscale Mesh</strong></span>
+        </div>
+        <div class="dashboard-grid" style="margin-bottom: 4rem;">
+            <!-- Visual SVG Flow -->
+            <div class="dash-card full-span">
+                <div class="card-inner flow-glow">
+                    <div class="card-title" style="margin-bottom: 3rem;">Live Zero Trust Ingress Architecture</div>
+                    <div class="svg-flow-container">
+                        
+                        <!-- Animated SVG Lines -->
+                        <svg class="flow-lines" viewBox="0 0 1000 400" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="grad-cf" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#3b82f6" opacity="0.8" />
+                                    <stop offset="100%" stop-color="#818cf8" opacity="0.3"/>
+                                </linearGradient>
+                                <linearGradient id="grad-ts" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#10b981" opacity="0.8" />
+                                    <stop offset="100%" stop-color="#34d399" opacity="0.3"/>
+                                </linearGradient>
+                            </defs>
+                            
+                            <!-- Cloudflare Path (Left) -->
+                            <path class="animated-path cf-path" d="M 230 30 L 230 130" />
+                            <path class="animated-path cf-path" d="M 230 130 L 90 130 L 90 220 L 230 220 L 230 300" />
+                            <path class="animated-path cf-path" d="M 230 130 L 370 130 L 370 220 L 230 220" />
+                            
+                            <!-- Tailscale Path (Right) -->
+                            <path class="animated-path ts-path" d="M 770 30 L 770 130" />
+                            <path class="animated-path ts-path" d="M 770 130 L 630 130 L 630 220 L 770 220 L 770 300" />
+                            <path class="animated-path ts-path" d="M 770 130 L 910 130 L 910 220 L 770 220" />
+
+                            <!-- Bottom connection of both backends -->
+                            <path class="animated-path back-path-cf" d="M 230 300 L 500 300 L 500 340" />
+                            <path class="animated-path back-path-ts" d="M 770 300 L 500 300 L 500 340" />
+                            
+                            <!-- Moving Packets - CF -->
+                            <circle class="packet cf-packet" r="4" fill="#60a5fa"><animateMotion dur="3s" repeatCount="indefinite" path="M 230 30 L 230 130 L 90 130 L 90 220 L 230 220 L 230 300 L 500 300 L 500 340" /></circle>
+                            <circle class="packet cf-packet" r="4" fill="#60a5fa"><animateMotion dur="4s" repeatCount="indefinite" path="M 230 30 L 230 130 L 370 130 L 370 220 L 230 220 L 230 300 L 500 300 L 500 340" /></circle>
+                            
+                            <!-- Moving Packets - TS -->
+                            <circle class="packet ts-packet" r="4" fill="#34d399"><animateMotion dur="3.5s" repeatCount="indefinite" path="M 770 30 L 770 130 L 630 130 L 630 220 L 770 220 L 770 300 L 500 300 L 500 340" /></circle>
+                            <circle class="packet ts-packet" r="4" fill="#34d399"><animateMotion dur="2.5s" repeatCount="indefinite" path="M 770 30 L 770 130 L 910 130 L 910 220 L 770 220 L 770 300 L 500 300 L 500 340" /></circle>
+                        </svg>
+                        
+                        <!-- Premium HTML Nodes -->
+                        <div class="network-nodes" style="opacity: 1;">
+                            
+                            <!-- Ingress Heads -->
+                            <div class="net-node public hub-glow" style="top: -20px; left: 23%; transform: translateX(-50%);">
+                                <div class="hub-icon">🌐</div>
+                                <span>Public Request</span>
+                                <div class="tag" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; font-size: 0.7rem; margin-top: 5px;">Cloudflared HA</div>
+                            </div>
+                            
+                            <div class="net-node tailscale hub-glow" style="top: -20px; left: 77%; transform: translateX(-50%);">
+                                <div class="hub-icon">🔒</div>
+                                <span>Admin VPN</span>
+                                <div class="tag" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.7rem; margin-top: 5px;">Tailscale Mesh</div>
+                            </div>
+                            
+                            <!-- Middle Tier (Tunnels) -->
+                            <div class="net-node cf-replica" style="top: 200px; left: 9%; transform: translateX(-50%); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); text-align: center;">☁️ CF Tunnel (pi4)<div style="font-size:0.65rem; color:#8b909f; font-weight:normal; margin-top:5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px;">Physical bare-metal</div></div>
+                            <div class="net-node cf-replica" style="top: 200px; left: 37%; transform: translateX(-50%); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); text-align: center;">☁️ CF Tunnel (ha01)<div style="font-size:0.55rem; color:#fbbf24; font-weight:normal; margin-top:5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">VM on Proxmox Box</div></div>
+                            
+                            <div class="net-node ts-node" style="top: 200px; left: 63%; transform: translateX(-50%); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2); text-align: center;">🦎 Tailscale (ha02)<div style="font-size:0.55rem; color:#fbbf24; font-weight:normal; margin-top:5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">VM on Proxmox Box</div></div>
+                            <div class="net-node ts-node" style="top: 200px; left: 91%; transform: translateX(-50%); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2); text-align: center;">🦎 Tailscale (ha03)<div style="font-size:0.55rem; color:#fbbf24; font-weight:normal; margin-top:5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">VM on Proxmox Box</div></div>
+
+                            <!-- Bottom Tier (Backend) -->
+                            <div class="net-node backend hub-glow" style="top: 320px; left: 50%; transform: translateX(-50%); border-top-color: #f59e0b;">
+                                <div class="hub-icon">⚙️</div>
+                                <span>Self-Hosted Services Network</span>
+                                <div class="tag" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; font-size: 0.7rem; margin-top: 5px;">Docker Stack</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TIER 2: PHYSICAL HARDWARE -->
+        <div class="tier-header">
+            <h3>Layer 2: Physical Hardware & Compute Root</h3>
+            <span class="tier-desc">Core Skills: <strong>Bare-metal Provisioning, Proxmox VE, Direct Disk Passthrough, LVM Storage</strong></span>
+        </div>
+        <div class="dashboard-grid" style="margin-bottom: 4rem;">
+            <!-- Proxmox Hypervisor Box -->
+            <div class="dash-card span-2">
+                <div class="card-inner pve-glow">
+                    <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Proxmox Virtual Environment (PVE)</span>
+                        <span class="tag" style="background: rgba(168, 85, 247, 0.2); color: #c084fc;">Hypervisor Root</span>
+                    </div>
+                    
+                    <div class="dashboard-grid layout-pve" style="grid-template-columns: 1fr 2fr; gap: 2rem; margin-top: 1.5rem;">
+                        <!-- Specs -->
+                        <div class="pve-specs">
+                            <h4 style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.8rem; text-transform: uppercase;">Host Hardware Limits</h4>
+                            <ul class="service-list" style="padding: 0;">
+                                <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding-bottom: 0.8rem;">
+                                    <strong>Logical CPU Threads</strong>
+                                    <span class="tag" style="background: rgba(255,255,255,0.05);">6 Threads</span>
+                                </li>
+                                <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding: 0.8rem 0;">
+                                    <strong>Memory Limit (RAM)</strong>
+                                    <span class="tag" style="background: rgba(255,255,255,0.05);">64 GB</span>
+                                </li>
+                                <li style="padding-top: 0.8rem;">
+                                    <strong>Primary Subnet</strong>
+                                    <span class="tag" style="background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px dashed rgba(239, 68, 68, 0.3);">&lt;PRIMARY_SUBNET_CIDR&gt;</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Hosted VMs -->
+                        <div class="pve-vms">
+                            <h4 style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.8rem; text-transform: uppercase;">Hosted Virtual Machines</h4>
+                            <div class="dashboard-grid" style="grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                                <div class="fleet-node" style="padding: 0.8rem;">
+                                    <div class="fleet-details">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 3px;">ZuluServer</h4>
+                                        <span style="font-size:0.65rem; color:#8b909f; display: block;">180GB Disk • Ubuntu</span>
+                                    </div>
+                                </div>
+                                <div class="fleet-node" style="padding: 0.8rem;">
+                                    <div class="fleet-details">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 3px;">OMV NAS</h4>
+                                        <span style="font-size:0.65rem; color:#8b909f; display: block;">80GB Disk + Passthrough</span>
+                                    </div>
+                                </div>
+                                <div class="fleet-node" style="padding: 0.8rem;">
+                                    <div class="fleet-details">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 3px;">ha01 (CF)</h4>
+                                        <span style="font-size:0.65rem; color:#8b909f; display: block;">8GB Disk • DietPi</span>
+                                    </div>
+                                </div>
+                                <div class="fleet-node" style="padding: 0.8rem;">
+                                    <div class="fleet-details">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 3px;">ha02 (Vault)</h4>
+                                        <span style="font-size:0.65rem; color:#8b909f; display: block;">8GB Disk • DietPi</span>
+                                    </div>
+                                </div>
+                                <div class="fleet-node" style="padding: 0.8rem;">
+                                    <div class="fleet-details">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 3px;">ha03 (Guac)</h4>
+                                        <span style="font-size:0.65rem; color:#8b909f; display: block;">8GB Disk • DietPi</span>
+                                    </div>
+                                </div>
+                                <div class="fleet-node" style="padding: 0.8rem;">
+                                    <div class="fleet-details">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 3px;">Base Templates</h4>
+                                        <span style="font-size:0.65rem; color:#8b909f; display: block;">Cloud-Init Testing</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proxmox Storage Physical Architecture -->
+            <div class="dash-card">
+                <div class="card-inner topology-glow">
+                    <div class="card-title" style="margin-bottom: 1.5rem;">PVE Storage Allocations</div>
+                    <ul class="service-list" style="padding: 0;">
+                        <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding-bottom: 1rem;">
+                            <strong>nvme0n1 (LVM Storage)</strong>
+                            <span class="tag" style="background: rgba(96, 165, 250, 0.2); color: var(--primary); font-size: 0.85rem;">~1 TB</span>
+                        </li>
+                        <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding: 1rem 0;">
+                            <strong>sda & sdc (PVE Dirs)</strong>
+                            <span class="tag" style="background: rgba(45, 212, 191, 0.2); color: var(--success); font-size: 0.85rem;">2x 1 TB</span>
+                        </li>
+                        <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding: 1rem 0;">
+                            <strong>sdb (OMV Passthrough)</strong>
+                            <span class="tag" style="background: rgba(251, 191, 36, 0.2); color: var(--warning); font-size: 0.85rem;">6 TB</span>
+                        </li>
+                        <li style="padding-top: 1rem;">
+                            <strong>nvme1n1 (Optane)</strong>
+                            <span class="tag" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; font-size: 0.85rem;">14 GB</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bare-Metal Control Node (Pi 4) -->
+            <div class="dash-card span-2">
+                <div class="card-inner hardware-glow">
+                    <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>pibuster4 (Bare-metal)</span>
+                        <span class="tag" style="background: rgba(251, 191, 36, 0.2); color: var(--warning);">Control Head</span>
+                    </div>
+                    
+                    <div class="dashboard-grid layout-pve" style="grid-template-columns: 1fr 2fr; gap: 2rem; margin-top: 1.5rem;">
+                        <div class="pve-specs">
+                            <h4 style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.8rem; text-transform: uppercase;">Hardware Limits</h4>
+                            <ul class="service-list" style="padding: 0;">
+                                <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding-bottom: 0.8rem;">
+                                    <strong>Logic Board</strong>
+                                    <span class="tag" style="background: rgba(255,255,255,0.05); font-size: 0.75rem;">Pi 4B (4-Core)</span>
+                                </li>
+                                <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding: 0.8rem 0;">
+                                    <strong>Memory Limit</strong>
+                                    <span class="tag" style="background: rgba(255,255,255,0.05); font-size: 0.75rem;">4 GB LPDDR4</span>
+                                </li>
+                                <li style="padding-top: 0.8rem;">
+                                    <strong>Control Subnet</strong>
+                                    <span class="tag" style="background: rgba(248, 113, 113, 0.1); color: var(--danger); border: 1px dashed rgba(248, 113, 113, 0.3); font-size: 0.75rem;">&lt;PI_SUBNET_CIDR&gt;</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="pve-vms">
+                            <h4 style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.8rem; text-transform: uppercase;">Supervised Services</h4>
+                            <div class="dashboard-grid" style="grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                                <div class="fleet-node" style="padding: 0.8rem;">
+                                    <div class="fleet-details">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 3px;">Raspberry Pi OS</h4>
+                                        <span style="font-size:0.65rem; color:#8b909f; display: block;">Debian Bare-Metal</span>
+                                    </div>
+                                </div>
+                                <div class="fleet-node" style="padding: 0.8rem;">
+                                    <div class="fleet-details">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 3px;">Cloudflared HA</h4>
+                                        <span style="font-size:0.65rem; color:#8b909f; display: block;">Zero Trust Network Tunnel</span>
+                                    </div>
+                                </div>
+                                <div class="fleet-node" style="padding: 0.8rem;">
+                                    <div class="fleet-details">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 3px;">Ansible Configuration</h4>
+                                        <span style="font-size:0.65rem; color:#8b909f; display: block;">GitOps Automation Controller</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pi 4 Storage Physical Architecture -->
+            <div class="dash-card">
+                <div class="card-inner topology-glow">
+                    <div class="card-title" style="margin-bottom: 1.5rem;">pibuster4 Storage Allocation</div>
+                    <ul class="service-list" style="padding: 0;">
+                        <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding-bottom: 1rem;">
+                            <strong>sda (USB 3.0 SSD)</strong>
+                            <span class="tag" style="background: rgba(96, 165, 250, 0.2); color: var(--primary); font-size: 0.85rem;">489 GB</span>
+                        </li>
+                        <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding: 1rem 0;">
+                            <strong>sda1 (/boot/firmware)</strong>
+                            <span class="tag" style="background: rgba(45, 212, 191, 0.2); color: var(--success); font-size: 0.85rem;">512 MB</span>
+                        </li>
+                        <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding: 1rem 0;">
+                            <strong>sda2 (Root /)</strong>
+                            <span class="tag" style="background: rgba(251, 191, 36, 0.2); color: var(--warning); font-size: 0.85rem;">488.5 GB</span>
+                        </li>
+                        <li style="padding-top: 1rem;">
+                            <strong>zram0 (SWAP)</strong>
+                            <span class="tag" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; font-size: 0.85rem;">2 GB</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TIER 3: LOGICAL INFRASTRUCTURE -->
+        <div class="tier-header">
+            <h3>Layer 3: Logical Infrastructure & Orchestration</h3>
+            <span class="tier-desc">Core Skills: <strong>GitOps Automation, Kubernetes Declarative State, Virtual Machine Orchestration</strong></span>
+        </div>
+        <div class="dashboard-grid" style="margin-bottom: 4rem;">
+            <!-- Proxmox Core -->
+            <div class="dash-card span-2">
+                <div class="card-inner hardware-glow">
+                    <div class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                        Compute Fleet (Proxmox + ARM)
+                    </div>
+                    
+                    <div class="fleet-grid">
+                        <div class="fleet-node">
+                            <div class="node-ring">🍓</div>
+                            <div class="fleet-details">
+                                <h4>pibuster4 <span class="tag" style="font-size:0.6rem; margin-left:5px; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2);">Physical bare-metal</span></h4>
+                                <span>Control Head / Ingress</span>
+                                <div class="mini-bar"><div style="width: 45%; background: var(--success);"></div></div>
+                            </div>
+                        </div>
+                        <div class="fleet-node">
+                            <div class="node-ring">🖥️</div>
+                            <div class="fleet-details">
+                                <h4>ZuluServer <span class="tag" style="font-size:0.6rem; margin-left:5px; padding: 2px 6px; border-radius: 4px; border: 1px dashed rgba(255,255,255,0.2);">Ubuntu VM</span> <span class="tag" style="font-size:0.6rem; margin-left:5px; padding: 2px 6px; border-radius: 4px; background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3);">Proxmox Box</span></h4>
+                                <span>Data Core / Observability</span>
+                                <div class="mini-bar"><div style="width: 85%; background: var(--warning);"></div></div>
+                            </div>
+                        </div>
+                        <div class="fleet-node">
+                            <div class="node-ring">📦</div>
+                            <div class="fleet-details">
+                                <h4>DietPi HA Fleet <span class="tag" style="font-size:0.6rem; margin-left:5px; padding: 2px 6px; border-radius: 4px; border: 1px dashed rgba(255,255,255,0.2);">3x Micro VMs</span> <span class="tag" style="font-size:0.6rem; margin-left:5px; padding: 2px 6px; border-radius: 4px; background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3);">Proxmox Box</span></h4>
+                                <span>Distributed Microservices</span>
+                                <div class="mini-bar"><div style="width: 30%; background: var(--primary);"></div></div>
+                            </div>
+                        </div>
+                        <div class="fleet-node">
+                            <div class="node-ring" style="font-size: 1.4rem;">💾</div>
+                            <div class="fleet-details">
+                                <h4>OpenMediaVault NAS <span class="tag" style="font-size:0.6rem; margin-left:5px; padding: 2px 6px; border-radius: 4px; border: 1px dashed rgba(255,255,255,0.2);">Debian VM</span> <span class="tag" style="font-size:0.6rem; margin-left:5px; padding: 2px 6px; border-radius: 4px; background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3);">Proxmox Box</span></h4>
+                                <span>Physical Disk Passthrough</span>
+                                <div class="mini-bar"><div style="width: 70%; background: var(--secondary);"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- K3s Sandbox -->
+            <div class="dash-card">
+                <div class="card-inner k3s-glow">
+                    <div class="card-title">
+                        <span>☸️</span> Kubernetes Engine
+                    </div>
+                    <div class="k3s-content">
+                        <p class="k3s-desc">Terraform IaC provisioning phase.</p>
+                        <div class="k3s-progress">
+                            <div class="prog-track">
+                                <div class="prog-fill" style="width: 25%;"></div>
+                            </div>
+                        </div>
+                        <div class="roadmap-pills">
+                            <span class="pill">Vaultwarden Backups</span>
+                            <span class="pill">SMART Alerts</span>
+                            <span class="pill">Memory Limits</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hardware Configuration Detail -->
+            <div class="dash-card span-2">
+                <div class="card-inner hardware-glow">
+                    <div class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"></path><path d="M14 2v6h6"></path><path d="m3 12.5 3 3 3-3"></path><path d="M6 15.5v-8"></path></svg>
+                        Hardware IaC Configuration
+                    </div>
+                    <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.5rem;">Direct physical disk attachment to OpenMediaVault NAS VM using stable hardware identifiers, bypassing Proxmox `/etc/fstab`.</p>
+                    
+                    <div class="terminal-mockup" style="width: 100%; border-radius: 8px; font-size: 0.8rem;">
+                        <div class="terminal-header" style="justify-content: flex-start;">
+                            <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                            <span class="header-text" style="font-family: inherit;">Proxmox Host CLI</span>
+                        </div>
+                        <div class="terminal-body" style="padding: 15px; color: #a5b4fc; min-height: auto;">
+                            <span style="color: #60a5fa; opacity: 0.7;"># Set SCSI controller & pass physical 6TB drive</span><br>
+                            <span style="color: #f3f4f6;">qm set</span> &lt;OMV_VMID&gt; <span style="color: #34d399;">-scsihw</span> virtio-scsi-pci<br>
+                            <span style="color: #f3f4f6;">qm set</span> &lt;OMV_VMID&gt; <span style="color: #34d399;">-scsi0</span> /dev/disk/by-id/&lt;DISK_BY_ID&gt;,iothread=1<br>
+                            <br>
+                            <span style="color: #60a5fa; opacity: 0.7;"># Verify fstab eviction (removed from host)</span><br>
+                            <span style="color: #f3f4f6;">cat</span> /etc/fstab | <span style="color: #f3f4f6;">grep</span> sdc
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GitOps Terminal Card -->
+            <div class="dash-card">
+                <div class="card-inner k3s-glow" style="display: flex; flex-direction: column;">
+                    <div class="card-title" style="margin-bottom: 1rem;">
+                        <span>⚙️</span> Automation Controller
+                    </div>
+                    <div class="terminal-mockup" style="width: 100%; border-radius: 8px; flex-grow: 1; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.4); box-shadow: inset 0 0 20px rgba(0,0,0,0.8);">
+                        <div class="terminal-header" style="background: rgba(0,0,0,0.6);">
+                            <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                            <span class="header-text" style="font-family: inherit;">GitOps Loop</span>
+                        </div>
+                        <div class="terminal-body" id="typewriter" style="font-size: 0.8rem; padding: 1.2rem; line-height: 1.5;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TIER 4: APPLICATION WORKLOADS -->
+        <div class="tier-header">
+            <h3>Layer 4: Distributed Services</h3>
+            <span class="tier-desc">Core Skills: <strong>Microservices Architecture, Reverse Proxies, Media Pipeline Integration</strong></span>
+        </div>
+        <div class="dashboard-grid">
+            <!-- Services Area -->
+            <div class="dash-card full-span">
+                <div class="card-inner topology-glow">
+                    <div class="card-title">Service Topologies</div>
+                    
+                    <div class="topo-grid">
+                        <!-- Security -->
+                        <div class="topo-box security">
+                            <div class="topo-head">🛡️ Access <span class="topo-count">4 Nodes</span></div>
+                            <div class="topo-list">
+                                <div class="topo-item"><span>Cloudflared HA</span> <div class="loc">pi4/ha01</div></div>
+                                <div class="topo-item"><span>Vaultwarden</span> <div class="loc">ha02</div></div>
+                                <div class="topo-item"><span>Guacamole</span> <div class="loc">ha03</div></div>
+                            </div>
+                        </div>
+
+                        <!-- Observability -->
+                        <div class="topo-box metrics">
+                            <div class="topo-head">📊 Observability <span class="topo-count">Global</span></div>
+                            <div class="topo-list">
+                                <div class="topo-item"><span>Prometheus/Grafana</span> <div class="loc">Zulu</div></div>
+                                <div class="topo-item"><span>Alertmanager</span> <div class="loc">Tgrm</div></div>
+                                <div class="topo-item"><span>Dozzle Agents</span> <div class="loc">All</div></div>
+                            </div>
+                        </div>
+
+                        <!-- Core -->
+                        <div class="topo-box core">
+                            <div class="topo-head">🛠️ Automation <span class="topo-count">Core</span></div>
+                            <div class="topo-list">
+                                <div class="topo-item"><span>Pi-hole (Primary)</span> <div class="loc">Zulu</div></div>
+                                <div class="topo-item"><span>Pi-hole (Sec)</span> <div class="loc">ha03</div></div>
+                                <div class="topo-item"><span>Ansible</span> <div class="loc">pi4</div></div>
+                            </div>
+                        </div>
+
+                        <!-- Storage -->
+                        <div class="topo-box storage">
+                            <div class="topo-head">🍿 Storage <span class="topo-count">9.1 TB</span></div>
+                            <div class="topo-list">
+                                <div class="topo-item"><span>Plex Media</span> <div class="loc">Zulu</div></div>
+                                <div class="topo-item"><span>OMV NAS Server</span> <div class="loc">OMV VM</div></div>
+                                <div class="topo-item"><span>Tautulli</span> <div class="loc">ha02</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Massive Service Catalogue -->
+            <div class="dash-card full-span workloads-glow">
+                <div class="card-inner">
+                    <div class="card-title" style="margin-bottom: 2rem;">Homelab Application Workloads</div>
+                    
+                    <div class="marquee-container">
+                        <!-- Row 1: Media Stack -->
+                        <div class="marquee-row" style="--duration: 45s;">
+                            <div class="marquee-label">🎬 Media Stack</div>
+                            <div class="marquee-track">
+                                <div class="marquee-content">
+                                    <span class="app-badge media-app">📺 Sonarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🎬 Radarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🎵 Lidarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🔍 Prowlarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🎯 Huntarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🧹 Cleanuparr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">📦 Dispatcharr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🎶 Sonobarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">📼 TubeArchivist<span class="host-tag">Zulu</span></span>
+                                </div>
+                                <div class="marquee-content">
+                                    <span class="app-badge media-app">📺 Sonarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🎬 Radarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🎵 Lidarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🔍 Prowlarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🎯 Huntarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🧹 Cleanuparr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">📦 Dispatcharr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🎶 Sonobarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">📼 TubeArchivist<span class="host-tag">Zulu</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Downloads & Proxies -->
+                        <div class="marquee-row" style="--duration: 40s;">
+                            <div class="marquee-label">⬇️ Downloads & Proxy</div>
+                            <div class="marquee-track reverse">
+                                <div class="marquee-content">
+                                    <span class="app-badge net-app">⏬ qBittorrent<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">📰 NZBGet<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">🛡️ FlareSolverr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">🎧 Slskd (P2P)<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">🔀 Nginx Proxy Mgr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">📡 Threadfin<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">🔒 Vaultwarden<span class="host-tag">ha02</span></span>
+                                    <span class="app-badge net-app">☁️ Cloudflared<span class="host-tag">pi4</span></span>
+                                </div>
+                                <div class="marquee-content">
+                                    <span class="app-badge net-app">⏬ qBittorrent<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">📰 NZBGet<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">🛡️ FlareSolverr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">🎧 Slskd (P2P)<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">🔀 Nginx Proxy Mgr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">📡 Threadfin<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">🔒 Vaultwarden<span class="host-tag">ha02</span></span>
+                                    <span class="app-badge net-app">☁️ Cloudflared<span class="host-tag">pi4</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Ops & Dev -->
+                        <div class="marquee-row" style="--duration: 50s;">
+                            <div class="marquee-label">🛠️ Ops & Dashboards</div>
+                            <div class="marquee-track">
+                                <div class="marquee-content">
+                                    <span class="app-badge dev-app">🏠 Homepage<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge dev-app">🖥️ Homarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge dev-app">📈 Dashy<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge dev-app">💻 Code-Server<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge dev-app">🦊 GitLab CI<span class="host-tag">Fleet</span></span>
+                                    <span class="app-badge dev-app">🏗️ Terraform<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge dev-app">⚙️ Ansible<span class="host-tag">pi4</span></span>
+                                    <span class="app-badge dev-app">📁 Filebrowser<span class="host-tag">Zulu</span></span>
+                                </div>
+                                <div class="marquee-content">
+                                    <span class="app-badge dev-app">🏠 Homepage<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge dev-app">🖥️ Homarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge dev-app">📈 Dashy<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge dev-app">💻 Code-Server<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge dev-app">🦊 GitLab CI<span class="host-tag">Fleet</span></span>
+                                    <span class="app-badge dev-app">🏗️ Terraform<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge dev-app">⚙️ Ansible<span class="host-tag">pi4</span></span>
+                                    <span class="app-badge dev-app">📁 Filebrowser<span class="host-tag">Zulu</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+    <br><br>
+    <footer>
+        <p>Built as a Living Portfolio • Real-time Architectural Data Viz</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
