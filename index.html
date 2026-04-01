@@ -101,28 +101,36 @@
                         <!-- Premium HTML Nodes -->
                         <div class="network-nodes" style="opacity: 1;">
                             
-                            <!-- Ingress Heads -->
-                            <div class="net-node public hub-glow" style="top: -20px; left: 23%; transform: translateX(-50%);">
-                                <div class="hub-icon">🌐</div>
-                                <span>Public Request</span>
-                                <div class="tag" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; font-size: 0.7rem; margin-top: 5px;">Cloudflared HA</div>
+                            <!-- CLOUDFLARE PATH -->
+                            <div class="mobile-path">
+                                <div class="net-node public hub-glow node-public">
+                                    <div class="hub-icon">🌐</div>
+                                    <span>Public Request</span>
+                                    <div class="tag" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; font-size: 0.7rem; margin-top: 5px;">Cloudflared HA</div>
+                                </div>
+                                <div class="mobile-arrow cf-color">↓</div>
+                                <div class="net-node cf-replica node-cf-1" style="box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);">☁️ CF Tunnel (pi4)<div style="font-size:0.65rem; color:#8b909f; font-weight:normal; margin-top:5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px;">Physical bare-metal</div></div>
+                                <div class="net-node cf-replica node-cf-2" style="box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);">☁️ CF Tunnel (ha01)<div style="font-size:0.55rem; color:#fbbf24; font-weight:normal; margin-top:5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">VM on Proxmox Box</div></div>
                             </div>
                             
-                            <div class="net-node tailscale hub-glow" style="top: -20px; left: 77%; transform: translateX(-50%);">
-                                <div class="hub-icon">🔒</div>
-                                <span>Admin VPN</span>
-                                <div class="tag" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.7rem; margin-top: 5px;">Tailscale Mesh</div>
+                            <div class="mobile-divider"></div>
+                            
+                            <!-- TAILSCALE PATH -->
+                            <div class="mobile-path">
+                                <div class="net-node tailscale hub-glow node-vpn">
+                                    <div class="hub-icon">🔒</div>
+                                    <span>Admin VPN</span>
+                                    <div class="tag" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.7rem; margin-top: 5px;">Tailscale Mesh</div>
+                                </div>
+                                <div class="mobile-arrow ts-color">↓</div>
+                                <div class="net-node ts-node node-ts-1" style="box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">🦎 Tailscale (ha02)<div style="font-size:0.55rem; color:#fbbf24; font-weight:normal; margin-top:5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">VM on Proxmox Box</div></div>
+                                <div class="net-node ts-node node-ts-2" style="box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">🦎 Tailscale (ha03)<div style="font-size:0.55rem; color:#fbbf24; font-weight:normal; margin-top:5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">VM on Proxmox Box</div></div>
                             </div>
                             
-                            <!-- Middle Tier (Tunnels) -->
-                            <div class="net-node cf-replica" style="top: 200px; left: 9%; transform: translateX(-50%); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); text-align: center;">☁️ CF Tunnel (pi4)<div style="font-size:0.65rem; color:#8b909f; font-weight:normal; margin-top:5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px;">Physical bare-metal</div></div>
-                            <div class="net-node cf-replica" style="top: 200px; left: 37%; transform: translateX(-50%); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); text-align: center;">☁️ CF Tunnel (ha01)<div style="font-size:0.55rem; color:#fbbf24; font-weight:normal; margin-top:5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">VM on Proxmox Box</div></div>
-                            
-                            <div class="net-node ts-node" style="top: 200px; left: 63%; transform: translateX(-50%); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2); text-align: center;">🦎 Tailscale (ha02)<div style="font-size:0.55rem; color:#fbbf24; font-weight:normal; margin-top:5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">VM on Proxmox Box</div></div>
-                            <div class="net-node ts-node" style="top: 200px; left: 91%; transform: translateX(-50%); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2); text-align: center;">🦎 Tailscale (ha03)<div style="font-size:0.55rem; color:#fbbf24; font-weight:normal; margin-top:5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">VM on Proxmox Box</div></div>
+                            <div class="mobile-arrow converge-color">↓</div>
 
                             <!-- Bottom Tier (Backend) -->
-                            <div class="net-node backend hub-glow" style="top: 320px; left: 50%; transform: translateX(-50%); border-top-color: #f59e0b;">
+                            <div class="net-node backend hub-glow node-docker" style="border-top-color: #f59e0b;">
                                 <div class="hub-icon">⚙️</div>
                                 <span>Self-Hosted Services Network</span>
                                 <div class="tag" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; font-size: 0.7rem; margin-top: 5px;">Docker Stack</div>
