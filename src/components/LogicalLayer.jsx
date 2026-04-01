@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from './Card';
 import Badge from './Badge';
+import { BookOpen } from 'lucide-react';
 import useTypewriter from '../hooks/useTypewriter';
 
 const LogicalLayer = () => {
@@ -30,7 +31,8 @@ Applying k3s manifest updates...
         ram: "4GB LPDDR4",
         disk: "500GB USB 3.0 SSD",
         net: "Eth0 (Physical)",
-        services: ["Cloudflared HA", "Ansible GitOps", "Uptime Kuma", "Dozzle Main"]
+        services: ["Cloudflared HA", "Ansible GitOps", "Uptime Kuma", "Dozzle Main"],
+        guideUrl: "https://reprodev.com/setting-up-a-raspberry-pi-4-model-b/"
       }
     },
     { 
@@ -47,7 +49,8 @@ Applying k3s manifest updates...
         ram: "8GB Allocated",
         disk: "180GB (local-lvm)",
         net: "vBridge (Internal)",
-        services: ["Plex / Tautulli", "Prometheus / Grafana", "Nginx Proxy Mgr", "Terraform Repo"]
+        services: ["Plex / Tautulli", "Prometheus / Grafana", "Nginx Proxy Mgr", "Terraform Repo"],
+        guideUrl: "https://reprodev.com/tag/install-guides/"
       }
     },
     { 
@@ -263,7 +266,7 @@ const PipelineStep = ({ icon, title, desc, color, dotColor, isLast }) => (
   </div>
 );
 
-const NodeRing = ({ icon, name, tag, sub, percent, color, isExpanded, onClick }) => (
+const NodeRing = ({ icon, name, tag, sub, percent, color, isExpanded, onClick, details }) => (
   <button 
     onClick={onClick}
     className={`flex items-center gap-4 p-4 border rounded-2xl transition-all text-left w-full relative overflow-hidden group ${
@@ -281,8 +284,22 @@ const NodeRing = ({ icon, name, tag, sub, percent, color, isExpanded, onClick })
         </span>
       </div>
       <div className="text-[10px] text-slate-500 mb-2 font-medium">{sub}</div>
-      <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full shadow-[0_0_8px_currentColor] ${color}`} style={{ width: `${percent}%` }}></div>
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-0.5 bg-white/5 rounded-full overflow-hidden">
+          <div className={`h-full rounded-full shadow-[0_0_8px_currentColor] ${color}`} style={{ width: `${percent}%` }}></div>
+        </div>
+        {details.guideUrl && (
+          <a 
+            href={details.guideUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="p-1 text-slate-600 hover:text-emerald-400 transition-colors"
+            onClick={(e) => e.stopPropagation()}
+            title="View Guide"
+          >
+            <BookOpen size={10} />
+          </a>
+        )}
       </div>
     </div>
     <div className="text-slate-600 transition-all flex items-center justify-center w-6" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', opacity: isExpanded ? 1 : 0.4 }}>

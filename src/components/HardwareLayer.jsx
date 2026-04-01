@@ -1,6 +1,7 @@
 import React from 'react';
 import Card from './Card';
 import Badge from './Badge';
+import { BookOpen } from 'lucide-react';
 
 const HardwareLayer = () => {
   return (
@@ -15,7 +16,20 @@ const HardwareLayer = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Proxmox Hypervisor Box */}
         <Card 
-          title="Proxmox Virtual Environment (Bare-metal)" 
+          title={
+            <div className="flex items-center gap-3">
+              <span>Proxmox Virtual Environment (Bare-metal)</span>
+              <a 
+                href="https://reprodev.com/the-proxmox-vs-esxi-debate/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg text-purple-400 hover:bg-purple-500/20 transition-all group/doc"
+                title="View Proxmox Guide"
+              >
+                <BookOpen size={14} className="group-hover/doc:scale-110 transition-transform" />
+              </a>
+            </div>
+          }
           className="lg:col-span-2" 
           glowColor="rgba(168, 85, 247, 0.15)"
         >
@@ -84,7 +98,24 @@ const HardwareLayer = () => {
         </Card>
 
         {/* Bare-Metal Control Node (Pi 4) */}
-        <Card title="pibuster4 (Bare-metal)" className="lg:col-span-2" glowColor="rgba(251, 191, 36, 0.15)">
+        <Card 
+          title={
+            <div className="flex items-center gap-3">
+              <span>pibuster4 (Bare-metal)</span>
+              <a 
+                href="https://reprodev.com/setting-up-a-raspberry-pi-4-model-b/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 hover:bg-amber-500/20 transition-all group/doc"
+                title="View Pi Setup Guide"
+              >
+                <BookOpen size={14} className="group-hover/doc:scale-110 transition-transform" />
+              </a>
+            </div>
+          }
+          className="lg:col-span-2" 
+          glowColor="rgba(251, 191, 36, 0.15)"
+        >
            <div className="flex flex-col md:flex-row gap-8">
             <div className="flex-1">
               <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Hardware Limits</h4>

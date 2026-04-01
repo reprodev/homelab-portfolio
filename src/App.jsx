@@ -5,6 +5,7 @@ import HardwareLayer from './components/HardwareLayer.jsx';
 import LogicalLayer from './components/LogicalLayer.jsx';
 import WorkloadLayer from './components/WorkloadLayer.jsx';
 import DRPipeline from './components/DRPipeline.jsx';
+import KnowledgeLayer from './components/KnowledgeLayer.jsx';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <LogicalLayer />
           <DRPipeline />
           <WorkloadLayer />
+          <KnowledgeLayer />
         </main>
 
         <footer className="py-12 border-t border-white/5 text-center">
