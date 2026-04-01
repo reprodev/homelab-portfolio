@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Badge from './Badge';
+import { Github, Linkedin, Globe, ExternalLink } from 'lucide-react';
 
 const Hero = () => {
   const container = {
@@ -49,14 +50,20 @@ const Hero = () => {
           </div>
 
           <motion.div variants={item} className="flex flex-wrap gap-4 pt-4 lg:pt-0">
-            <a href="https://github.com/reprodev" target="_blank" rel="noreferrer" className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium">
-              GitHub <span className="opacity-40 ml-1">&#8599;</span>
+            <a href="https://github.com/reprodev" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium group">
+              <Github size={18} className="text-slate-400 group-hover:text-white transition-colors" />
+              GitHub 
+              <ExternalLink size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
             </a>
-            <a href="https://www.linkedin.com/in/khurram-nazir-50b6a13aa/" target="_blank" rel="noreferrer" className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium">
-              LinkedIn <span className="opacity-40 ml-1">&#8599;</span>
+            <a href="https://www.linkedin.com/in/khurram-nazir-50b6a13aa/" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium group">
+              <Linkedin size={18} className="text-[#0077B5] group-hover:text-[#00A0DC] transition-colors" />
+              LinkedIn 
+              <ExternalLink size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
             </a>
-            <a href="https://reprodev.com" target="_blank" rel="noreferrer" className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium">
-              Website <span className="opacity-40 ml-1">&#8599;</span>
+            <a href="https://reprodev.com" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium group">
+              <Globe size={18} className="text-emerald-400 group-hover:text-emerald-300 transition-colors" />
+              Website 
+              <ExternalLink size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
             </a>
           </motion.div>
         </div>
