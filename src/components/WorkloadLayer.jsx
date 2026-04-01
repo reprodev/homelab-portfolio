@@ -1,240 +1,199 @@
 import React from 'react';
 import Card from './Card';
 import Badge from './Badge';
-
-const HOST_THEMES = {
-  'Zulu': { color: 'text-azure', bg: 'bg-azure/10', border: 'border-azure/20', dot: 'bg-azure' },
-  'pi4': { color: 'text-amberGold', bg: 'bg-amberGold/10', border: 'border-amberGold/20', dot: 'bg-amberGold' },
-  'ha-fleet': { color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20', dot: 'bg-emerald-400' },
-  'Remote': { color: 'text-slate-400', bg: 'bg-white/5', border: 'border-white/10', dot: 'bg-slate-500' }
-};
+import RationaleSection from './RationaleSection';
+import { LayoutGrid, Globe, Shield, Terminal, Boxes, Zap } from 'lucide-react';
+import { DockerLogo, PlexLogo } from './BrandLogos';
 
 const WorkloadLayer = () => {
-  const workloads = {
-    media: [
-      { name: "Sonarr", icon: "📺", host: "Zulu", hash: "s4:9d2" },
-      { name: "Radarr", icon: "🎬", host: "Zulu", hash: "r1:f3a" },
-      { name: "Lidarr", icon: "🎵", host: "Zulu", hash: "l9:bb1" },
-      { name: "Prowlarr", icon: "🔍", host: "Zulu", hash: "p2:c42" },
-      { name: "Huntarr", icon: "🎯", host: "Zulu", hash: "h4:8e1" },
-      { name: "Cleanuparr", icon: "🧹", host: "Zulu", hash: "c1:2d3" },
-      { name: "Dispatcharr", icon: "📦", host: "Zulu", hash: "d5:0f9" },
-      { name: "Sonobarr", icon: "🎶", host: "Zulu", hash: "s9:a1b" },
-      { name: "TubeArchivist", icon: "📼", host: "Zulu", hash: "t2:7c4" },
-      { name: "iPlayarr", icon: "📱", host: "Zulu", hash: "i3:6b2" },
-      { name: "Copyparty", icon: "🎵", host: "Zulu", hash: "c6:4s1" },
-    ],
-    net: [
-      { name: "qBittorrent", icon: "⏬", host: "Zulu", hash: "q1:3d2" },
-      { name: "NZBGet", icon: "📰", host: "Zulu", hash: "n4:9f1" },
-      { name: "FlareSolverr", icon: "🛡️", host: "Zulu", hash: "f2:a1b" },
-      { name: "Slskd (P2P)", icon: "🎧", host: "Zulu", hash: "s3:c4d" },
-      { name: "Nginx Proxy Mgr", icon: "🔀", host: "Zulu", hash: "n8:1e2" },
-      { name: "Threadfin", icon: "📡", host: "Zulu", hash: "t5:0g1" },
-      { name: "Vaultwarden", icon: "🔒", host: "ha-fleet", hash: "v2:8h3" },
-      { name: "Cloudflared", icon: "☁️", host: "pi4", hash: "c1:4k5" },
-      { name: "WatchYourLAN", icon: "👀", host: "Zulu", hash: "w3:1m2" },
-      { name: "Glances", icon: "🔍", host: "Zulu", hash: "g2:5n4" },
-    ],
-    ops: [
-      { name: "Homepage", icon: "🏠", host: "Zulu", hash: "h1:9z2" },
-      { name: "Homarr", icon: "🖥️", host: "Zulu", hash: "h2:4x1" },
-      { name: "Dashy", icon: "📈", host: "Zulu", hash: "d3:7y4" },
-      { name: "Code-Server", icon: "💻", host: "Zulu", hash: "c1:2w3" },
-      { name: "GitLab CI", icon: "🦊", host: "ha-fleet", hash: "g4:1q2" },
-      { name: "Terraform", icon: "🏗️", host: "Zulu", hash: "t2:8r4" },
-      { name: "Ansible", icon: "⚙️", host: "pi4", hash: "a5:9t1" },
-      { name: "Filebrowser Q.", icon: "📁", host: "Zulu", hash: "f3:6u2" },
-    ]
-  };
-
   return (
-    <section className="mb-24 relative">
-      {/* Background Watermark (Docker) */}
-      <div className="absolute -top-12 -right-12 opacity-[0.03] pointer-events-none select-none z-0">
-        <DockerIcon className="w-96 h-96" />
-      </div>
-
-      <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-10 gap-2 border-b border-white/5 pb-4 relative z-10">
-        <div className="flex flex-col">
-          <h3 className="text-3xl font-extralight tracking-tight text-white m-0">Layer 4: Distributed Services</h3>
-          <span className="text-[10px] uppercase font-black tracking-[0.3em] text-azure mt-1">Dockerized Infrastructure Registry</span>
-        </div>
+    <section className="mb-24">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-10 gap-2 border-b border-white/5 pb-4">
+        <h3 className="text-3xl font-extralight tracking-tight text-white m-0">Layer 4: Distributed Services & Workloads</h3>
         <span className="text-sm font-mono text-slate-400">
-          Core Skills: <strong className="text-azure-light font-normal">CI/CD Automation, Microservices Architecture, Reverse Proxy Logic, Docker Swarm, Observability Stack</strong>
+          Core Skills: <strong className="text-emerald-400 font-normal">Docker Ecosystem, Microservices, Reverse Proxy, Observability</strong>
         </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 relative z-10">
-        <Card title="Service Topologies" glowColor="rgba(59, 130, 246, 0.1)">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <TopoBox title="🛡️ Access" count="4 Nodes" color="rose" items={[
-              { name: "Cloudflared HA", loc: "pi4/ha01" },
-              { name: "Vaultwarden", loc: "ha-fleet" },
-              { name: "Guacamole", loc: "ha-fleet" }
-            ]} />
-             <TopoBox title="📊 Observability" count="Global" color="azure" items={[
-              { name: "Grafana/Prometheus", loc: "Zulu" },
-              { name: "Dozzle Aggregator", loc: "pi4" },
-              { name: "cAdvisor / Kuma", loc: "Global" }
-            ]} />
-             <TopoBox title="🛠️ Automation" count="Core" color="amber" items={[
-              { name: "Pre/Post Scripts", loc: "PVE Node" },
-              { name: "Pi-hole HA", loc: "Zulu/ha-fleet" },
-              { name: "Ansible Control", loc: "pi4" }
-            ]} />
-             <TopoBox title="💾 Data & Rescue" count="9.1 TB" color="purple" items={[
-              { name: "Veeam Exporter", loc: "Zulu" },
-              { name: "[Knightbox] Repo", loc: "Remote" },
-              { name: "OMV Direct Disk", loc: "OMV VM" }
-            ]} />
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Docker Pool */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card 
+            title={
+              <div className="flex items-center gap-3">
+                <DockerLogo className="w-6 h-6 text-[#2496ED]" />
+                <div className="flex flex-col">
+                  <span className="leading-tight">Docker Container Pool</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-[#2496ED]/70 font-black mt-1">Declarative Workloads</span>
+                </div>
+              </div>
+            }
+            glowColor="rgba(36, 150, 237, 0.15)"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-4">
+              <div>
+                <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-6 border-b border-white/5 pb-2 italic">Productivity & Access</h4>
+                <div className="space-y-3">
+                  <ServiceItem name="Nextcloud" tag="AIO - Data Hub" color="azure" />
+                  <ServiceItem name="Vaultwarden" tag="Bitwarden Core" color="emerald" />
+                  <ServiceItem name="Guacamole" tag="RDP Gatehouse" color="amber" />
+                  <ServiceItem name="Homepage" tag="Services Dashboard" color="emerald" />
+                </div>
+              </div>
+              <div>
+                <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-6 border-b border-white/5 pb-2 italic">Network Utilities</h4>
+                <div className="space-y-3">
+                  <ServiceItem name="Nginx Proxy Mgr." tag="Edge Certs" color="azure" />
+                  <ServiceItem name="Pi-hole" tag="Recursive DNS" color="emerald" />
+                  <ServiceItem name="Uptime Kuma" tag="Telemetry Hub" color="emerald" />
+                  <ServiceItem name="Dozzle" tag="Log Aggregation" color="muted" />
+                </div>
+              </div>
+            </div>
+          </Card>
 
-        <Card title={
-          <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4">
-            <div className="flex items-center gap-3">
-              <DockerIcon className="w-6 h-6 text-azure" />
-              <span>Container Management & Orchestration</span>
-              <div className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 bg-azure/10 border border-azure/20 rounded-md">
-                <div className="w-1 h-1 rounded-full bg-azure animate-pulse" />
-                <span className="text-[9px] font-black text-azure uppercase tracking-tighter">Stack Healthy (36 Containers)</span>
+          {/* High-Performance Host Workload (PLEX) */}
+          <Card 
+            title={
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 bg-[#EBA000]/10 border border-[#EBA000]/20 rounded-lg">
+                  <PlexLogo className="w-5 h-5 text-[#EBA000]" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="leading-tight">Performance Host Workloads</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-[#EBA000]/70 font-black mt-1">Native GPU acceleration</span>
+                </div>
+              </div>
+            }
+            glowColor="rgba(235, 160, 0, 0.1)"
+          >
+             <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-2xl group/plex">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-[#EBA000]/10 rounded-xl flex items-center justify-center border border-[#EBA000]/20 group-hover/plex:scale-110 transition-transform">
+                    <PlexLogo className="w-7 h-7 text-[#EBA000]" />
+                  </div>
+                  <div>
+                    <h5 className="text-lg font-black text-white italic uppercase tracking-tight">Plex Media Server</h5>
+                    <p className="text-[10px] text-slate-500 font-mono">Running natively on ZuluServer (Ubuntu)</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Badge color="amber">IHD Graphics Passthrough</Badge>
+                  <Badge color="azure">Native Performance</Badge>
+                </div>
+             </div>
+             <p className="text-[11px] text-slate-500 italic mt-4 leading-relaxed px-2">
+               Strategically deployed as a native host-OS application to ensure direct access to <strong>Intel QuickSync GPU</strong> instructions for 4K HW transcoding, bypassing containerized driver overhead.
+             </p>
+          </Card>
+        </div>
+
+        {/* Logical Stack Integration */}
+        <Card title="Observability Stack" glowColor="rgba(16, 185, 129, 0.1)">
+          <div className="space-y-6">
+            <div className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl">
+              <div className="flex items-center gap-2 mb-3">
+                <Activity size={14} className="text-emerald-400" />
+                <span className="text-xs font-black uppercase tracking-widest text-white">Full-Stack Metrics</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge color="emerald">Prometheus</Badge>
+                <Badge color="azure">Grafana</Badge>
+                <Badge color="muted">Netdata</Badge>
               </div>
             </div>
-            <HostLegend />
-          </div>
-        } glowColor="rgba(168, 85, 247, 0.1)">
-          <div className="flex flex-col gap-6 bg-black/20 p-6 rounded-3xl overflow-hidden relative border border-white/5 shadow-2xl">
-            {/* Docker Floating Label for mobile */}
-            <div className="md:hidden flex items-center justify-between w-full mb-2">
-              <div className="flex items-center gap-1.5 py-1 px-3 bg-azure/10 border border-azure/20 rounded-full">
-                <DockerIcon className="w-3 h-3 text-azure" />
-                <span className="text-[10px] font-bold text-azure uppercase tracking-widest">Containerized Registry</span>
+
+            <div className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl">
+              <div className="flex items-center gap-2 mb-3">
+                <Shield size={14} className="text-slate-400" />
+                <span className="text-xs font-black uppercase tracking-widest text-white">Edge Security</span>
               </div>
-              <div className="flex items-center gap-1 text-[9px] font-mono text-slate-500">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                <span>k3s/docker:verified</span>
+              <div className="flex flex-wrap gap-2">
+                <Badge color="muted">Authelia</Badge>
+                <Badge color="amber">CrowdSec</Badge>
               </div>
             </div>
-            
-            <MarqueeRow label="🎬 Media Stack" items={workloads.media} duration="45s" />
-            <MarqueeRow label="⬇️ Downloads & Proxy" items={workloads.net} duration="40s" reverse />
-            <MarqueeRow label="🛠️ Ops & Dashboards" items={workloads.ops} duration="50s" />
+
+            <div className="mt-8 pt-6 border-t border-white/5">
+               <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-4 italic">Future Roadmap</h4>
+               <Badge color="azure" className="w-full justify-center py-2 opacity-50">K3s Migration Phase 2</Badge>
+            </div>
           </div>
         </Card>
       </div>
+
+      <RationaleSection title="Rationale: Container-First Abstraction" color="azure" icon={Boxes}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <div>
+            <h6 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-4 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-azure" /> Strategic Abstraction
+            </h6>
+            <p className="text-slate-400 text-xs font-medium leading-relaxed italic border-l-2 border-white/5 pl-4 ml-1">
+              Decoupling services from the host OS via <strong>Docker</strong> ensures that the core infrastructure remains "clean". This containerized approach allows for rapid testing, easy migration between Proxmox nodes, and simplified dependency management across the entire distributed fleet.
+            </p>
+          </div>
+          <div>
+            <h6 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-4 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Operational Flow
+            </h6>
+            <ul className="text-slate-400 text-xs space-y-3 list-none p-0">
+              <li className="flex items-start gap-3">
+                <span className="text-emerald-500 font-bold">◃</span>
+                <span><strong>GitOps Reconciliation:</strong> Instead of imperative updates, the system utilizes a declarative pull-model via Git repositories to sync container states.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-emerald-500 font-bold">◃</span>
+                <span><strong>Persistence:</strong> Named Docker volumes are backed up daily using the Layer 3.5 pipeline to ensure no data loss during service migrations.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-emerald-500 font-bold">◃</span>
+                <span><strong>Isolation:</strong> Services are partitioned into distinct network bridges to prevent lateral movement between workloads.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </RationaleSection>
     </section>
   );
 };
 
-const HostLegend = () => (
-  <div className="flex flex-wrap gap-3 md:gap-6">
-    {Object.entries(HOST_THEMES).filter(([name]) => name !== 'Remote').map(([name, theme]) => (
-      <div key={name} className="flex items-center gap-2 group">
-        <span className={`w-2 h-2 rounded-full ${theme.dot} shadow-[0_0_8px_rgba(255,255,255,0.3)] group-hover:scale-125 transition-transform`} />
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">{name}</span>
-      </div>
-    ))}
-  </div>
-);
-
-const DockerIcon = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M13.983 11.078h2.119c.102 0 .174.084.174.18v2.164c0 .102-.078.18-.174.18h-2.119a.186.186 0 0 1-.186-.18v-2.164a.186.186 0 0 1 .186-.18zm-2.827 0h2.118a.186.186 0 0 1 .186.18v2.164a.186.186 0 0 1-.186.18h-2.118a.185.185 0 0 1-.185-.18v-2.164a.185.185 0 0 1 .185-.18zm-2.827 0h2.119a.186.186 0 0 1 .186.18v2.164a.186.186 0 0 1-.186.18H8.329a.185.185 0 0 1-.185-.18v-2.164a.185.185 0 0 1 .185-.18zm-2.827 0h2.119a.186.186 0 0 1 .186.18v2.164a.186.186 0 0 1-.186.18H5.502a.185.185 0 0 1-.185-.18v-2.164a.185.185 0 0 1 .185-.18zM11.156 8.252h2.118a.186.186 0 0 1 .186.18v2.164a.186.186 0 0 1-.186.18h-2.118a.185.185 0 0 1-.185-.18V8.432a.185.185 0 0 1 .185-.18zm-2.827 0h2.119a.186.186 0 0 1 .186.18v2.164a.186.186 0 0 1-.186.18H8.329a.185.185 0 0 1-.185-.18V8.432a.185.185 0 0 1 .185-.18zm-2.827 0h2.119a.186.186 0 0 1 .186.18v2.164a.186.186 0 0 1-.186.18H5.502a.185.185 0 0 1-.185-.18V8.432a.185.185 0 0 1 .185-.18zM8.329 5.425h2.119a.186.186 0 0 1 .186.18v2.164a.186.186 0 0 1-.186.18H8.329a.185.185 0 0 1-.185-.18V5.605a.185.185 0 0 1 .185-.18zm4.72 2.827h2.119a.186.186 0 0 1 .186.18v2.164a.186.186 0 0 1-.186.18h-2.119a.185.185 0 0 1-.185-.18V8.432a.185.185 0 0 1 .185-.18zm1.323-6.572v2.99s-3.186.143-3.186 3.543c0 2.453 1.152 3.018 1.152 3.018s.168.084.144.18c-.024.12-.144.144-.144.144a.2.2 0 0 0-.144.192s1.42 2.405 5.28 2.405c.12 0 .24 0 .336-.048a1.04 1.04 0 0 0 .504-.456s1.656-2.5 1.656-3.882c0-3.33-2.616-5.467-5.616-5.467v-2.31c0-.12-.048-.24-.144-.312a.45.45 0 0 0-.312-.12zm-9.356 8.147H7.39a.186.186 0 0 1 .186.18v2.164a.186.186 0 0 1-.186.18H4.996a.185.185 0 0 1-.185-.18v-2.164a.185.185 0 0 1 .185-.18z"/>
-  </svg>
-);
-
-const TopoBox = ({ title, count, color, items }) => {
-  const colors = {
-    rose: "border-t-rose-500 bg-rose-500/10",
-    azure: "border-t-azure bg-azure/10",
-    amber: "border-t-amberGold bg-amberGold/10",
-    purple: "border-t-purple-500 bg-purple-500/10"
+const ServiceItem = ({ name, tag, color }) => {
+  const glowColors = {
+    azure: "bg-azure shadow-[0_0_8px_#3b82f6]",
+    emerald: "bg-emerald-500 shadow-[0_0_8px_#10b981]",
+    amber: "bg-amber-500 shadow-[0_0_8px_#f59e0b]",
+    muted: "bg-slate-700 shadow-none"
   };
 
   return (
-    <div className="bg-black/20 border border-white/5 rounded-2xl overflow-hidden group">
-      <div className={`p-4 font-bold text-xs uppercase tracking-widest border-t-2 flex justify-between items-center ${colors[color]}`}>
-        {title} <span className="opacity-60 text-[10px]">{count}</span>
+    <div className="flex items-center justify-between p-3.5 bg-slate-900 border border-white/10 rounded-2xl hover:border-white/30 transition-all group/item shadow-lg relative overflow-hidden">
+      <div className={`absolute top-0 left-0 bottom-0 w-1 transition-opacity ${glowColors[color]}`} />
+      <div className="flex items-center gap-3">
+        <div className="flex flex-col">
+          <span className="text-[13px] font-black text-white italic tracking-tight uppercase leading-none mb-1 group-hover/item:text-azure-light transition-colors">{name}</span>
+          <span className="text-[9px] text-slate-500 uppercase tracking-widest font-black opacity-60 italic">{tag}</span>
+        </div>
       </div>
-      <div className="p-4 space-y-3">
-        {items.map(item => (
-          <div key={item.name} className="flex justify-between items-center text-[11px]">
-            <span className="text-slate-200 font-medium">{item.name}</span>
-            <span className="text-slate-500 font-mono text-[9px] bg-white/5 px-1.5 py-0.5 rounded">{item.loc}</span>
-          </div>
-        ))}
-      </div>
+      <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${glowColors[color]}`} />
     </div>
   );
 };
 
-const MarqueeRow = ({ label, items, duration, reverse = false }) => (
-  <div className="flex flex-col md:flex-row md:items-center relative group/row">
-    <div className="w-fit mb-2 md:mb-0 md:min-w-[140px] md:relative md:z-10 bg-slate-900 border border-white/10 px-4 py-1.5 rounded-full text-[10px] font-extrabold text-white uppercase tracking-widest shadow-2xl backdrop-blur-md">
-      {label}
-    </div>
-    <div className={`flex-1 overflow-hidden relative ${reverse ? 'flex-row-reverse' : ''}`}>
-       <div 
-        className="flex whitespace-nowrap py-2 group-hover/row:[animation-play-state:paused]"
-        style={{ 
-          animation: `scroll ${duration} linear infinite ${reverse ? 'reverse' : ''}` 
-        }}
-      >
-        <div className="flex gap-4 px-4 font-mono">
-          {items.map((item, idx) => {
-            const hostTheme = HOST_THEMES[item.host] || HOST_THEMES['Remote'];
-            return (
-              <div key={idx} className={`flex items-center gap-3 px-4 py-2 bg-slate-950/40 border-2 ${hostTheme.border.replace('/20', '/60')} border-azure/30 rounded-2xl text-sm font-semibold hover:bg-azure/5 hover:-translate-y-1 transition-all cursor-default group/pill shadow-lg shadow-azure/5`}>
-                <div className="relative">
-                   <span className="text-xl group-hover/pill:scale-110 transition-transform block">{item.icon}</span>
-                   <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-slate-950 z-20 shadow-glow shadow-emerald-500/50">
-                     <div className="w-full h-full rounded-full bg-emerald-500 animate-ping opacity-75" />
-                   </div>
-                </div>
-                <div className="flex flex-col min-w-[100px]">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[13px] text-white leading-none font-bold tracking-tight">{item.name}</span>
-                    <span className="text-[8px] text-slate-600 font-mono opacity-50 uppercase tracking-tighter">ID:{item.hash}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <DockerIcon className="w-2.5 h-2.5 text-azure" />
-                    <span className={`text-[8px] uppercase tracking-[0.15em] font-black ${hostTheme.color}`}>{item.host}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        
-        <div className="flex gap-4 px-4 font-mono">
-          {items.map((item, idx) => {
-            const hostTheme = HOST_THEMES[item.host] || HOST_THEMES['Remote'];
-            return (
-              <div key={`dup-${idx}`} className={`flex items-center gap-3 px-4 py-2 bg-slate-950/40 border-2 ${hostTheme.border.replace('/20', '/60')} border-azure/30 rounded-2xl text-sm font-semibold hover:bg-azure/5 hover:-translate-y-1 transition-all cursor-default group/pill shadow-lg shadow-azure/5`}>
-                <div className="relative">
-                   <span className="text-xl group-hover/pill:scale-110 transition-transform block">{item.icon}</span>
-                   <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-slate-950 z-20 shadow-glow shadow-emerald-500/50">
-                     <div className="w-full h-full rounded-full bg-emerald-500 animate-ping opacity-75" />
-                   </div>
-                </div>
-                <div className="flex flex-col min-w-[100px]">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[13px] text-white leading-none font-bold tracking-tight">{item.name}</span>
-                    <span className="text-[8px] text-slate-600 font-mono opacity-50 uppercase tracking-tighter">ID:{item.hash}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <DockerIcon className="w-2.5 h-2.5 text-azure" />
-                    <span className={`text-[8px] uppercase tracking-[0.15em] font-black ${hostTheme.color}`}>{item.host}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  </div>
+const Activity = ({ className, size, strokeWidth }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth={strokeWidth} 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+  </svg>
 );
 
 export default WorkloadLayer;

@@ -1,128 +1,105 @@
 import React from 'react';
 import Card from './Card';
 import Badge from './Badge';
+import RationaleSection from './RationaleSection';
+import { ShieldCheck } from 'lucide-react';
+import { CloudflareLogo, TailscaleLogo } from './BrandLogos';
 
 const NetworkLayer = () => {
   return (
     <section className="mb-16">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-6 gap-2 border-b border-white/5 pb-4">
-        <h3 className="text-3xl font-extralight tracking-tight text-white m-0">Layer 1: The Edge & Ingress</h3>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-6 gap-2 border-b border-white/5 pb-4 text-center md:text-left">
+        <h3 className="text-3xl font-extralight tracking-tight text-white m-0 italic">Layer 1: The Edge & Ingress</h3>
         <span className="text-sm font-mono text-slate-400">
-          Core Skills: <strong className="text-emerald-400 font-normal">Zero Trust Architecture, Cloudflare HA, Tailscale Mesh</strong>
+          Core Skills: <strong className="text-emerald-400 font-normal uppercase tracking-tighter">Zero Trust, Dual-Tunnel HA, DNS Redundancy</strong>
         </span>
       </div>
 
-      <Card title="Live Zero Trust Ingress Architecture" className="mb-16" glowColor="rgba(59, 130, 246, 0.15)">
+      <Card title="Live Zero Trust Ingress Architecture" className="mb-8" glowColor="rgba(59, 130, 246, 0.15)">
         <div className="relative w-full overflow-visible py-8">
-          
-          {/* Animated SVG Lines (Hidden on small screens, shown above 1024px) */}
-          <svg className="absolute inset-0 w-full h-[420px] hidden lg:block z-0" viewBox="0 0 1000 400" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="grad-cf" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#818cf8" stopOpacity="0.3"/>
-              </linearGradient>
-              <linearGradient id="grad-ts" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#34d399" stopOpacity="0.3"/>
-              </linearGradient>
-            </defs>
-            
-            <path className="animated-path stroke-[url(#grad-cf)] filter drop-shadow-[0_0_5px_rgba(59,130,246,0.3)]" d="M 230 30 L 230 130" />
-            <path className="animated-path stroke-[url(#grad-cf)] filter drop-shadow-[0_0_5px_rgba(59,130,246,0.3)]" d="M 230 130 L 90 130 L 90 220 L 230 220 L 230 300" />
-            <path className="animated-path stroke-[url(#grad-cf)] filter drop-shadow-[0_0_5px_rgba(59,130,246,0.3)]" d="M 230 130 L 370 130 L 370 220 L 230 220" />
-            
-            <path className="animated-path stroke-[url(#grad-ts)] filter drop-shadow-[0_0_5px_rgba(16,185,129,0.3)]" d="M 770 30 L 770 130" />
-            <path className="animated-path stroke-[url(#grad-ts)] filter drop-shadow-[0_0_5px_rgba(16,185,129,0.3)]" d="M 770 130 L 630 130 L 630 220 L 770 220 L 770 300" />
-            <path className="animated-path stroke-[url(#grad-ts)] filter drop-shadow-[0_0_5px_rgba(16,185,129,0.3)]" d="M 770 130 L 910 130 L 910 220 L 770 220" />
-
-            <path className="animated-path stroke-[url(#grad-cf)] opacity-40" d="M 230 300 L 500 300 L 500 340" />
-            <path className="animated-path stroke-[url(#grad-ts)] opacity-40" d="M 770 300 L 500 300 L 500 340" />
-            
-            <circle className="cf-packet" r="4" fill="#60a5fa">
-              <animateMotion dur="3s" repeatCount="indefinite" path="M 230 30 L 230 130 L 90 130 L 90 220 L 230 220 L 230 300 L 500 300 L 500 340" />
-            </circle>
-            <circle className="ts-packet" r="4" fill="#34d399">
-              <animateMotion dur="3.5s" repeatCount="indefinite" path="M 770 30 L 770 130 L 630 130 L 630 220 L 770 220 L 770 300 L 500 300 L 500 340" />
-            </circle>
+          <svg className="absolute inset-0 w-full h-[420px] hidden lg:block z-0 opacity-40 translate-y-4" viewBox="0 0 1000 400" preserveAspectRatio="none">
+            <path className="animated-path stroke-azure stroke-2 fill-none" d="M 230 30 L 230 130 L 90 130 L 90 220 L 230 220 L 230 300 L 500 300 L 500 340" />
+            <path className="animated-path stroke-emerald-500 stroke-2 fill-none" d="M 770 30 L 770 130 L 630 130 L 630 220 L 770 220 L 770 300 L 500 300 L 500 340" />
           </svg>
           
-          <div className="flex flex-col items-center gap-4 w-full relative z-10 lg:block lg:h-[420px]">
-            
-            {/* INGRESS PATHS */}
+          <div className="flex flex-col items-center gap-4 w-full relative z-10 lg:block lg:min-h-[380px]">
             <div className="flex flex-col gap-4 w-full lg:contents">
-              {/* Cloudflare Path */}
-              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 flex flex-col items-center gap-4 w-full lg:contents">
-                <Node 
-                  icon="🌐" 
-                  name="Public Request" 
-                  tag="Cloudflared HA" 
-                  color="blue"
-                  className="lg:absolute lg:top-[-20px] lg:left-[23%] lg:translate-x-[-50%]"
-                />
-                <div className="text-blue-400 font-extrabold text-2xl lg:hidden">↓</div>
-                <div className="flex flex-col gap-4 w-full lg:contents">
-                  <NodeSmall name="☁️ CF Tunnel (pi4)" details="Physical bare-metal" color="amber" className="lg:absolute lg:top-[200px] lg:left-[9%] lg:translate-x-[-50%]" />
-                  <NodeSmall name="☁️ CF Tunnel (ha01)" details="VM on Proxmox Box" color="amber" className="lg:absolute lg:top-[200px] lg:left-[37%] lg:translate-x-[-50%]" />
-                </div>
-              </div>
-
-              <div className="w-full h-px bg-white/5 relative my-4 lg:hidden before:content-['OR'] before:absolute before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-slate-900 before:px-3 before:text-[10px] before:font-bold before:tracking-widest before:text-slate-500"></div>
-
-              {/* Tailscale Path */}
-              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 flex flex-col items-center gap-4 w-full lg:contents">
-                <Node 
-                  icon="🔒" 
-                  name="Admin VPN" 
-                  tag="Tailscale Mesh" 
-                  color="teal"
-                  className="lg:absolute lg:top-[-20px] lg:left-[77%] lg:translate-x-[-50%]"
-                />
-                <div className="text-emerald-400 font-extrabold text-2xl lg:hidden">↓</div>
-                <div className="flex flex-col gap-4 w-full lg:contents">
-                  <NodeSmall name="🦎 Tailscale (ha02)" details="VM on Proxmox Box" color="amber" className="lg:absolute lg:top-[200px] lg:left-[63%] lg:translate-x-[-50%]" />
-                  <NodeSmall name="🦎 Tailscale (ha03)" details="VM on Proxmox Box" color="amber" className="lg:absolute lg:top-[200px] lg:left-[91%] lg:translate-x-[-50%]" />
-                </div>
+              <Node icon={<CloudflareLogo className="w-8 h-8 text-[#F38020]" />} name="Public Request" tag="CF Tunnel" color="blue" className="lg:absolute lg:top-0 lg:left-[23%] lg:translate-x-[-50%]" />
+              <div className="flex flex-col gap-4 w-full lg:contents">
+                <NodeSmall name="Node A (pibuster4)" details="Primary Tunnel" className="lg:absolute lg:top-[180px] lg:left-[10%] lg:translate-x-[-50%]" />
+                <NodeSmall name="Node B (ha01)" details="Failover Node" className="lg:absolute lg:top-[180px] lg:left-[36%] lg:translate-x-[-50%]" />
               </div>
             </div>
 
-            <div className="text-amber-500 font-extrabold text-3xl my-2 lg:hidden">↓</div>
+            <div className="flex flex-col gap-4 w-full lg:contents">
+              <Node icon={<TailscaleLogo className="w-8 h-8 text-emerald-400" />} name="Admin VPN" tag="Tailscale" color="teal" className="lg:absolute lg:top-0 lg:left-[77%] lg:translate-x-[-50%]" />
+              <div className="flex flex-col gap-4 w-full lg:contents">
+                <NodeSmall name="ha02 (Security)" details="Auth Mesh" className="lg:absolute lg:top-[180px] lg:left-[64%] lg:translate-x-[-50%]" />
+                <NodeSmall name="ha03 (Access)" details="DNS Primary" className="lg:absolute lg:top-[180px] lg:left-[90%] lg:translate-x-[-50%]" />
+              </div>
+            </div>
 
-            <Node 
-              icon="⚙️" 
-              name="Self-Hosted Services Network" 
-              tag="Docker Stack" 
-              color="amber"
-              className="lg:absolute lg:top-[320px] lg:left-[50%] lg:translate-x-[-50%] border-t-amber-500 animate-glow"
-            />
+            <Node icon="⚙️" name="Services Core" tag="Internal LAN" color="amber" className="lg:absolute lg:top-[300px] lg:left-[50%] lg:translate-x-[-50%]" />
           </div>
         </div>
       </Card>
+
+      <RationaleSection title="Rationale: Why Zero Trust Ingress?" color="azure" icon={ShieldCheck}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <div>
+            <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-azure" /> The Architecture Choice
+            </h6>
+            <p className="text-slate-400 text-xs leading-relaxed italic border-l-2 border-white/5 pl-4 ml-1">
+              Traditional port-forwarding (NAT) creates a static attack surface. This design utilizes <strong>Cloudflare Tunnels</strong> to establish an outbound-only connection, effectively hiding the local IP and closing all inbound firewall ports while maintaining 24/7 global accessibility.
+            </p>
+          </div>
+          <div>
+            <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Operational Flow
+            </h6>
+            <ul className="text-slate-400 text-xs space-y-3 list-none p-0">
+              <li className="flex items-start gap-3">
+                <span className="text-azure-light font-bold">1/</span>
+                <span><strong>Encrypted Handshake:</strong> cloudflared (Pi4) connects to the nearest Cloudflare Edge.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-azure-light font-bold">2/</span>
+                <span><strong>Header Inspection:</strong> WAF rules at the edge filter traffic before it touches the LAN.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-azure-light font-bold">3/</span>
+                <span><strong>Target Routing:</strong> Verified traffic is routed internally via secure tunneling.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </RationaleSection>
     </section>
   );
 };
 
 const Node = ({ icon, name, tag, color, className = "" }) => {
   const colors = {
-    blue: "border-t-blue-500 bg-blue-500/5",
-    teal: "border-t-emerald-500 bg-emerald-500/5",
-    amber: "border-t-amber-500 bg-amber-500/5"
+    blue: "border-t-azure bg-azure/5 shadow-[0_0_20px_rgba(59,130,246,0.1)]",
+    teal: "border-t-emerald-500 bg-emerald-500/5 shadow-[0_0_20px_rgba(16,185,129,0.1)]",
+    amber: "border-t-amber-500 bg-amber-500/5 shadow-[0_0_20px_rgba(251,191,36,0.1)]"
   };
 
   return (
-    <div className={`net-node bg-slate-900/80 border border-white/10 p-6 rounded-xl flex flex-col items-center gap-2 w-full lg:w-fit text-center shadow-2xl backdrop-blur-md border-t-2 ${colors[color]} ${className}`}>
-      <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-2xl mb-1">{icon}</div>
-      <span className="font-semibold text-sm text-white">{name}</span>
-      <div className="text-[10px] font-bold px-2 py-1 bg-white/5 rounded text-slate-300 uppercase tracking-wider">{tag}</div>
+    <div className={`bg-slate-950/60 border border-white/10 p-6 rounded-2xl flex flex-col items-center gap-2 w-full lg:w-fit text-center backdrop-blur-xl border-t-2 ${colors[color]} ${className}`}>
+      <div className="w-14 h-14 bg-white/[0.03] rounded-full flex items-center justify-center text-2xl mb-1 shadow-inner">{icon}</div>
+      <span className="font-black text-[13px] text-white uppercase italic tracking-tight">{name}</span>
+      <div className="text-[9px] font-black px-2 py-1 bg-white/5 rounded-md text-slate-400 uppercase tracking-widest">{tag}</div>
     </div>
   );
 };
 
-const NodeSmall = ({ name, details, color, className = "" }) => {
+const NodeSmall = ({ name, details, className = "" }) => {
   return (
-    <div className={`bg-slate-900/80 border border-white/10 p-4 rounded-xl text-center w-full lg:w-fit lg:max-w-[160px] shadow-lg backdrop-blur-md border-t-2 border-t-amber-500/50 ${className}`}>
-      <div className="text-xs font-semibold text-white mb-2 leading-tight">{name}</div>
-      <div className="text-[10px] text-slate-400 border-t border-white/5 pt-2 mt-2 leading-relaxed">{details}</div>
+    <div className={`bg-slate-900/40 border border-white/5 p-4 rounded-xl text-center w-full lg:w-fit lg:max-w-[150px] backdrop-blur-md hover:border-white/20 transition-all ${className}`}>
+      <div className="text-[11px] font-black text-white italic uppercase mb-1">{name}</div>
+      <div className="text-[9px] text-slate-500 font-medium leading-tight">{details}</div>
     </div>
   );
 };
