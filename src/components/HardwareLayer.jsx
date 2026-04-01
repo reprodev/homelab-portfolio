@@ -103,7 +103,7 @@ const HardwareLayer = () => {
             <div className="flex items-center gap-3">
               <span>pibuster4 (Bare-metal)</span>
               <a 
-                href="https://reprodev.com/setting-up-a-raspberry-pi-4-model-b/" 
+                href="https://reprodev.com/set-up-raspberry-pi/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="p-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 hover:bg-amber-500/20 transition-all group/doc"
