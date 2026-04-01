@@ -17,9 +17,19 @@ const NetworkLayer = () => {
 
       <Card title="Live Zero Trust Ingress Architecture" className="mb-8" glowColor="rgba(59, 130, 246, 0.15)">
         <div className="relative w-full overflow-visible py-8">
-          <svg className="absolute inset-0 w-full h-[420px] hidden lg:block z-0 opacity-40 translate-y-4" viewBox="0 0 1000 400" preserveAspectRatio="none">
-            <path className="animated-path stroke-azure stroke-2 fill-none" d="M 230 30 L 230 130 L 90 130 L 90 220 L 230 220 L 230 300 L 500 300 L 500 340" />
-            <path className="animated-path stroke-emerald-500 stroke-2 fill-none" d="M 770 30 L 770 130 L 630 130 L 630 220 L 770 220 L 770 300 L 500 300 L 500 340" />
+          <svg className="absolute inset-0 w-full h-[400px] hidden lg:block z-0 opacity-20 pointer-events-none" viewBox="0 0 1000 400" preserveAspectRatio="none">
+            {/* Cloudflare Side (Blue) */}
+            <path className="animated-path stroke-azure stroke-[1.5] fill-none" 
+              d="M 230 40 L 230 140 M 230 140 L 100 140 L 100 180 M 230 140 L 360 140 L 360 180 M 230 140 L 230 260 L 500 260 L 500 310" />
+            
+            {/* Tailscale Side (Emerald) */}
+            <path className="animated-path stroke-emerald-500 stroke-[1.5] fill-none" 
+              d="M 770 40 L 770 140 M 770 140 L 640 140 L 640 180 M 770 140 L 900 140 L 900 180 M 770 140 L 770 260 L 500 260 L 500 310" />
+            
+            {/* Connection Dots (Strategic points) */}
+            <circle cx="230" cy="140" r="2.5" fill="#3b82f6" />
+            <circle cx="770" cy="140" r="2.5" fill="#10b981" />
+            <circle cx="500" cy="260" r="3.5" fill="#f59e0b" className="animate-pulse" />
           </svg>
           
           <div className="flex flex-col items-center gap-4 w-full relative z-10 lg:block lg:min-h-[380px]">
