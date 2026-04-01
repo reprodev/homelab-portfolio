@@ -126,7 +126,7 @@ h1 { font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 800; letter-spacing: -2px
 
 /* DR Pipeline */
 .dr-pipeline-container { display: flex; flex-direction: column; align-items: stretch; background: rgba(0,0,0,0.4); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); gap: 1rem; }
-.dr-arrow { transform: rotate(90deg); margin: 0; text-align: center; }
+.dr-arrow { transform: rotate(90deg); margin: 0; text-align: center; color: var(--text-muted); font-size: 1.5rem; }
 
 /* Typography Constraints */
 .terminal-mockup { background: #0c0c10; border: 1px solid var(--card-border); border-radius: 12px; width: 100%; max-width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.5); overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
