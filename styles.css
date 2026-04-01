@@ -73,7 +73,7 @@ h1 { font-size: 5rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 0.5
 .dot { width: 10px; height: 10px; border-radius: 50%; }
 .dot.red { background: #ef4444; } .dot.yellow { background: #f59e0b; } .dot.green { background: #10b981; }
 .header-text { margin-left: 10px; color: var(--text-muted); font-size: 0.7rem; }
-.terminal-body { padding: 15px; color: #a5b4fc; min-height: 80px; }
+.terminal-body { padding: 15px; color: #a5b4fc; min-height: 80px; overflow-wrap: break-word; word-break: break-all; white-space: pre-wrap; }
 .terminal-body .cursor { display: inline-block; width: 6px; height: 12px; background: #a5b4fc; animation: type 1s infinite alternate; }
 @keyframes type { 0%, 40% { opacity: 1; } 60%, 100% { opacity: 0; } }
 
@@ -174,21 +174,27 @@ footer { text-align: center; color: var(--text-muted); font-size: 0.85rem; margi
 }
 
 @media (max-width: 768px) {
-    h1 { font-size: 3.2rem; letter-spacing: -1px; }
+    h1 { font-size: clamp(2rem, 8vw, 2.5rem); letter-spacing: -1px; }
+    .hero-subtext { font-size: 1rem; }
     .container { padding: 0 1rem; }
     .card-inner { padding: 1.5rem; }
     .card-title { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
     .hero { height: auto; padding: 4rem 0; }
     
     /* Fix Network Pipeline SVG Flow for Mobile */
-    .svg-flow-container { height: auto; min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 2rem; gap: 1rem; }
-    .net-node { position: relative !important; left: auto !important; right: auto !important; top: auto !important; bottom: auto !important; margin: 0; width: 100%; max-width: 320px; text-align: center; transform: none !important; }
+    .svg-flow-container { height: auto; min-height: 400px; padding-top: 1rem; }
+    .network-nodes { position: relative !important; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    .net-node { position: relative !important; left: auto !important; right: auto !important; top: auto !important; bottom: auto !important; margin: 0; width: 100%; max-width: 100%; text-align: center; transform: none !important; }
     .flow-lines { display: none; } /* Hide static SVG drawn lines since nodes are stacked vertically */
+    
+    /* Services & Topologies */
+    .topo-head, .topo-item { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
     
     /* Fix Marquee labels squashing the track */
     .marquee-row { flex-direction: column; align-items: flex-start; }
     .marquee-label { width: 100%; text-align: center; padding: 0.8rem 0; margin-bottom: 0px; background: rgba(0,0,0,0.4); box-shadow: none; border-bottom: 1px solid rgba(255,255,255,0.1); border-radius: 8px 8px 0 0; }
     
-    /* Fix Disaster Recovery Arrows */
-    .dr-arrow { transform: rotate(90deg); margin: 0.5rem 0; }
+    /* Fix Disaster Recovery Arrays */
+    .dr-pipeline-container { flex-direction: column !important; gap: 1rem !important; }
+    .dr-arrow { transform: rotate(90deg); margin: 0; }
 }
