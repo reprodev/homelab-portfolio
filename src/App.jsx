@@ -8,6 +8,7 @@ import WorkloadLayer from './components/WorkloadLayer.jsx';
 import DRPipeline from './components/DRPipeline.jsx';
 import KnowledgeLayer from './components/KnowledgeLayer.jsx';
 import CollapsibleSection from './components/CollapsibleSection.jsx';
+import InstructionalTip from './components/InstructionalTip.jsx';
 
 function App() {
   return (
@@ -25,20 +26,7 @@ function App() {
       {/* Main Content Container */}
       <div className="relative z-10">
         <Hero />
-        {/* Instructional Tip for Mobile/Standard Users */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="max-w-[1300px] mx-auto px-6 mt-12 mb-4"
-        >
-          <div className="flex items-center gap-4 py-4 px-5 bg-azure/5 border border-azure/20 rounded-2xl md:rounded-full">
-            <div className="flex-shrink-0 w-2 h-2 rounded-full bg-azure animate-pulse shadow-[0_0_8px_#3b82f6]" />
-            <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400 leading-relaxed md:leading-none">
-              Interactive Dashboard: <span className="text-white italic">Explore the what, why and a bit of the how of my Homelab Infrastructure. <span className="hidden sm:inline">|</span> <span className="text-azure-light font-black underline-offset-4 decoration-azure/40">Scroll down and 'Show Details' for more information.</span></span>
-            </p>
-          </div>
-        </motion.div>
+        <InstructionalTip />
         
         <main className="max-w-[1300px] mx-auto px-6 py-12 space-y-12">
           <CollapsibleSection layerId="Layer 1" title="Edge & Auth Ingress" defaultExpanded={true}>
