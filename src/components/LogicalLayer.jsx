@@ -32,7 +32,7 @@ Applying k3s manifest updates...
         disk: "500GB USB 3.0 SSD",
         net: "Eth0 (Physical)",
         services: ["Cloudflared HA", "Ansible GitOps", "Uptime Kuma", "Dozzle Main"],
-        guideUrl: "https://reprodev.com/setting-up-a-raspberry-pi-4-model-b/"
+        guideUrl: "https://reprodev.com/set-up-raspberry-pi/"
       }
     },
     { 

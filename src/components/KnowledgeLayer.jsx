@@ -1,9 +1,8 @@
 import React from 'react';
 import Card from './Card';
-import Badge from './Badge';
-import { BookOpen, Terminal, HardDrive, Shield, ExternalLink, Cpu, Globe } from 'lucide-react';
+import { Terminal, HardDrive, ExternalLink, Cpu, Globe, Code, Zap, Archive, Github } from 'lucide-react';
 
-const TutorialCard = ({ title, desc, icon: Icon, link, tags, time }) => (
+const TutorialCard = ({ title, desc, icon: Icon, link, tags, time, type = "Guide" }) => (
   <a 
     href={link} 
     target="_blank" 
@@ -35,51 +34,91 @@ const TutorialCard = ({ title, desc, icon: Icon, link, tags, time }) => (
       </div>
 
       <div className="mt-8 flex items-center justify-between pt-4 border-t border-white/5">
-        <span className="text-[10px] uppercase font-black tracking-widest text-emerald-400/50">Read Guide</span>
-        <span className="text-[10px] font-mono text-slate-600">{time} Reading</span>
+        <span className="text-[10px] uppercase font-black tracking-widest text-emerald-400/50">{type === "Project" ? "View Project" : "Read Guide"}</span>
+        <span className="text-[10px] font-mono text-slate-600">{time}</span>
       </div>
     </div>
   </a>
 );
 
 const KnowledgeLayer = () => {
-  const tutorials = [
+  const guides = [
     {
-      title: "Docker Series: Parts 1-6 Masterclass",
-      desc: "Complete implementation guide covering Portainer, Nginx Proxy Manager, Pi-Hole, and Watchtower lifecycle.",
+      title: "Docker Masterclass: Implementation Series",
+      desc: "Complete lifecycle management covering Portainer, Nginx Proxy Manager, Pi-Hole, and Automated Watchtower updates.",
       icon: Terminal,
+      link: "https://reprodev.com/tag/docker/",
+      tags: ["Docker", "Linux", "Self-hosting"],
+      time: "Tag Archive"
+    },
+    {
+      title: "The Install Guides Archive",
+      desc: "A centralized repository of detailed installation and configuration walk-throughs for homelab services.",
+      icon: Archive,
       link: "https://reprodev.com/tag/install-guides/",
-      tags: ["Docker", "Linux", "DevOps"],
-      time: "45 min"
+      tags: ["Guides", "Software", "Config"],
+      time: "Tag Archive"
     },
     {
-      title: "Secure Remote Access via Tailscale",
-      desc: "Zero-trust network configuration for seamless, air-gapped access to your homelab fleet without port-forwarding.",
-      icon: Globe,
-      link: "https://reprodev.com/remotely-and-securely-access-your-homelab/",
-      tags: ["Security", "VPN", "Network"],
-      time: "12 min"
-    },
-    {
-      title: "The Proxmox vs ESXi Foundation Debate",
+      title: "Proxmox vs ESXi Foundation",
       desc: "Architectural comparison and transition guide from legacy hypervisors to modern Proxmox Virtual Environment.",
       icon: HardDrive,
       link: "https://reprodev.com/the-proxmox-vs-esxi-debate/",
       tags: ["Virtualization", "Proxmox", "PVE"],
-      time: "15 min"
+      time: "15 min read"
     },
     {
       title: "Raspberry Pi 4 Model B Baseline Setup",
-      desc: "Physical hardening and OS provisioning for the primary ARM control node (PiBuster4) in the physical cluster.",
+      desc: "Physical hardening and OS provisioning for the primary ARM control head (pibuster4) in the physical cluster.",
       icon: Cpu,
-      link: "https://reprodev.com/setting-up-a-raspberry-pi-4-model-b/",
+      link: "https://reprodev.com/set-up-raspberry-pi/",
       tags: ["Hardware", "ARM", "Provisioning"],
-      time: "20 min"
+      time: "20 min read"
+    }
+  ];
+
+  const projects = [
+    {
+      title: "LGTV Firmware Downgrade",
+      desc: "A massive community-driven utility for webOS firmware management. High-impact tool with over 1,040 forks.",
+      icon: Zap,
+      link: "https://github.com/reprodev/LGTV-Firmware-Downgrade",
+      tags: ["webOS", "Utility", "1k+ Forks"],
+      time: "139 Stars",
+      type: "Project"
+    },
+    {
+      title: "PowerCSR: OpenSSL GUI Tool",
+      desc: "A custom PowerShell-based GUI to simplify and automate Certificate Signing Requests and Private Key generation.",
+      icon: Terminal,
+      link: "https://dev.to/reprodev/simplify-your-openssl-csr-requests-with-powercsr-gui-tool-148h",
+      tags: ["PowerShell", "Security"],
+      time: "dev.to / Starred",
+      type: "Project"
+    },
+    {
+      title: "Exchange-Toolbox (V1 & V2)",
+      desc: "Robust menu-based PowerShell GUIs for enterprise-level administrative Exchange tasks and automation.",
+      icon: Archive,
+      link: "https://github.com/reprodev/Exchange-Toolbox",
+      tags: ["PowerShell", "Enterprise"],
+      time: "GitHub Repo",
+      type: "Project"
+    },
+    {
+      title: "Public GitHub Hub: reprodev",
+      desc: "Explore 40+ repositories covering PowerShell automation, infrastructure-as-code, and custom developer tools.",
+      icon: Github,
+      link: "https://github.com/reprodev",
+      tags: ["Open Source", "Portfolio"],
+      time: "40+ Repos",
+      type: "Project"
     }
   ];
 
   return (
     <section id="knowledge-base" className="mb-24 scroll-mt-24">
+      {/* Guides Row */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-12 gap-4 border-b border-white/5 pb-6">
         <div className="flex flex-col">
           <h3 className="text-3xl font-extralight tracking-tight text-white m-0 italic">Layer 5: Knowledge Base & Library</h3>
@@ -87,25 +126,43 @@ const KnowledgeLayer = () => {
         </div>
         <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/5 border border-emerald-500/20 rounded-full">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest leading-none">4 Active Guides</span>
+          <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest leading-none text-nowrap">Technical Guides</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-24">
+        {guides.map((guide, idx) => (
+          <TutorialCard key={idx} {...guide} />
+        ))}
+      </div>
+
+      {/* Projects Row */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-12 gap-4 border-b border-white/5 pb-6">
+        <div className="flex flex-col">
+          <h3 className="text-3xl font-extralight tracking-tight text-white m-0 italic">Developer Portfolio & Tools</h3>
+          <span className="text-[10px] uppercase font-black tracking-[0.3em] text-azure mt-2">Custom Development & PowerShell Automation</span>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1 bg-azure/5 border border-azure/20 rounded-full">
+          <div className="w-1.5 h-1.5 rounded-full bg-azure animate-pulse" />
+          <span className="text-[10px] font-black text-azure uppercase tracking-widest leading-none text-nowrap">4 Developed Projects</span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {tutorials.map((tutorial, idx) => (
-          <TutorialCard key={idx} {...tutorial} />
+        {projects.map((project, idx) => (
+          <TutorialCard key={idx} {...project} />
         ))}
       </div>
 
-      <div className="mt-12 flex items-center justify-center">
+      <div className="mt-16 flex items-center justify-center">
         <a 
           href="https://reprodev.com" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="px-8 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all duration-500 text-sm font-medium text-slate-300 hover:text-emerald-400 flex items-center gap-3 group"
+          className="px-10 py-4 bg-white/5 border border-white/10 rounded-[2rem] hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all duration-500 text-sm font-bold text-slate-300 hover:text-emerald-400 flex items-center gap-4 group shadow-2xl"
         >
-          View Full Library at ReproDev
-          <ExternalLink size={16} className="opacity-40 group-hover:opacity-100 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
+          Explore All Knowledge Bases at reprodev.com
+          <ExternalLink size={18} className="opacity-40 group-hover:opacity-100 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
         </a>
       </div>
     </section>
