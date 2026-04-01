@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khurram Nazir - Homelab Infrasructure</title>
+    <title>Khurram Nazir - Homelab Infrastructure</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -26,7 +26,7 @@
                     </div>
                     <h1 style="font-size: 3.5rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 0.5rem; line-height: 1;">Khurram <span class="gradient-text">Nazir</span></h1>
                     <h2 style="font-size: 1.4rem; color: #a5b4fc; font-weight: 500; margin-bottom: 1rem;">DevOps & Infrastructure Analyst  &bull;  Homelabber</h2>
-                    <p class="hero-subtext" style="font-size: 1.1rem; max-width: 700px; text-align: left;">Showcasing a production-grade, declarative home datacenter built <strong>entirely on Linux</strong>. This living portfolio demonstrates full-stack expertise in virtualization, GitOps CI/CD, and zero-trust edge networking.</p>
+                    <p class="hero-subtext" style="font-size: 1.1rem; max-width: 700px; text-align: left;">Showcasing a production-grade, declarative home datacenter built <strong>almost entirely on Linux</strong>. This living portfolio demonstrates full-stack expertise in virtualization, GitOps CI/CD, and zero-trust edge networking.</p>
                 </div>
                 
                 <div style="display: flex; gap: 1rem; padding-bottom: 0.5rem;" class="portfolio-links">
@@ -316,6 +316,81 @@
                     </ul>
                 </div>
             </div>
+
+            <!-- Bare-Metal Backup Node (Knightbox) -->
+            <div class="dash-card span-2">
+                <div class="card-inner hardware-glow">
+                    <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Knightbox (Bare-metal)</span>
+                        <span class="tag" style="background: rgba(16, 185, 129, 0.2); color: var(--success);">Windows Backup Target</span>
+                    </div>
+                    
+                    <div class="dashboard-grid layout-pve" style="grid-template-columns: 1fr 2fr; gap: 2rem; margin-top: 1.5rem;">
+                        <div class="pve-specs">
+                            <h4 style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.8rem; text-transform: uppercase;">Hardware Limits</h4>
+                            <ul class="service-list" style="padding: 0;">
+                                <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding-bottom: 0.8rem;">
+                                    <strong>Logic Board</strong>
+                                    <span class="tag" style="background: rgba(255,255,255,0.05); font-size: 0.75rem;">i7-12700K (12C/20T)</span>
+                                </li>
+                                <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding: 0.8rem 0;">
+                                    <strong>Memory Limit</strong>
+                                    <span class="tag" style="background: rgba(255,255,255,0.05); font-size: 0.75rem;">64 GB</span>
+                                </li>
+                                <li style="padding-top: 0.8rem;">
+                                    <strong>Target Subnet</strong>
+                                    <span class="tag" style="background: rgba(248, 113, 113, 0.1); color: var(--danger); border: 1px dashed rgba(248, 113, 113, 0.3); font-size: 0.75rem;">&lt;BACKUP_SUBNET_CIDR&gt;</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="pve-vms">
+                            <h4 style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.8rem; text-transform: uppercase;">Supervised Services</h4>
+                            <div class="dashboard-grid" style="grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                                <div class="fleet-node" style="padding: 0.8rem;">
+                                    <div class="fleet-details">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 3px;">Windows Host</h4>
+                                        <span style="font-size:0.65rem; color:#8b909f; display: block;">Bare-Metal Architecture</span>
+                                    </div>
+                                </div>
+                                <div class="fleet-node" style="padding: 0.8rem;">
+                                    <div class="fleet-details">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 3px;">Veeam Repository</h4>
+                                        <span style="font-size:0.65rem; color:#8b909f; display: block;">Offsite Archival Syncing</span>
+                                    </div>
+                                </div>
+                                <div class="fleet-node" style="padding: 0.8rem;">
+                                    <div class="fleet-details">
+                                        <h4 style="font-size: 0.85rem; margin-bottom: 3px;">Plex Identity Data</h4>
+                                        <span style="font-size:0.65rem; color:#8b909f; display: block;">LZ4 Compressed Volumes</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Knightbox Storage Physical Architecture -->
+            <div class="dash-card">
+                <div class="card-inner topology-glow">
+                    <div class="card-title" style="margin-bottom: 1.5rem;">Knightbox Volumes</div>
+                    <ul class="service-list" style="padding: 0;">
+                        <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding-bottom: 1rem;">
+                            <strong>C: (Windows OS)</strong>
+                            <span class="tag" style="background: rgba(96, 165, 250, 0.2); color: var(--primary); font-size: 0.85rem;">930 GB NVMe</span>
+                        </li>
+                        <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding: 1rem 0;">
+                            <strong>D: (DATA)</strong>
+                            <span class="tag" style="background: rgba(16, 185, 129, 0.2); color: var(--success); font-size: 0.85rem;">2.8 TB HDD</span>
+                        </li>
+                        <li style="padding-top: 1rem;">
+                            <strong>Total Pool</strong>
+                            <span class="tag" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; font-size: 0.85rem;">~3.7 TB</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
         <!-- TIER 3: LOGICAL INFRASTRUCTURE -->
@@ -371,21 +446,28 @@
 
             <!-- K3s Sandbox -->
             <div class="dash-card">
-                <div class="card-inner k3s-glow">
-                    <div class="card-title">
-                        <span>☸️</span> Kubernetes Engine
+                <div class="card-inner k3s-glow" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div class="card-title" style="margin-bottom: 1rem;">
+                        <span>☸️</span> K3s Sandbox (Rebuildable)
                     </div>
                     <div class="k3s-content">
-                        <p class="k3s-desc">Terraform IaC provisioning phase.</p>
-                        <div class="k3s-progress">
-                            <div class="prog-track">
-                                <div class="prog-fill" style="width: 25%;"></div>
-                            </div>
-                        </div>
-                        <div class="roadmap-pills">
-                            <span class="pill">Vaultwarden Backups</span>
-                            <span class="pill">SMART Alerts</span>
-                            <span class="pill">Memory Limits</span>
+                        <ul class="service-list" style="padding: 0; margin-bottom: 1.5rem;">
+                            <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding-bottom: 0.8rem; display: flex; justify-content: space-between;">
+                                <strong>Control Plane</strong>
+                                <span class="tag" style="background: rgba(45, 212, 191, 0.15); color: #2dd4bf;">2 Cores / 2GB</span>
+                            </li>
+                            <li style="border-bottom: 1px dashed rgba(255,255,255,0.08); padding: 0.8rem 0; display: flex; justify-content: space-between;">
+                                <strong>Worker Node</strong>
+                                <span class="tag" style="background: rgba(96, 165, 250, 0.15); color: #60a5fa;">2 Cores / 2GB</span>
+                            </li>
+                            <li style="padding-top: 0.8rem; display: flex; justify-content: space-between;">
+                                <strong>OS Template</strong>
+                                <span class="tag" style="background: rgba(255,255,255,0.05);">Ubuntu 24.04 LTS</span>
+                            </li>
+                        </ul>
+                        <div class="roadmap-pills" style="margin-top: auto;">
+                            <span class="pill" style="border-color: rgba(239, 68, 68, 0.3); color: #f87171;">Terraform Managed</span>
+                            <span class="pill">prevent_destroy = false</span>
                         </div>
                     </div>
                 </div>
@@ -460,9 +542,9 @@
                         <div class="topo-box metrics">
                             <div class="topo-head">📊 Observability <span class="topo-count">Global</span></div>
                             <div class="topo-list">
-                                <div class="topo-item"><span>Prometheus/Grafana</span> <div class="loc">Zulu</div></div>
-                                <div class="topo-item"><span>Alertmanager</span> <div class="loc">Tgrm</div></div>
-                                <div class="topo-item"><span>Dozzle Agents</span> <div class="loc">All</div></div>
+                                <div class="topo-item"><span>Grafana/Prometheus</span> <div class="loc">Zulu</div></div>
+                                <div class="topo-item"><span>Dozzle Aggregator</span> <div class="loc">pi4</div></div>
+                                <div class="topo-item"><span>cAdvisor / Kuma</span> <div class="loc">Global</div></div>
                             </div>
                         </div>
 
@@ -470,20 +552,67 @@
                         <div class="topo-box core">
                             <div class="topo-head">🛠️ Automation <span class="topo-count">Core</span></div>
                             <div class="topo-list">
-                                <div class="topo-item"><span>Pi-hole (Primary)</span> <div class="loc">Zulu</div></div>
-                                <div class="topo-item"><span>Pi-hole (Sec)</span> <div class="loc">ha03</div></div>
-                                <div class="topo-item"><span>Ansible</span> <div class="loc">pi4</div></div>
+                                <div class="topo-item"><span>Pre/Post Scripts</span> <div class="loc">PVE Node</div></div>
+                                <div class="topo-item"><span>Pi-hole HA</span> <div class="loc">Zulu/ha03</div></div>
+                                <div class="topo-item"><span>Ansible Control</span> <div class="loc">pi4</div></div>
                             </div>
                         </div>
 
                         <!-- Storage -->
                         <div class="topo-box storage">
-                            <div class="topo-head">🍿 Storage <span class="topo-count">9.1 TB</span></div>
+                            <div class="topo-head">💾 Data & Rescue <span class="topo-count">9.1 TB</span></div>
                             <div class="topo-list">
-                                <div class="topo-item"><span>Plex Media</span> <div class="loc">Zulu</div></div>
-                                <div class="topo-item"><span>OMV NAS Server</span> <div class="loc">OMV VM</div></div>
-                                <div class="topo-item"><span>Tautulli</span> <div class="loc">ha02</div></div>
+                                <div class="topo-item"><span>Veeam Exporter</span> <div class="loc">Zulu</div></div>
+                                <div class="topo-item"><span>[Knightbox] Repo</span> <div class="loc">Remote</div></div>
+                                <div class="topo-item"><span>OMV Direct Disk</span> <div class="loc">OMV VM</div></div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3-2-1 Disaster Recovery Pipeline -->
+            <div class="dash-card full-span">
+                <div class="card-inner topology-glow" style="display: flex; flex-direction: column;">
+                    <div class="card-title" style="margin-bottom: 1.5rem;">
+                        <span>🛡️</span> 3-2-1 Disaster Recovery Pipeline
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; gap: 1rem;">
+                        <!-- Step 1: Source -->
+                        <div style="flex: 1; min-width: 200px; text-align: center;">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🖥️</div>
+                            <h4 style="margin-bottom: 0.2rem;">Compute Fleet</h4>
+                            <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 8px; align-items: center;">
+                                <span class="tag" style="background: rgba(96, 165, 250, 0.15); color: #60a5fa; font-size: 0.7rem;">ZuluServer Configs</span>
+                                <span class="tag" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; font-size: 0.7rem;">Vault/CF HA Fleet</span>
+                                <span class="tag" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; font-size: 0.7rem;">OMV NAS Core</span>
+                                <span class="tag" style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 0.7rem;">K3s Cluster Payload</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Flow 1 -->
+                        <div style="color: var(--text-muted); font-size: 1.5rem; text-align: center; flex: 0.5;">
+                            →
+                        </div>
+                        
+                        <!-- Step 2: Knightbox -->
+                        <div style="flex: 1; min-width: 200px; text-align: center;">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🪟</div>
+                            <h4 style="margin-bottom: 0.2rem;">Knightbox Repo</h4>
+                            <span class="tag" style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 0.7rem;">Veeam Compression</span>
+                        </div>
+                        
+                        <!-- Flow 2 -->
+                        <div style="color: var(--text-muted); font-size: 1.5rem; text-align: center; flex: 0.5;">
+                            →
+                        </div>
+                        
+                        <!-- Step 3: Dropbox -->
+                        <div style="flex: 1; min-width: 200px; text-align: center;">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">☁️</div>
+                            <h4 style="margin-bottom: 0.2rem;">Dropbox Cloud</h4>
+                            <span class="tag" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; font-size: 0.7rem;">Offsite Archive Sync</span>
                         </div>
                     </div>
                 </div>
@@ -509,6 +638,8 @@
                                     <span class="app-badge media-app">📦 Dispatcharr<span class="host-tag">Zulu</span></span>
                                     <span class="app-badge media-app">🎶 Sonobarr<span class="host-tag">Zulu</span></span>
                                     <span class="app-badge media-app">📼 TubeArchivist<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">📱 iPlayarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🎵 Copyparty<span class="host-tag">Zulu</span></span>
                                 </div>
                                 <div class="marquee-content">
                                     <span class="app-badge media-app">📺 Sonarr<span class="host-tag">Zulu</span></span>
@@ -520,6 +651,8 @@
                                     <span class="app-badge media-app">📦 Dispatcharr<span class="host-tag">Zulu</span></span>
                                     <span class="app-badge media-app">🎶 Sonobarr<span class="host-tag">Zulu</span></span>
                                     <span class="app-badge media-app">📼 TubeArchivist<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">📱 iPlayarr<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge media-app">🎵 Copyparty<span class="host-tag">Zulu</span></span>
                                 </div>
                             </div>
                         </div>
@@ -537,6 +670,8 @@
                                     <span class="app-badge net-app">📡 Threadfin<span class="host-tag">Zulu</span></span>
                                     <span class="app-badge net-app">🔒 Vaultwarden<span class="host-tag">ha02</span></span>
                                     <span class="app-badge net-app">☁️ Cloudflared<span class="host-tag">pi4</span></span>
+                                    <span class="app-badge net-app">👀 WatchYourLAN<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge net-app">🔍 Glances<span class="host-tag">Zulu</span></span>
                                 </div>
                                 <div class="marquee-content">
                                     <span class="app-badge net-app">⏬ qBittorrent<span class="host-tag">Zulu</span></span>
@@ -563,7 +698,7 @@
                                     <span class="app-badge dev-app">🦊 GitLab CI<span class="host-tag">Fleet</span></span>
                                     <span class="app-badge dev-app">🏗️ Terraform<span class="host-tag">Zulu</span></span>
                                     <span class="app-badge dev-app">⚙️ Ansible<span class="host-tag">pi4</span></span>
-                                    <span class="app-badge dev-app">📁 Filebrowser<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge dev-app">📁 Filebrowser Quantum<span class="host-tag">Zulu</span></span>
                                 </div>
                                 <div class="marquee-content">
                                     <span class="app-badge dev-app">🏠 Homepage<span class="host-tag">Zulu</span></span>
@@ -573,7 +708,7 @@
                                     <span class="app-badge dev-app">🦊 GitLab CI<span class="host-tag">Fleet</span></span>
                                     <span class="app-badge dev-app">🏗️ Terraform<span class="host-tag">Zulu</span></span>
                                     <span class="app-badge dev-app">⚙️ Ansible<span class="host-tag">pi4</span></span>
-                                    <span class="app-badge dev-app">📁 Filebrowser<span class="host-tag">Zulu</span></span>
+                                    <span class="app-badge dev-app">📁 Filebrowser Quantum<span class="host-tag">Zulu</span></span>
                                 </div>
                             </div>
                         </div>
