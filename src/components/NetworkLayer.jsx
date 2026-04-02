@@ -18,14 +18,59 @@ const NetworkLayer = () => {
       <Card title="Live Zero Trust Ingress Architecture" className="mb-8" glowColor="rgba(59, 130, 246, 0.15)">
         <div className="relative w-full overflow-visible py-8">
           <svg className="absolute inset-0 w-full h-[400px] hidden lg:block z-0 opacity-20 pointer-events-none" viewBox="0 0 1000 400" preserveAspectRatio="none">
-            {/* Cloudflare Side (Blue) */}
-            <path className="animated-path stroke-azure stroke-[1.5] fill-none" 
-              d="M 230 40 L 230 140 M 230 140 L 100 140 L 100 180 M 230 140 L 360 140 L 360 180 M 230 140 L 230 260 L 500 260 L 500 310" />
+            {/* Trace Definitions (Invisible for Pulses) */}
+            <path id="tr-cf-a" d="M 230 40 L 230 140 L 100 140 L 100 180" fill="none" />
+            <path id="tr-cf-b" d="M 230 140 L 360 140 L 360 180" fill="none" />
+            <path id="tr-ts-02" d="M 770 40 L 770 140 L 640 140 L 640 180" fill="none" />
+            <path id="tr-ts-03" d="M 770 140 L 900 140 L 900 180" fill="none" />
+            <path id="tr-core-a" d="M 100 180 L 100 260 L 500 260 L 500 310" fill="none" />
+            <path id="tr-core-b" d="M 360 180 L 360 260 L 500 260" fill="none" />
+            <path id="tr-core-02" d="M 640 180 L 640 260 L 500 260" fill="none" />
+            <path id="tr-core-03" d="M 900 180 L 900 260 L 500 260" fill="none" />
+
+            {/* Visual Decorative Paths */}
+            <path className="animated-path stroke-azure stroke-[1] opacity-50 fill-none" 
+              d="M 230 40 L 230 140 M 100 140 L 360 140 M 100 140 L 100 260 L 900 260 M 360 140 L 360 260 M 500 260 L 500 310" />
+            <path className="animated-path stroke-emerald-500 stroke-[1] opacity-50 fill-none" 
+              d="M 770 40 L 770 140 M 640 140 L 900 140 M 640 140 L 640 260 M 900 140 L 900 260" />
+
+            {/* Data Pulses (The 'Wow Factor') */}
+            {/* Cloudflare Track */}
+            <circle r="2" fill="#3b82f6" className="filter blur-[1px]">
+              <animateMotion dur="4s" repeatCount="indefinite">
+                <mpath href="#tr-cf-a" />
+              </animateMotion>
+            </circle>
+            <circle r="2" fill="#3b82f6" className="filter blur-[1px]">
+              <animateMotion dur="5s" repeatCount="indefinite" begin="1.5s">
+                <mpath href="#tr-cf-b" />
+              </animateMotion>
+            </circle>
             
-            {/* Tailscale Side (Emerald) */}
-            <path className="animated-path stroke-emerald-500 stroke-[1.5] fill-none" 
-              d="M 770 40 L 770 140 M 770 140 L 640 140 L 640 180 M 770 140 L 900 140 L 900 180 M 770 140 L 770 260 L 500 260 L 500 310" />
-            
+            {/* Tailscale Track */}
+            <circle r="2" fill="#10b981" className="filter blur-[1px]">
+              <animateMotion dur="4s" repeatCount="indefinite">
+                <mpath href="#tr-ts-02" />
+              </animateMotion>
+            </circle>
+            <circle r="2" fill="#10b981" className="filter blur-[1px]">
+              <animateMotion dur="5s" repeatCount="indefinite" begin="2s">
+                <mpath href="#tr-ts-03" />
+              </animateMotion>
+            </circle>
+
+            {/* Hub to Core (Converged) */}
+            <circle r="1.5" fill="white" className="opacity-60">
+              <animateMotion dur="4s" repeatCount="indefinite" begin="3s">
+                <mpath href="#tr-core-a" />
+              </animateMotion>
+            </circle>
+            <circle r="1.5" fill="white" className="opacity-60">
+              <animateMotion dur="4.2s" repeatCount="indefinite" begin="3.2s">
+                <mpath href="#tr-core-03" />
+              </animateMotion>
+            </circle>
+
             {/* Connection Dots (Strategic points) */}
             <circle cx="230" cy="140" r="2.5" fill="#3b82f6" />
             <circle cx="770" cy="140" r="2.5" fill="#10b981" />
