@@ -86,12 +86,21 @@
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
-.scrollbar-hide::-webkit-scrollbar {
+.no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
 /* Hide scrollbar for IE, Edge and Firefox */
-.scrollbar-hide {
+.no-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+@keyframes sweep {
+  0% { transform: translateY(-100%); opacity: 0; }
+  50% { opacity: 0.5; }
+  100% { transform: translateY(500px); opacity: 0; }
+}
+.animate-sweep {
+  animation: sweep 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

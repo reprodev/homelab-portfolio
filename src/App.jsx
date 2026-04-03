@@ -9,10 +9,12 @@ import DRPipeline from './components/DRPipeline.jsx';
 import KnowledgeLayer from './components/KnowledgeLayer.jsx';
 import CollapsibleSection from './components/CollapsibleSection.jsx';
 import InstructionalTip from './components/InstructionalTip.jsx';
+import SplashHub from './components/SplashHub.jsx';
 
 function App() {
   return (
     <div className="min-h-screen relative selection:bg-azure/30 selection:text-white">
+      <SplashHub />
       {/* Texture Overlay */}
       <div className="noise-overlay" />
 
