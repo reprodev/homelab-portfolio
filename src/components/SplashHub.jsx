@@ -23,6 +23,15 @@ const SplashHub = () => {
   }, []);
 
   const handleDismiss = (destination) => {
+    // 📊 GA4 Tracking: Track which portal was selected
+    if (window.gtag) {
+      window.gtag('event', 'select_portal', {
+        'portal_id': destination === 'homelab' ? 'homelab_dashboard' : destination,
+        'event_category': 'navigation',
+        'event_label': 'Splash Hub Selection'
+      });
+    }
+
     // Set session storage
     sessionStorage.setItem('hasSeenSplashHub', 'true');
     
