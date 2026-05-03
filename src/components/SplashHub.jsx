@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, BookOpen, Database, ArrowRight, ChevronRight, ChevronDown, HelpCircle } from 'lucide-react';
+import { Music, BookOpen, Database, ArrowRight, ChevronRight, ChevronDown, HelpCircle, Monitor } from 'lucide-react';
 import OriginStory from './OriginStory.jsx';
 import CaseStudyPost from './CaseStudyPost.jsx';
+import ServiceDeskSimDetails from './ServiceDeskSimDetails.jsx';
 
 /* 
   Khurram Nazir - Multi-Stage Digital Ecosystem Hub (V1.5.0 Gold Master)
@@ -68,6 +69,17 @@ const SplashHub = ({ onDismiss }) => {
       tag: 'PRODUCTION / LIVE'
     },
     {
+      id: 'servicedesk',
+      title: 'Service Desk Sim',
+      tagline: 'Operational Training',
+      description: 'A dystopian corporate simulation exploring the high-stakes world of enterprise IT support and ticket resolution.',
+      url: 'https://servicedesksim.com',
+      image: '/splash/servicedesk.webp',
+      color: 'from-violet-900/90 to-purple-950/40',
+      icon: <Monitor className="text-violet-400" size={28} />,
+      tag: 'GAME DEV / SIM'
+    },
+    {
       id: 'origin',
       title: 'The Origin Story',
       tagline: 'Architectural Design',
@@ -86,6 +98,11 @@ const SplashHub = ({ onDismiss }) => {
     // Stage-based navigation (V1.5.0)
     if (destination === 'origin') {
       setStage('origin');
+      return;
+    }
+
+    if (destination === 'https://servicedesksim.com') {
+      setStage('servicedesk');
       return;
     }
 
@@ -329,6 +346,9 @@ const SplashHub = ({ onDismiss }) => {
           ) : stage === 'origin' ? (
             /* STAGE 3: ORIGIN RETROSPECTIVE */
             <OriginStory key="origin-story" onBack={() => setStage('selection')} onOpenCaseStudy={() => setStage('casestudy')} />
+          ) : stage === 'servicedesk' ? (
+            /* STAGE 5: SERVICE DESK BLURB (V1.5.0) */
+            <ServiceDeskSimDetails key="service-desk-details" onBack={() => setStage('selection')} />
           ) : (
              /* STAGE 4: DIGITAL CASE STUDY / BLOG (V1.5.0) */
             <CaseStudyPost key="case-study" onBack={() => setStage('origin')} />

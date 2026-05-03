@@ -2,7 +2,7 @@ import React from 'react';
 import Card from './Card';
 import Badge from './Badge';
 import RationaleSection from './RationaleSection';
-import { LayoutGrid, Globe, Shield, Terminal, Boxes, Zap } from 'lucide-react';
+import { LayoutGrid, Globe, Shield, Terminal, Boxes, Zap, ExternalLink } from 'lucide-react';
 import { DockerLogo, PlexLogo } from './BrandLogos';
 
 const WorkloadLayer = () => {
