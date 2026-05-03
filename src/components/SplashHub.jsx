@@ -1,19 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, BookOpen, Database, ArrowRight, ChevronRight } from 'lucide-react';
+import { Music, BookOpen, Database, ArrowRight, ChevronRight, ChevronDown, HelpCircle } from 'lucide-react';
+import OriginStory from './OriginStory.jsx';
+import CaseStudyPost from './CaseStudyPost.jsx';
 
 /* 
-  Khurram Nazir - Multi-Stage Digital Ecosystem Hub
+  Khurram Nazir - Multi-Stage Digital Ecosystem Hub (V1.5.0 Gold Master)
   Controlled Component for App.jsx integration.
-  Fixes: 
-  - Mobile clipping on Pixel 4a 5G (floor: 1.8rem)
-  - Flicker-free mounting
-  - Google Tag safety checks
+  
+  Styling: 
+  - Signature Gradient: Azure-Light (khurram) | White (nazir) | AmberGold (.com)
+  - Layout: Optimized for Pixel 4a 5G (393px)
+  - UX: Natural Scroll Guidance & Cinematic Digital Case Study
 */
 
 const SplashHub = ({ onDismiss }) => {
-  const [stage, setStage] = useState('intro'); // 'intro' | 'selection'
+  const [stage, setStage] = useState('intro'); // 'intro', 'selection', 'origin', 'casestudy'
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleScroll = (e) => {
+    if (e.target.scrollTop > 50 && !hasScrolled) {
+      setHasScrolled(true);
+    }
+  };
 
   const portalCards = [
     {
@@ -48,10 +66,29 @@ const SplashHub = ({ onDismiss }) => {
       color: 'from-amberGold-dark/90 to-orange-950/40',
       icon: <Database className="text-amberGold" size={28} />,
       tag: 'PRODUCTION / LIVE'
+    },
+    {
+      id: 'origin',
+      title: 'The Origin Story',
+      tagline: 'Architectural Design',
+      description: 'A technical deep-dive into how this digital gateway was engineered through human-AI partnership.',
+      url: 'origin',
+      image: '/splash/origin.webp',
+      color: 'from-slate-700/90 to-black/40',
+      icon: <HelpCircle className="text-white" size={28} />,
+      tag: 'DOCUMENTATION / AI'
     }
   ];
 
+  const [hoveredId, setHoveredId] = useState(null);
+
   const handleAction = (destination) => {
+    // Stage-based navigation (V1.5.0)
+    if (destination === 'origin') {
+      setStage('origin');
+      return;
+    }
+
     // Sync persistence settings
     sessionStorage.setItem('hasSeenSplashHub', 'true');
     if (dontShowAgain) {
@@ -63,14 +100,14 @@ const SplashHub = ({ onDismiss }) => {
       window.gtag('event', 'select_portal', {
         'portal_id': destination === 'homelab' ? 'homelab_dashboard' : destination,
         'event_category': 'navigation',
-        'event_label': 'Splash Hub Selection'
+        'event_label': 'Splash Hub Selection',
+        'is_retrospective': destination === 'origin'
       });
     }
 
     if (destination === 'homelab') {
       onDismiss();
     } else {
-      // Small artificial delay for transition smoothness
       setTimeout(() => {
         window.location.href = destination;
       }, 300);
@@ -79,23 +116,35 @@ const SplashHub = ({ onDismiss }) => {
 
   return (
     <motion.div 
-      className="fixed inset-0 z-[100] bg-[#050505] overflow-y-auto no-scrollbar scroll-smooth"
+      className={`fixed inset-0 z-[100] bg-[#050505] overflow-y-auto no-scrollbar scroll-smooth ${stage === 'casestudy' ? 'bg-[#0a0a0a]' : ''}`}
+      onScroll={handleScroll}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }}
+      exit={{ opacity: 0, transition: { duration: isMobile ? 0.6 : 0.8, ease: [0.16, 1, 0.3, 1] } }}
     >
       {/* Background Texture & Ambient Orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <motion.div 
-          animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.15, 0.1] }}
+          animate={{ 
+            scale: [1, 1.1, 1], 
+            opacity: [0.1, 0.15, 0.1],
+            x: hoveredId === 'music' ? -20 : hoveredId === 'homelab' ? 20 : 0 
+          }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-azure/20 rounded-full blur-[140px]" 
+          className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-azure/20 rounded-full ${isMobile ? 'blur-2xl' : 'blur-[140px]'}`} 
         />
         <motion.div 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.05, 0.08, 0.05] }}
+          animate={{ 
+            scale: [1, 1.2, 1], 
+            opacity: [0.05, 0.08, 0.05],
+            x: hoveredId === 'kb' ? -20 : hoveredId === 'origin' ? 20 : 0
+          }}
           transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-amberGold/10 rounded-full blur-[160px]" 
+          className={`absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-amberGold/10 rounded-full ${isMobile ? 'blur-2xl' : 'blur-[160px]'}`} 
         />
+        
+        {/* Grain Overlay (V1.5.0 Refinement) */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
       </div>
 
       <div className="relative min-h-full flex flex-col items-center justify-center py-24 px-6 z-10 font-outfit">
@@ -106,109 +155,146 @@ const SplashHub = ({ onDismiss }) => {
               key="intro"
               initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, scale: 1.05, filter: 'blur(20px)', transition: { duration: 0.6 } }}
+              exit={{ opacity: 0, scale: 1.05, filter: isMobile ? 'blur(10px)' : 'blur(20px)', transition: { duration: isMobile ? 0.4 : 0.6 } }}
               className="max-w-7xl w-full text-center px-10"
             >
               <div className="mb-8 overflow-visible">
                 <motion.div
                   initial={{ y: 50, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ delay: 0.3, duration: isMobile ? 0.6 : 0.8, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <span className="text-[10px] font-mono font-bold text-azure-light tracking-[0.5em] uppercase mb-8 opacity-60 block">Digital Presence Portal</span>
+                  <span className={`text-[12px] md:text-sm font-mono font-bold text-azure-light tracking-[0.5em] uppercase mb-8 ${isMobile ? 'opacity-90' : 'opacity-60'} block`}>
+                    Digital Presence Portal
+                  </span>
                   
-                  <h2 className="text-4xl md:text-5xl font-light tracking-[0.2em] text-white/40 mb-4 uppercase">Khurram Nazir</h2>
                   <motion.h1 
-                    animate={{ 
-                      textShadow: ["0 0 20px rgba(96,165,250,0)", "0 0 20px rgba(96,165,250,0.3)", "0 0 20px rgba(96,165,250,0)"]
-                    }}
-                    transition={{ duration: 4, repeat: Infinity }}
-                    className="text-[clamp(1.8rem,8.5vw,9rem)] font-extrabold tracking-tighter text-white mb-4 leading-[0.85] w-full px-4 overflow-visible whitespace-nowrap"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.5, duration: isMobile ? 0.6 : 0.8 }}
+                    className="text-[clamp(2.5rem,10vw,8rem)] font-black tracking-tighter leading-none mb-2"
                   >
-                     khurramnazir.com
+                    <span className="bg-gradient-to-r from-azure-light via-white to-amberGold bg-clip-text text-transparent px-4">
+                      Khurram Nazir
+                    </span>
                   </motion.h1>
                   
-                  <p className="text-azure-light/60 text-[clamp(0.6rem,1.2vw,0.75rem)] font-mono font-bold tracking-[0.4em] uppercase mt-4 mb-12 px-6">
-                    Infrastructure Architect & Creative Technologist
+                  <p className={`${isMobile ? 'text-azure-light/90' : 'text-azure-light/40'} text-[clamp(0.85rem,1.5vw,1rem)] font-mono font-bold tracking-[0.4em] uppercase mt-6 mb-12 px-6 leading-relaxed`}>
+                    IT Professional and Creative Technologist
                   </p>
-
-                  <div className="h-1 w-24 bg-gradient-to-r from-transparent via-azure/40 to-transparent mx-auto rounded-full mb-12 shadow-[0_0_15px_rgba(96,165,250,0.5)]" />
+                  
+                  <div className="flex flex-col items-center gap-6">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setStage('selection')}
+                      className="group relative px-10 py-5 bg-white text-slate-950 font-black uppercase tracking-widest rounded-full overflow-hidden transition-all hover:shadow-[0_0_40px_rgba(255,255,255,0.3)]"
+                    >
+                      <span className="relative z-10 flex items-center gap-3">
+                        Enter the Ecosystem <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                      </span>
+                    </motion.button>
+                  </div>
                 </motion.div>
               </div>
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-              >
-                <button
-                  onClick={() => setStage('selection')}
-                  className="group relative inline-flex items-center justify-center px-12 py-5 rounded-full bg-white text-black font-black text-sm uppercase tracking-[0.2em] transition-all hover:pr-14 hover:pl-10 active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.2)]"
-                >
-                  <span>Enter Ecosystem</span>
-                  <ChevronRight size={20} className="absolute right-6 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                </button>
-              </motion.div>
             </motion.div>
-          ) : (
+          ) : stage === 'selection' ? (
             /* STAGE 2: PORTAL SELECTION */
             <motion.div 
               key="selection"
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="max-w-6xl w-full"
+              exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.4 } }}
+              className="max-w-7xl w-full"
             >
               <div className="text-center mb-16 px-4">
-                 <h3 className="text-white text-xs font-mono tracking-[0.4em] uppercase mb-4 opacity-50">Operational Sectors</h3>
-                 <div className="h-px w-12 bg-white/20 mx-auto" />
+                 <motion.h3 
+                   initial={{ opacity: 0, y: 10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   className={`text-white font-mono tracking-[0.4em] uppercase mb-4 ${isMobile ? 'text-sm opacity-80' : 'text-xs opacity-50'}`}
+                 >
+                   Operational Sectors
+                 </motion.h3>
+                 <motion.div 
+                   initial={{ width: 0 }}
+                   animate={{ width: 48 }}
+                   className="h-px bg-white/20 mx-auto" 
+                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className={`flex flex-col lg:flex-row gap-6 lg:gap-4 h-auto lg:h-[600px] transition-all duration-700 ease-[0.16, 1, 0.3, 1]`}>
                 {portalCards.map((card, index) => (
                   <motion.div
                     key={card.id}
+                    layout
                     initial={{ y: 60, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.8, delay: 0.4 + index * 0.15, ease: [0.16, 1, 0.3, 1] }}
-                    whileHover={{ y: -12, scale: 1.02 }}
-                    className="relative group cursor-pointer"
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                      duration: 0.8, 
+                      delay: 0.4 + index * 0.15, 
+                      ease: [0.16, 1, 0.3, 1],
+                      layout: { duration: 0.6, ease: [0.16, 1, 0.3, 1] }
+                    }}
+                    onMouseEnter={() => !isMobile && setHoveredId(card.id)}
+                    onMouseLeave={() => !isMobile && setHoveredId(null)}
+                    className={`relative group cursor-pointer overflow-hidden rounded-[2.5rem] border border-white/10 shadow-2xl transition-all duration-500 
+                      ${isMobile ? 'h-[480px] w-full' : 'h-full'}
+                      ${!isMobile && hoveredId === card.id ? 'flex-[2.5] border-white/40 shadow-[0_0_50px_rgba(255,255,255,0.1)]' : !isMobile && hoveredId !== null ? 'flex-1 opacity-60 grayscale-[0.5]' : !isMobile ? 'flex-[1.5]' : ''}
+                    `}
                     onClick={() => handleAction(card.url)}
                   >
-                    <div className="relative h-[480px] rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl transition-all duration-500 group-hover:border-white/40 group-hover:shadow-azure/20">
-                      <div className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 ease-out group-hover:scale-110" style={{ backgroundImage: `url(${card.image})` }} />
-                      <div className={`absolute inset-0 bg-gradient-to-t ${card.color} transition-all duration-500 group-hover:bg-opacity-80`} />
-                      
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-sweep pointer-events-none" />
+                    {/* Background Image with Zoom and Overlay */}
+                    <div className="absolute inset-0 bg-cover bg-center transition-transform duration-[2s] ease-out group-hover:scale-110" style={{ backgroundImage: `url(${card.image})` }} />
+                    <div className={`absolute inset-0 bg-gradient-to-t ${card.color} transition-all duration-500 ${hoveredId === card.id ? 'opacity-90' : 'opacity-85'}`} />
+                    
+                    {/* Glass Reflection Shimmer */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    
+                    {/* Content Container */}
+                    <div className={`absolute inset-0 p-8 lg:p-10 flex flex-col justify-end transition-all duration-500 ${!isMobile && hoveredId === card.id ? 'bg-black/20' : ''}`}>
+                       <motion.div 
+                        layout
+                        className="mb-6 w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-azure-light group-hover:scale-110 group-hover:bg-white/20 transition-all duration-500"
+                       >
+                         {card.icon}
+                       </motion.div>
 
-                      <div className="absolute inset-0 p-10 flex flex-col justify-end">
-                         <div className="mb-6 w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-azure-light group-hover:scale-110 group-hover:bg-white/20 transition-all duration-500">
-                           {card.icon}
-                         </div>
+                       <div className="space-y-1 mb-4">
+                         <span className="text-[10px] font-mono tracking-[0.3em] text-white/50 uppercase font-bold">{card.tag}</span>
+                         <h3 className={`font-black text-white leading-none transition-all duration-500 ${!isMobile && hoveredId === card.id ? 'text-4xl' : 'text-2xl'}`}>
+                           {card.title}
+                         </h3>
+                         <p className="text-azure-light/80 text-xs font-mono font-bold tracking-widest uppercase">{card.tagline}</p>
+                       </div>
 
-                         <div className="space-y-1 mb-4">
-                           <span className="text-[10px] font-mono tracking-[0.3em] text-white/50 uppercase font-bold">{card.tag}</span>
-                           <h3 className="text-3xl font-black text-white leading-none">{card.title}</h3>
-                           <p className="text-azure-light/80 text-xs font-mono font-bold tracking-widest uppercase">{card.tagline}</p>
-                         </div>
+                       <motion.p 
+                        layout
+                        className={`text-white/60 text-sm leading-relaxed mb-8 max-w-[320px] transition-all duration-500 
+                          ${isMobile ? 'opacity-100' : (hoveredId === card.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none')}
+                        `}
+                       >
+                        {card.description}
+                       </motion.p>
 
-                         <p className="text-white/60 text-sm leading-relaxed mb-8 max-w-[260px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
-                          {card.description}
-                         </p>
-                      </div>
-                      
-                      <div 
+                       <div 
                         className="flex items-center gap-3 text-white font-bold text-sm tracking-wide group-hover:gap-4 transition-all uppercase"
                         role="button"
                         aria-label={`Launch ${card.title}`}
                       >
-                        {card.id === 'homelab' ? 'Enter Dashboard' : 'Launch Site'} 
+                        <span className="relative">
+                          {card.id === 'homelab' ? 'Enter Dashboard' : card.id === 'origin' ? 'Explore Design' : 'Launch Site'}
+                          <div className="absolute -bottom-1 left-0 w-0 h-px bg-white/40 group-hover:w-full transition-all duration-500" />
+                        </span>
                         <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                       </div>
                     </div>
+
+                    {/* Edge Highlight (Premium touch) */}
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </motion.div>
                 ))}
               </div>
+
 
               {/* Interaction Footer */}
               <div className="mt-20 flex flex-col items-center gap-8">
@@ -232,13 +318,39 @@ const SplashHub = ({ onDismiss }) => {
                 
                 <button 
                   onClick={() => handleAction('homelab')}
-                  className="text-white/30 hover:text-white transition-colors text-[10px] font-mono uppercase tracking-[0.15em] flex items-center gap-4"
+                  className="text-white/30 hover:text-white transition-colors text-[10px] font-mono uppercase tracking-[0.15em] flex items-center gap-4 group mb-20"
                 >
                   <div className="h-px w-8 bg-white/20 group-hover:w-12 transition-all" />
                   Skip Introduction
                   <div className="h-px w-8 bg-white/20 group-hover:w-12 transition-all" />
                 </button>
               </div>
+            </motion.div>
+          ) : stage === 'origin' ? (
+            /* STAGE 3: ORIGIN RETROSPECTIVE */
+            <OriginStory key="origin-story" onBack={() => setStage('selection')} onOpenCaseStudy={() => setStage('casestudy')} />
+          ) : (
+             /* STAGE 4: DIGITAL CASE STUDY / BLOG (V1.5.0) */
+            <CaseStudyPost key="case-study" onBack={() => setStage('origin')} />
+          )}
+        </AnimatePresence>
+
+        {/* Natural Scroll Guidance (V1.3.8) */}
+        <AnimatePresence>
+          {stage === 'selection' && isMobile && !hasScrolled && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none z-50 px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/5"
+            >
+              <span className="text-white/40 text-[9px] font-mono uppercase tracking-[0.3em] font-bold">Scroll to Explore</span>
+              <motion.div
+                animate={{ y: [0, 5, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <ChevronDown size={14} className="text-azure-light" />
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>

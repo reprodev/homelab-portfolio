@@ -235,26 +235,31 @@ const NodeRing = ({ icon, name, tag, sub, percent, color, isExpanded, onClick, d
   const glowBg = color === 'emerald' ? 'bg-emerald-500' : color === 'azure' ? 'bg-azure' : 'bg-amber-500';
 
   return (
-    <button 
+    <motion.button 
+      whileHover={{ scale: 1.02, x: 5, backgroundColor: "rgba(255,255,255,0.08)" }}
+      whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className={`group relative flex items-center gap-4 p-5 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-2xl transition-all duration-500 text-left w-full overflow-hidden ${
         isExpanded 
           ? 'bg-slate-800/60 border-white/20 shadow-xl' 
-          : 'hover:bg-slate-800/40 hover:border-white/10'
+          : 'hover:border-white/10'
       }`}
     >
       <div className={`absolute top-0 left-0 bottom-0 w-1 ${glowBg} ${isExpanded ? 'opacity-100' : 'opacity-20 group-hover:opacity-100'} transition-opacity`} />
       
-      <div className={`p-2 bg-black/40 rounded-lg border border-white/5 group-hover:border-white/20 transition-all ${isExpanded ? 'scale-110 border-white/20' : ''}`}>
+      <div className={`p-2 bg-black/40 rounded-lg border border-white/5 group-hover:border-white/20 transition-all ${isExpanded ? 'scale-110 border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)]' : ''}`}>
         {icon}
       </div>
       
       <div className="flex-1">
         <div className="flex items-center justify-between mb-1">
           <h4 className="text-sm font-black text-white italic uppercase tracking-tight">{name}</h4>
-          <span className={`text-[8px] font-black px-1.5 py-0.5 border rounded uppercase tracking-tighter ${isExpanded ? 'bg-white/10 border-white/20 text-white' : 'border-white/5 text-slate-500'}`}>
+          <motion.span 
+            animate={isExpanded ? { scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" } : { scale: 1 }}
+            className={`text-[8px] font-black px-1.5 py-0.5 border rounded uppercase tracking-tighter ${isExpanded ? 'border-white/20 text-white' : 'border-white/5 text-slate-500'}`}
+          >
             {tag}
-          </span>
+          </motion.span>
         </div>
         <div className="text-[10px] text-slate-500 font-medium mb-2 truncate">{sub}</div>
         
@@ -266,10 +271,14 @@ const NodeRing = ({ icon, name, tag, sub, percent, color, isExpanded, onClick, d
               className={`h-full rounded-full ${glowBg} shadow-[0_0_8px_currentColor]`}
             />
           </div>
-          <ChevronDown size={14} className={`text-slate-600 transition-transform duration-500 ${isExpanded ? 'rotate-180 text-white' : ''}`} />
+          <motion.div
+            animate={{ rotate: isExpanded ? 180 : 0, color: isExpanded ? "#fff" : "#475569" }}
+          >
+            <ChevronDown size={14} />
+          </motion.div>
         </div>
       </div>
-    </button>
+    </motion.button>
   );
 };
 

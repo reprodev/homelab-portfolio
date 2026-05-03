@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
-const CollapsibleSection = ({ children, layerId, title, defaultExpanded = false }) => {
+const CollapsibleSection = ({ children, id, layerId, title, defaultExpanded = false }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -22,7 +22,7 @@ const CollapsibleSection = ({ children, layerId, title, defaultExpanded = false 
   };
 
   return (
-    <div className={`transition-all duration-700 ${isMobile && !isExpanded ? 'bg-white/[0.02] rounded-3xl p-4' : ''}`}>
+    <div id={id} className={`transition-all duration-700 pt-12 -mt-12 ${isMobile && !isExpanded ? 'bg-white/[0.02] rounded-3xl p-4' : ''}`}>
       {/* Persistant Header */}
       <div 
         onClick={toggle}

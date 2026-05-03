@@ -1,39 +1,53 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
-const Card = ({ children, className = "", glowColor = "rgba(96, 165, 250, 0.2)", title }) => {
+const Card = ({ title, children, className = "", glowColor = "rgba(59, 130, 246, 0.1)" }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Cleanly replace only the last numeric group (alpha) to ensure mobile glow efficiency
+  const mobileGlow = glowColor.includes('rgba') 
+    ? glowColor.replace(/[\d.]+\)$/g, '0.05)') 
+    : glowColor;
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={!isMobile ? { 
+        rotateX: 2, 
+        rotateY: -2, 
+        scale: 1.01,
+        transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] }
+      } : {}}
       viewport={{ once: true }}
-      className={`relative rounded-[20px] p-[1px] transition-all group ${className}`}
+      className={`relative group bg-slate-950/40 border ${isMobile ? 'border-white/[0.08]' : 'border-white/[0.03]'} p-6 rounded-3xl backdrop-blur-xl ${className}`}
       style={{
-        background: `linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0))`
+        boxShadow: `0 0 40px ${isMobile ? mobileGlow : glowColor}`,
+        perspective: '1000px',
+        transformStyle: 'preserve-3d',
+        backdropFilter: isMobile ? 'blur(20px)' : 'blur(24px)',
+        WebkitBackdropFilter: isMobile ? 'blur(20px)' : 'blur(24px)'
       }}
     >
-      <div className="bg-slate-900/80 backdrop-blur-xl rounded-[20px] p-6 h-full transition-colors group-hover:bg-slate-800/60 relative overflow-hidden">
-        {/* Holographic Scanline */}
-        <div className="hologram-scan" />
-        
-        {/* Corner Brackets */}
-        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/10 rounded-tl-lg group-hover:border-azure/40 transition-colors" />
-        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/10 rounded-tr-lg group-hover:border-azure/40 transition-colors" />
-        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/10 rounded-bl-lg group-hover:border-azure/40 transition-colors" />
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/10 rounded-br-lg group-hover:border-azure/40 transition-colors" />
-
-        {title && (
-          <div className="text-xl font-semibold mb-6 flex items-center gap-3 border-b border-white/5 pb-4 text-white">
-            {title}
-          </div>
-        )}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none rounded-3xl" />
+      
+      {title && (
+        <h4 className={`text-sm font-mono uppercase tracking-[0.3em] ${isMobile ? 'text-white/60' : 'text-white/30'} mb-6 border-b border-white/5 pb-4`}>
+          {title}
+        </h4>
+      )}
+      
+      <div className="relative z-10" style={{ transform: 'translateZ(20px)' }}>
         {children}
       </div>
-      {/* Glow Effect */}
-      <div 
-        className="absolute -inset-2 rounded-[30px] opacity-0 group-hover:opacity-100 transition-opacity blur-2xl z-[-1]"
-        style={{ backgroundColor: glowColor }}
-      />
     </motion.div>
   );
 };
