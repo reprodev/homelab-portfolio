@@ -36,7 +36,7 @@ Before you copy the new files into your live Git folder, you **MUST delete** the
 ---
 
 ## 🛡️ Security & Zero-Leak Audit
-*   **Username**: Zero references to `KnightboxOC` exist in the code.
+*   **Username**: Zero references to `Computer` exist in the code.
 *   **Absolute Paths**: All `C:\Users\...` references have been modernized to relative `./` paths.
 *   **Network IPs**: All internal addresses (`192.168.0.X`) have been replaced with descriptive tokens (e.g., `<PRIMARY_SUBNET>`).
 *   **Branching**: The automated reconciler only builds the **Safely Sanitized** source code.
