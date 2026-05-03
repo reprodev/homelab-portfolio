@@ -1,4 +1,4 @@
-import React from 'react';
+import { motion } from 'framer-motion';
 import { Cpu, Database, Activity } from 'lucide-react';
 import Badge from './Badge';
 
@@ -7,7 +7,11 @@ const ComputeCard = ({ name, sub, status = "active", managedBy, glowColor = "eme
   const borderColor = glowColor === 'emerald' ? 'border-emerald-500/10' : glowColor === 'azure' ? 'border-azure/10' : 'border-amber-500/10';
 
   return (
-    <div className={`group relative p-5 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-2xl hover:bg-slate-800/60 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:border-white/10 overflow-hidden`}>
+    <motion.div 
+      whileHover={{ scale: 1.02, y: -5, boxShadow: "0 20px 40px rgba(0,0,0,0.4)" }}
+      whileTap={{ scale: 0.98 }}
+      className={`group relative p-5 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-2xl transition-colors duration-500 hover:bg-slate-800/60 hover:border-white/10 overflow-hidden cursor-pointer`}
+    >
       {/* Accent Strip */}
       <div className={`absolute top-0 left-0 bottom-0 w-1 ${glowColor === 'emerald' ? 'bg-emerald-500' : glowColor === 'azure' ? 'bg-azure' : 'bg-amber-500'} opacity-30 group-hover:opacity-100 transition-opacity`} />
       
@@ -41,7 +45,7 @@ const ComputeCard = ({ name, sub, status = "active", managedBy, glowColor = "eme
       <div className="absolute bottom-0 right-0 p-3 opacity-10 group-hover:opacity-40 transition-opacity pointer-events-none">
         <Activity size={32} strokeWidth={1} />
       </div>
-    </div>
+    </motion.div>
   );
 };
 
