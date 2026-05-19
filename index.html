@@ -3,25 +3,58 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%233b82f6%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%224 17 10 11 4 5%22></polyline><line x1=%2212%22 y1=%2219%22 x2=%2220%22 y2=%2219%22></line></svg>" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     
     <!-- SEO & Professional Presence -->
     <title>Khurram Nazir | IT Professional and Creative Technologist</title>
     <meta name="description" content="A live architectural showcase of a production-grade homelab infrastructure. Built on Linux, Zero Trust, and GitOps." />
     <meta name="keywords" content="DevOps, Infrastructure, Homelab, Cloudflare, Tailscale, Linux, Proxmox, K3s, Ansible" />
+    <link rel="canonical" href="https://khurramnazir.com/" />
     
     <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Khurram Nazir | IT Professional and Creative Technologist" />
     <meta property="og:description" content="A live architectural showcase of a production-grade homelab infrastructure. Built on Linux, Zero Trust, and GitOps." />
-    <meta property="og:image" content="" />
+    <meta property="og:image" content="https://khurramnazir.com/og-preview.png" />
     <meta property="og:url" content="https://khurramnazir.com/" />
+    <meta property="og:site_name" content="Khurram Nazir Homelab Dashboard" />
     
     <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Khurram Nazir | IT Professional and Creative Technologist" />
     <meta name="twitter:description" content="A live architectural showcase of a production-grade homelab infrastructure. Built on Linux, Zero Trust, and GitOps." />
-    <meta name="twitter:image" content="" />
+    <meta name="twitter:image" content="https://khurramnazir.com/og-preview.png" />
+    <meta name="twitter:site" content="@reprodev" />
+
+    <!-- Structured Data: Rich Google Schema for Portfolio Search Panel -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Khurram Nazir",
+        "jobTitle": "IT Professional and Creative Technologist",
+        "description": "Expert in virtualization, GitOps automation, and zero-trust networking. Architect of production-grade Linux ecosystems.",
+        "url": "https://khurramnazir.com",
+        "image": "https://khurramnazir.com/og-preview.png",
+        "sameAs": [
+          "https://github.com/reprodev",
+          "https://www.linkedin.com/in/khurram-nazir-50b6a13aa/",
+          "https://reprodev.com"
+        ],
+        "knowsAbout": [
+          "Linux Ecosystem",
+          "Terraform Core",
+          "Kubernetes (K3s)",
+          "Ansible Automation",
+          "Proxmox Bare-metal virtualization",
+          "Zero Trust Edge networks",
+          "GitOps CI/CD integration",
+          "Self-hosted Docker orchestration"
+        ]
+      }
+    </script>
 
     <!-- Google Tag (gtag.js) - Activated via VITE_GA_ID in .env -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GA_ID%"></script>
@@ -34,7 +67,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-[#0a0a0a] text-slate-100 font-outfit antialiased selection:bg-azure/30 selection:text-white">
+  <body class="bg-[#050505] text-slate-100 font-outfit antialiased selection:bg-azure/30 selection:text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

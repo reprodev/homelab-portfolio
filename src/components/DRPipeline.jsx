@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from './Card';
 import Badge from './Badge';
 import RationaleSection from './RationaleSection';
-import { ShieldCheck, CloudLightning, Database } from 'lucide-react';
+import { ShieldCheck, CloudLightning, Database, AlertOctagon, CheckCircle2, Play, RefreshCw } from 'lucide-react';
 import { WindowsLogo, DropboxLogo } from './BrandLogos';
 
 const VeeamLogo = ({ className }) => (
@@ -13,6 +13,76 @@ const VeeamLogo = ({ className }) => (
 );
 
 const DRPipeline = () => {
+  const [drillActive, setDrillActive] = useState(false);
+  const [drillStep, setDrillStep] = useState(0); // 0: Idle, 1: Outage, 2: Recovering, 3: Verifying, 4: Restored
+  const [progress, setProgress] = useState(0);
+  const [logs, setLogs] = useState([]);
+
+  // Failover simulation sequence
+  const startFailoverDrill = () => {
+    if (drillActive) return;
+    setDrillActive(true);
+    setDrillStep(1);
+    setProgress(0);
+    setLogs(["[0.0s] [ALERT] Catastrophic host VM shutdown simulated.", "[0.4s] [ALERT] ZuluServer primary instance is [ OFFLINE ]."]);
+
+    // Outage -> Decompression Recovery
+    setTimeout(() => {
+      setDrillStep(2);
+      setLogs(prev => [...prev, "[1.5s] [VEEAM] Initializing RTO failover routine from Knightbox repo...", "[2.0s] [VEEAM] Fetching incremental block metadata slices..."]);
+    }, 1800);
+
+    // Verifying
+    setTimeout(() => {
+      setDrillStep(3);
+      setLogs(prev => [...prev, "[4.2s] [STORAGE] Decompressing LZ4 block storage (482GB restored)...", "[4.8s] [TERRAFORM] Spin up hot-standby VM template [SUCCESS].", "[5.2s] [ANSIBLE] Re-binding network bridges and storage shares..."]);
+    }, 4500);
+
+    // Restored
+    setTimeout(() => {
+      setDrillStep(4);
+      setLogs(prev => [...prev, "[6.5s] [SYSTEM] Integrity check passed. Primary workloads [ ONLINE ].", "[7.0s] [SUCCESS] DR Failover drill complete. Zero data loss."]);
+    }, 7000);
+  };
+
+  // Progress bar animation during step 2 & 3
+  useEffect(() => {
+    let interval;
+    if (drillStep === 2) {
+      interval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 60) {
+            clearInterval(interval);
+            return 60;
+          }
+          return prev + 4;
+        });
+      }, 100);
+    } else if (drillStep === 3) {
+      interval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return prev + 8;
+        });
+      }, 80);
+    } else if (drillStep === 0 || drillStep === 1) {
+      setProgress(0);
+    } else if (drillStep === 4) {
+      setProgress(100);
+    }
+    return () => clearInterval(interval);
+  }, [drillStep]);
+
+  const resetDrill = () => {
+    setDrillActive(false);
+    setDrillStep(0);
+    setProgress(0);
+    setLogs([]);
+  };
+
   return (
     <section className="mb-24">
       <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-10 gap-2 border-b border-white/5 pb-4">
@@ -21,47 +91,169 @@ const DRPipeline = () => {
           Core Skills: <strong className="text-emerald-400 font-normal">Veeam VBR, Immutable Repositories, RPO/RTO Optimization</strong>
         </span>
       </div>
+
       <Card title={
-        <div className="flex items-center gap-3">
-          <VeeamLogo className="w-6 h-6 text-emerald-400" />
-          <div className="flex flex-col">
-            <span className="leading-tight">3-2-1 Backup Strategy</span>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-emerald-400/70 font-black mt-1">Enterprise-Grade Resilience</span>
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-3">
+            <VeeamLogo className="w-6 h-6 text-emerald-400" />
+            <div className="flex flex-col text-left">
+              <span className="leading-tight">3-2-1 Backup Strategy</span>
+              <span className="text-[10px] uppercase tracking-[0.2em] text-emerald-400/70 font-black mt-1">Enterprise-Grade Resilience</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {drillStep === 4 ? (
+              <button
+                onClick={resetDrill}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 active:scale-95 text-xs text-white font-mono font-bold tracking-tight uppercase transition-all shadow-md"
+              >
+                <RefreshCw size={12} className="animate-spin" /> Reset Dashboard
+              </button>
+            ) : (
+              <button
+                onClick={startFailoverDrill}
+                disabled={drillActive}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-black tracking-tight uppercase transition-all shadow-xl
+                  ${drillActive 
+                    ? 'bg-amberGold/10 border border-amberGold/20 text-amberGold cursor-not-allowed animate-pulse'
+                    : 'bg-[#ef4444] text-white hover:bg-red-500 hover:shadow-[0_0_25px_rgba(239,68,68,0.4)] active:scale-95'
+                  }`}
+              >
+                <Play size={12} fill="currentColor" /> {drillActive ? 'Failover Active' : 'Test Failover'}
+              </button>
+            )}
           </div>
         </div>
-      } glowColor="rgba(16, 185, 129, 0.15)">
+      } glowColor={drillStep === 1 ? "rgba(239, 68, 68, 0.25)" : drillStep === 2 || drillStep === 3 ? "rgba(245, 158, 11, 0.25)" : "rgba(16, 185, 129, 0.15)"}>
+        
+        {/* Dynamic Drill Alert Banner */}
+        {drillActive && (
+          <div className={`mt-4 px-4 py-3 rounded-2xl border flex items-center justify-between transition-all duration-500
+            ${drillStep === 1 
+              ? 'bg-red-500/10 border-red-500/20 text-red-400' 
+              : drillStep === 2 || drillStep === 3 
+                ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' 
+                : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              {drillStep === 4 ? (
+                <CheckCircle2 size={16} className="text-emerald-400" />
+              ) : (
+                <AlertOctagon size={16} className="animate-bounce" />
+              )}
+              <span className="text-[10px] font-mono tracking-wider uppercase font-black">
+                {drillStep === 1 && "CRITICAL OUTAGE DRILL ACTIVE: ZULUSERVER OFFLINE!"}
+                {drillStep === 2 && `FAILOVER RUNNING: SPINNING UP STANDBY VM (${progress}%)`}
+                {drillStep === 3 && `RE-BINDING LAN NETWORK interfaces (${progress}%)`}
+                {drillStep === 4 && "FAILOVER DRILL SUCCESSFUL. WORKLOAD RESTORED!"}
+              </span>
+            </div>
+            {drillStep < 4 && (
+              <span className="text-[9px] font-mono opacity-60 uppercase font-black italic">RTO Timer Running</span>
+            )}
+          </div>
+        )}
+
         <div className="p-6 md:p-10 bg-black/40 border border-white/5 rounded-[2rem] mt-6 relative overflow-hidden group">
           
-          <div className="absolute inset-0 pointer-events-none opacity-20 hidden md:block">
+          {/* SVG Animated Connector Paths */}
+          <div className="absolute inset-0 pointer-events-none opacity-25 hidden md:block">
             <svg className="w-full h-full" viewBox="0 0 800 200" fill="none">
-              <path d="M 120 100 L 680 100" stroke="url(#backup-flow)" strokeWidth="2" strokeDasharray="10 20" className="animate-pulse" />
+              <path d="M 120 100 L 680 100" stroke="url(#backup-flow)" strokeWidth="2" strokeDasharray="10 20" />
               <defs>
                 <linearGradient id="backup-flow" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="50%" stopColor="#10b981" />
-                  <stop offset="100%" stopColor="#818cf8" />
+                  <stop offset="0%" stopColor={drillStep === 1 ? "#ef4444" : drillStep >= 2 ? "#10b981" : "#3b82f6"} />
+                  <stop offset="50%" stopColor={drillStep === 1 ? "#f59e0b" : drillStep >= 2 ? "#10b981" : "#10b981"} />
+                  <stop offset="100%" stopColor={drillStep === 1 ? "#ef4444" : drillStep >= 2 ? "#818cf8" : "#818cf8"} />
                 </linearGradient>
               </defs>
-              <circle r="4" fill="#60a5fa">
-                <animateMotion path="M 120 100 L 680 100" dur="4s" repeatCount="indefinite" />
-              </circle>
-              <circle r="3" fill="#10b981">
-                <animateMotion path="M 120 100 L 680 100" dur="3s" begin="1.5s" repeatCount="indefinite" />
-              </circle>
+              
+              {/* Dynamic pulses running backwards or forwards based on failover status */}
+              {drillStep === 0 && (
+                <>
+                  <circle r="4" fill="#60a5fa">
+                    <animateMotion path="M 120 100 L 680 100" dur="4s" repeatCount="indefinite" />
+                  </circle>
+                  <circle r="3" fill="#10b981">
+                    <animateMotion path="M 120 100 L 680 100" dur="3s" begin="1.5s" repeatCount="indefinite" />
+                  </circle>
+                </>
+              )}
+              {drillStep === 1 && (
+                <circle r="5" fill="#ef4444" className="animate-ping">
+                  <animateMotion path="M 120 100 L 680 100" dur="1.5s" repeatCount="indefinite" />
+                </circle>
+              )}
+              {(drillStep === 2 || drillStep === 3) && (
+                <>
+                  {/* Restoring: Data flows backward from Backup to Source */}
+                  <circle r="5" fill="#f59e0b">
+                    <animateMotion path="M 680 100 L 120 100" dur="2s" repeatCount="indefinite" />
+                  </circle>
+                  <circle r="3.5" fill="#10b981">
+                    <animateMotion path="M 680 100 L 120 100" dur="1.2s" begin="0.6s" repeatCount="indefinite" />
+                  </circle>
+                </>
+              )}
+              {drillStep === 4 && (
+                <>
+                  {/* Recovered: Double time active speed sync pulses */}
+                  <circle r="4.5" fill="#10b981">
+                    <animateMotion path="M 120 100 L 680 100" dur="2s" repeatCount="indefinite" />
+                  </circle>
+                  <circle r="4" fill="#3b82f6">
+                    <animateMotion path="M 120 100 L 680 100" dur="1.5s" begin="0.8s" repeatCount="indefinite" />
+                  </circle>
+                </>
+              )}
             </svg>
           </div>
 
           <div className="flex flex-col md:flex-row items-stretch justify-between gap-12 relative z-10">
             
-            {/* Step 1: Source */}
+            {/* Step 1: Source Fleet VM Node */}
             <div className="flex-1 flex flex-col items-center text-center">
               <div className="relative mb-6">
-                <div className="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center text-4xl shadow-2xl border border-white/10 group-hover:scale-110 transition-transform duration-500">🖥️</div>
-                <div className="absolute -bottom-2 -right-2 px-2 py-1 bg-azure/20 border border-azure/30 rounded-lg text-[9px] font-black text-azure uppercase tracking-tighter backdrop-blur-md">Source</div>
+                <div className={`w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center text-4xl shadow-2xl border transition-all duration-500
+                  ${drillStep === 1 
+                    ? 'border-red-500 bg-red-950/20 scale-95 opacity-50 shadow-[0_0_20px_rgba(239,68,68,0.2)]' 
+                    : drillStep === 2 || drillStep === 3
+                      ? 'border-amber-500 bg-amber-950/10 shadow-[0_0_20px_rgba(245,158,11,0.2)] animate-pulse'
+                      : 'border-white/10 group-hover:scale-110'
+                  }`}
+                >
+                  {drillStep === 1 ? "⚠️" : "🖥️"}
+                </div>
+                <div className={`absolute -bottom-2 -right-2 px-2 py-1 border rounded-lg text-[9px] font-black uppercase tracking-tighter backdrop-blur-md transition-all
+                  ${drillStep === 1 
+                    ? 'bg-red-500/20 border-red-500/30 text-red-400' 
+                    : drillStep === 2 || drillStep === 3
+                      ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
+                      : 'bg-azure/20 border-azure/30 text-azure'
+                  }`}
+                >
+                  {drillStep === 1 ? 'Outage' : drillStep === 2 || drillStep === 3 ? 'Restoring' : 'Source'}
+                </div>
               </div>
-              <h5 className="font-bold text-lg text-white mb-4 italic uppercase tracking-tight leading-none tracking-tighter">Compute Fleet</h5>
+              
+              <h5 className="font-bold text-lg text-white mb-4 italic uppercase tracking-tight leading-none tracking-tighter">
+                Compute Fleet
+              </h5>
+              
               <div className="flex flex-col gap-2 w-full max-w-[200px]">
-                <Badge color="azure" className="justify-center text-[10px] py-1.5 opacity-80 uppercase tracking-widest font-black italic">ZuluServer</Badge>
+                <div className={`flex justify-between items-center px-4 py-2 border rounded-xl font-mono text-[10px] font-bold tracking-wider uppercase transition-all duration-500
+                  ${drillStep === 1 
+                    ? 'bg-red-500/10 border-red-500/20 text-red-400' 
+                    : drillStep === 2 || drillStep === 3
+                      ? 'bg-amber-500/5 border-amber-500/20 text-amber-400 animate-pulse'
+                      : 'bg-slate-900 border-white/5 text-azure-light'
+                  }`}
+                >
+                  <span>ZuluServer</span>
+                  <span>{drillStep === 1 ? "OFFLINE" : drillStep === 2 || drillStep === 3 ? "REBUILDING" : "ONLINE"}</span>
+                </div>
                 <Badge color="amber" className="justify-center text-[10px] py-1.5 opacity-80 uppercase tracking-widest font-black italic">HA Cluster</Badge>
                 <Badge color="success" className="justify-center text-[10px] py-1.5 opacity-80 uppercase tracking-widest font-black italic">K3s Payloads</Badge>
               </div>
@@ -69,11 +261,16 @@ const DRPipeline = () => {
 
             <div className="md:hidden flex justify-center text-slate-800 text-3xl">↓</div>
 
-            {/* Step 2: Knightbox (The Veeam Core) */}
+            {/* Step 2: Knightbox (Veeam Core Repository Node) */}
             <div className="flex-1 flex flex-col items-center text-center">
               <div className="relative mb-6">
-                <div className="w-24 h-24 bg-gradient-to-br from-emerald-500/20 to-azure-light/20 rounded-[2rem] flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.15)] border border-emerald-500/30 group-hover:rotate-3 transition-all duration-500 relative">
-                  <VeeamLogo className="w-12 h-12 text-emerald-400" />
+                <div className={`w-24 h-24 bg-gradient-to-br from-emerald-500/20 to-azure-light/20 rounded-[2rem] flex items-center justify-center border transition-all duration-500 relative
+                  ${drillStep === 2 || drillStep === 3
+                    ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.25)] scale-105'
+                    : 'border-emerald-500/30 group-hover:rotate-3 shadow-[0_0_30px_rgba(16,185,129,0.15)]'
+                  }`}
+                >
+                  <VeeamLogo className={`w-12 h-12 transition-all ${drillStep === 2 || drillStep === 3 ? 'text-amber-400' : 'text-emerald-400'}`} />
                   <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/60 px-1.5 py-0.5 rounded-full border border-emerald-500/40">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="text-[8px] font-black text-emerald-400 uppercase">Live</span>
@@ -87,24 +284,56 @@ const DRPipeline = () => {
               <h5 className="font-bold text-lg text-white mb-2 italic uppercase tracking-tight leading-none tracking-tighter">Veeam Backup Repo</h5>
               <p className="text-[10px] text-slate-500 uppercase tracking-widest font-black border-b border-white/5 pb-2 mb-4">Host: Knightbox</p>
               
-              <div className="flex flex-col gap-2 w-full max-w-[220px]">
-                <div className="flex flex-col p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl group-hover:bg-emerald-500/10 transition-colors">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Workflow</span>
-                    <span className="text-[9px] text-slate-500 font-mono">06:30 UTC</span>
+              {/* Dynamic Timeline / Progress bar during drill */}
+              <div className="w-full max-w-[220px]">
+                {drillActive ? (
+                  <div className="flex flex-col p-4 bg-white/5 border border-white/10 rounded-2xl text-left space-y-3 font-mono text-[9px] leading-relaxed crt-screen">
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase text-amberGold border-b border-white/5 pb-1 relative z-20">
+                      <span>Restoration Log</span>
+                      <span className="animate-pulse">Active</span>
+                    </div>
+                    <div className="h-[90px] overflow-y-auto no-scrollbar space-y-1 text-slate-300 crt-text relative z-20">
+                      {logs.map((log, index) => (
+                        <div key={index} className={log.includes('ALERT') ? 'text-red-400 font-bold' : log.includes('SUCCESS') ? 'text-emerald-400 font-bold' : ''}>
+                          {log}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {drillStep < 4 && (
+                      <div className="space-y-1.5 pt-1 border-t border-white/5">
+                        <div className="flex justify-between text-[8px] text-slate-400 font-bold uppercase tracking-wider">
+                          <span>Recompiling Blocks</span>
+                          <span>{progress}%</span>
+                        </div>
+                        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-amberGold transition-all duration-300 shadow-[0_0_8px_#f59e0b]"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="space-y-2">
-                    <div className="px-2 py-1 bg-black/40 border border-white/5 rounded text-[9px] text-slate-400 italic">LZ4 Dynamic Compression</div>
-                    <div className="px-2 py-1 bg-black/40 border border-white/5 rounded text-[9px] text-slate-400 italic">Saturday Active Fulls</div>
-                    <div className="px-2 py-1 bg-emerald-400/10 border border-emerald-400/20 rounded text-[9px] text-emerald-400 font-black uppercase tracking-widest">7 Restore Points</div>
+                ) : (
+                  <div className="flex flex-col p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl hover:bg-emerald-500/10 transition-colors">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Workflow</span>
+                      <span className="text-[9px] text-slate-500 font-mono">06:30 UTC</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="px-2 py-1 bg-black/40 border border-white/5 rounded text-[9px] text-slate-400 italic">LZ4 Dynamic Compression</div>
+                      <div className="px-2 py-1 bg-black/40 border border-white/5 rounded text-[9px] text-slate-400 italic">Saturday Active Fulls</div>
+                      <div className="px-2 py-1 bg-emerald-400/10 border border-emerald-400/20 rounded text-[9px] text-emerald-400 font-black uppercase tracking-widest">7 Restore Points</div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
             <div className="md:hidden flex justify-center text-slate-800 text-3xl">↓</div>
 
-            {/* Step 3: Offsite Archive */}
+            {/* Step 3: Offsite Cloud Archive */}
             <div className="flex-1 flex flex-col items-center text-center">
               <div className="relative mb-6">
                 <div className="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center shadow-2xl border border-white/10 group-hover:scale-110 transition-transform duration-500">
@@ -113,11 +342,28 @@ const DRPipeline = () => {
                 <div className="absolute -bottom-2 -right-2 px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-[9px] font-black text-purple-400 uppercase tracking-tighter backdrop-blur-md italic">Target: Cloud</div>
               </div>
               <h5 className="font-bold text-lg text-white mb-4 italic uppercase tracking-tight leading-none tracking-tighter">Offsite Archive</h5>
+              
               <div className="flex flex-col gap-2 w-full max-w-[200px]">
-                <Badge color="danger" className="justify-center text-[10px] py-1.5 opacity-80 uppercase tracking-widest font-black italic tracking-tighter">Dropbox Sync</Badge>
-                <div className="p-3 border border-white/5 rounded-xl bg-black/20">
-                  <span className="text-[9px] text-slate-500 leading-tight block italic">Air-gapped protection via encrypted cloud Copy Jobs.</span>
-                </div>
+                {drillStep === 4 ? (
+                  <div className="p-4 border border-emerald-500/20 bg-emerald-500/5 rounded-2xl text-left space-y-2.5 font-mono text-[9px]">
+                    <div className="font-black uppercase tracking-wider text-emerald-400 text-[10px] border-b border-white/5 pb-1 flex items-center gap-1.5">
+                      <CheckCircle2 size={10} /> Failover Analytics
+                    </div>
+                    <ul className="space-y-1 text-slate-300 leading-tight">
+                      <li className="flex justify-between"><span className="text-slate-500 italic">RTO Restored</span><span className="text-white font-bold">4.8s</span></li>
+                      <li className="flex justify-between"><span className="text-slate-500 italic">RPO Window</span><span className="text-white font-bold">&lt; 24h</span></li>
+                      <li className="flex justify-between"><span className="text-slate-500 italic">Data Loss</span><span className="text-emerald-400 font-bold">0.00%</span></li>
+                      <li className="flex justify-between"><span className="text-slate-500 italic">Integrity</span><span className="text-emerald-400 font-bold">100% OK</span></li>
+                    </ul>
+                  </div>
+                ) : (
+                  <>
+                    <Badge color="danger" className="justify-center text-[10px] py-1.5 opacity-80 uppercase tracking-widest font-black italic tracking-tighter">Dropbox Sync</Badge>
+                    <div className="p-3 border border-white/5 rounded-xl bg-black/20">
+                      <span className="text-[9px] text-slate-500 leading-tight block italic">Air-gapped protection via encrypted cloud Copy Jobs.</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -7,6 +7,33 @@ import { BookOpen, HardDrive } from 'lucide-react';
 import { ProxmoxLogo, UbuntuLogo, DietPiLogo, OMVLogo } from './BrandLogos';
 
 const HardwareLayer = () => {
+  const [scanningIndex, setScanningIndex] = React.useState(-1);
+  const [scanStatusMessage, setScanStatusMessage] = React.useState('');
+
+  const startSonarScan = () => {
+    if (scanningIndex !== -1) return;
+    
+    const nodes = ["ZuluServer", "OMV NAS", "ha01 (CF)", "ha02 (Vault)", "ha03 (Guac)", "Templates"];
+    let index = 0;
+    setScanningIndex(0);
+    setScanStatusMessage(`Pinging ${nodes[0]}...`);
+    
+    const interval = setInterval(() => {
+      index += 1;
+      if (index < nodes.length) {
+        setScanningIndex(index);
+        setScanStatusMessage(`Pinging ${nodes[index]}...`);
+      } else {
+        clearInterval(interval);
+        setScanningIndex(-1);
+        setScanStatusMessage("All nodes online (100% telemetry synced)");
+        setTimeout(() => {
+          setScanStatusMessage('');
+        }, 3000);
+      }
+    }, 600);
+  };
+
   return (
     <section className="mb-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -53,8 +80,26 @@ const HardwareLayer = () => {
               </ul>
             </div>
             
-            <div className="flex-[2]">
-              <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-6 border-b border-white/5 pb-2 italic">Active Virtual Nodes</h4>
+            <div className="flex-[2] text-left">
+              <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-2">
+                <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest italic m-0">Active Virtual Nodes</h4>
+                <div className="flex items-center gap-3">
+                  {scanStatusMessage && (
+                    <span className="text-[9px] font-mono text-emerald-400 animate-pulse uppercase tracking-wider">{scanStatusMessage}</span>
+                  )}
+                  <button 
+                    onClick={startSonarScan}
+                    disabled={scanningIndex !== -1}
+                    className={`px-2.5 py-1 rounded-md font-mono text-[8px] font-black uppercase transition-all duration-300 relative z-20 ${
+                      scanningIndex !== -1 
+                        ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5' 
+                        : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 shadow-[0_0_8px_rgba(16,185,129,0.1)]'
+                    }`}
+                  >
+                    {scanningIndex !== -1 ? '🛰️ Pinging...' : '🛰️ Ping Telemetry'}
+                  </button>
+                </div>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
                   { name: "ZuluServer", sub: "Plex Media (Host) • Ubuntu", managed: "Terraform", color: "emerald", icon: <UbuntuLogo className="w-4 h-4 text-orange-400" /> },
@@ -63,7 +108,7 @@ const HardwareLayer = () => {
                   { name: "ha02 (Vault)", sub: "8GB Disk • DietPi", color: "emerald", icon: <DietPiLogo className="w-4 h-4 text-[#91C300]" /> },
                   { name: "ha03 (Guac)", sub: "8GB Disk • DietPi", color: "emerald", icon: <DietPiLogo className="w-4 h-4 text-[#91C300]" /> },
                   { name: "Templates", sub: "Cloud-Init Testing", color: "amber" }
-                ].map((vm) => (
+                ].map((vm, idx) => (
                   <ComputeCard 
                     key={vm.name} 
                     name={vm.name} 
@@ -71,6 +116,7 @@ const HardwareLayer = () => {
                     managedBy={vm.managed} 
                     glowColor={vm.color}
                     icon={vm.icon}
+                    isScanning={scanningIndex === idx}
                   />
                 ))}
               </div>

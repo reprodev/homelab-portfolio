@@ -1,4 +1,4 @@
-# 🚀 Homelab Dashboard Deployment Guide (V1.1)
+# 🚀 Homelab Dashboard Deployment Guide (V3.0.0)
 
 This project has been modernized into a React/Vite architecture with an automated **GitHub Actions** deployment pipeline. Use this guide to sync your local environment to your public repository.
 
@@ -36,7 +36,7 @@ Before you copy the new files into your live Git folder, you **MUST delete** the
 ---
 
 ## 🛡️ Security & Zero-Leak Audit
-*   **Username**: Zero references to `Computer` exist in the code.
+*   **Username**: Zero references to `KnightboxOC` exist in the code.
 *   **Absolute Paths**: All `C:\Users\...` references have been modernized to relative `./` paths.
 *   **Network IPs**: All internal addresses (`192.168.0.X`) have been replaced with descriptive tokens (e.g., `<PRIMARY_SUBNET>`).
 *   **Branching**: The automated reconciler only builds the **Safely Sanitized** source code.
@@ -51,7 +51,7 @@ Run these commands inside your **live Git folder** whenever you want to update t
 2.  **Add and Commit**:
     ```bash
     git add .
-    git commit -m "🚀 Deployment: Modernized Landscape (V1.1)"
+    git commit -m "🚀 Deployment: Dynamic Optimization & Telemetry Dashboard Cockpit (V3.0.0)"
     ```
 3.  **Push to GitHub**:
     ```bash
