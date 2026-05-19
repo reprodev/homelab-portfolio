@@ -7,6 +7,25 @@ const Hero = () => {
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [bootLog, setBootLog] = useState("");
   const [isMobile, setIsMobile] = useState(false);
+
+  const playSynthesizedSound = (type = 'click') => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      if (type === 'click') {
+        osc.frequency.setValueAtTime(1200, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.04);
+        gain.gain.setValueAtTime(0.012, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.04);
+      }
+    } catch (e) {}
+  };
   
   const bootSequence = [
     "[INIT] SECURE_HANDSHAKE_COMPLETE...",
@@ -95,10 +114,10 @@ const Hero = () => {
             
             <motion.div variants={item} className="h-0.5 w-24 bg-gradient-to-r from-azure to-amberGold mb-6 opacity-50" />
 
-            <motion.h2 variants={item} className={`text-xl md:text-2xl ${isMobile ? 'text-blue-200/90' : 'text-blue-200/60'} font-mono uppercase tracking-[0.2em] mb-8 leading-relaxed`}>
+            <motion.h2 variants={item} className={`text-xl md:text-2xl ${isMobile ? 'text-blue-200/95' : 'text-blue-200/90'} font-mono uppercase tracking-[0.2em] mb-8 leading-relaxed drop-shadow-[0_0_8px_rgba(96,165,250,0.2)]`}>
               IT Professional and Creative Technologist
             </motion.h2>
-
+ 
             <AnimatePresence mode="wait">
               {bootLog && (
                 <motion.div 
@@ -106,7 +125,7 @@ const Hero = () => {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0 }}
-                  className={`flex items-center gap-3 text-[10px] font-mono ${isMobile ? 'text-emerald-500/85' : 'text-emerald-500/60'} uppercase tracking-[0.3em] mb-8 bg-emerald-500/5 px-4 py-2 rounded-lg border border-emerald-500/10 w-fit`}
+                  className={`flex items-center gap-3 text-[10px] font-mono ${isMobile ? 'text-emerald-400' : 'text-emerald-400/90'} uppercase tracking-[0.3em] mb-8 bg-emerald-500/10 px-4 py-2 rounded-lg border border-emerald-500/20 w-fit drop-shadow-[0_0_8px_rgba(52,211,153,0.2)]`}
                 >
                   <Terminal size={12} className="animate-pulse" />
                   {bootLog}
@@ -114,33 +133,58 @@ const Hero = () => {
               )}
             </AnimatePresence>
             
-            <motion.p variants={item} className="text-lg md:text-xl text-slate-400 leading-relaxed max-w-2xl">
-              Showcasing a production-grade, declarative home datacenter built <strong className="text-slate-200">almost entirely on Linux</strong>. This living portfolio demonstrates full-stack expertise in virtualization, GitOps CI/CD, and zero-trust edge networking.
+            <motion.p variants={item} className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl">
+              Showcasing a production-grade, declarative home datacenter built <strong className="text-white font-extrabold drop-shadow-[0_0_6px_rgba(255,255,255,0.15)]">almost entirely on Linux</strong>. This living portfolio demonstrates full-stack expertise in virtualization, GitOps CI/CD, and zero-trust edge networking.
             </motion.p>
           </div>
-
+ 
           <motion.div variants={item} className="flex flex-wrap gap-4 pt-4 lg:pt-0">
-            <a href="https://github.com/reprodev" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium group text-white">
+            <a 
+              href="https://github.com/reprodev" 
+              target="_blank" 
+              rel="noreferrer" 
+              aria-label="Visit Khurram Nazir's GitHub Profile"
+              onClick={() => playSynthesizedSound('click')}
+              className="flex items-center gap-2.5 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all text-sm font-medium group text-white hover:shadow-[0_0_15px_rgba(255,255,255,0.05)]"
+            >
               <Github size={18} className="text-slate-400 group-hover:text-white transition-colors" />
               GitHub 
               <ExternalLink size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
             </a>
-            <a href="https://www.linkedin.com/in/khurram-nazir-50b6a13aa/" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium group text-white">
+            <a 
+              href="https://www.linkedin.com/in/khurram-nazir-50b6a13aa/" 
+              target="_blank" 
+              rel="noreferrer" 
+              aria-label="Visit Khurram Nazir's LinkedIn Profile"
+              onClick={() => playSynthesizedSound('click')}
+              className="flex items-center gap-2.5 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all text-sm font-medium group text-white hover:shadow-[0_0_15px_rgba(0,119,181,0.1)]"
+            >
               <Linkedin size={18} className="text-[#0077B5] group-hover:text-[#00A0DC] transition-colors" />
               LinkedIn 
               <ExternalLink size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
             </a>
-            <a href="https://reprodev.com" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium group text-white">
+            <a 
+              href="https://reprodev.com" 
+              target="_blank" 
+              rel="noreferrer" 
+              aria-label="Visit Khurram Nazir's Developer Website"
+              onClick={() => playSynthesizedSound('click')}
+              className="flex items-center gap-2.5 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-azure/30 transition-all text-sm font-medium group text-white hover:shadow-[0_0_15px_rgba(96,165,250,0.15)]"
+            >
               <Globe size={18} className="text-emerald-400 group-hover:text-emerald-300 transition-colors" />
               Website 
               <ExternalLink size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
             </a>
           </motion.div>
         </div>
-
+ 
         <motion.div variants={item} className="mt-12 flex flex-wrap gap-3">
           {["Linux Ecosystem", "Terraform Core", "Kubernetes (K3s)", "Ansible Automation", "Proxmox Bare-metal", "Zero Trust Edge"].map((skill) => (
-            <span key={skill} className="px-4 py-2 bg-black/40 border border-azure/30 rounded-lg text-azure-light text-xs font-mono">
+            <span 
+              key={skill} 
+              onMouseEnter={() => playSynthesizedSound('click')}
+              className="px-4 py-2 bg-black/50 border border-azure/30 hover:border-azure/60 hover:bg-azure/10 rounded-lg text-azure-light text-xs font-mono transition-all hover:scale-105 duration-300 cursor-default hover:shadow-[0_0_15px_rgba(96,165,250,0.25)]"
+            >
               {skill}
             </span>
           ))}

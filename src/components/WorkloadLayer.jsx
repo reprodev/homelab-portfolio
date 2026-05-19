@@ -5,7 +5,91 @@ import RationaleSection from './RationaleSection';
 import { LayoutGrid, Globe, Shield, Terminal, Boxes, Zap, ExternalLink } from 'lucide-react';
 import { DockerLogo, PlexLogo } from './BrandLogos';
 
+const Sparkline = ({ type, ddosActive, drStep }) => {
+  const [points, setPoints] = React.useState(Array.from({ length: 20 }, () => 15));
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setPoints(prev => {
+        let val;
+        if (ddosActive && type === 'network') {
+          val = 70 + Math.random() * 25; // Network spikes to 95%
+        } else if (ddosActive && type === 'cpu') {
+          val = 80 + Math.random() * 15; // CPU spikes to 95%
+        } else if ((drStep === 2 || drStep === 3) && type === 'disk') {
+          val = 60 + Math.random() * 35; // Disk IO spikes during backup restore
+        } else {
+          val = 15 + Math.sin(Date.now() / 400) * 8 + Math.random() * 5; // Idle wave
+        }
+        return [...prev.slice(1), val];
+      });
+    }, 150);
+    return () => clearInterval(interval);
+  }, [ddosActive, drStep, type]);
+
+  const width = 190;
+  const height = 45;
+  const maxVal = 100;
+  const xStep = width / (points.length - 1);
+  
+  // Map points to SVG coordinates
+  const pathD = points.map((p, i) => {
+    const x = i * xStep;
+    const y = height - (p / maxVal) * height;
+    return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+  }).join(' ');
+
+  const strokeColor = ddosActive && (type === 'network' || type === 'cpu')
+    ? 'stroke-red-500'
+    : (drStep === 2 || drStep === 3) && type === 'disk'
+      ? 'stroke-amber-500'
+      : 'stroke-emerald-400';
+
+  return (
+    <svg className="w-full h-[45px]" viewBox={`0 0 ${width} ${height}`}>
+      <path d={pathD} fill="none" className={`transition-all duration-300 ${strokeColor}`} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+};
+
 const WorkloadLayer = () => {
+  const [isTranscoding, setIsTranscoding] = React.useState(false);
+  const [transcodeSpeed, setTranscodeSpeed] = React.useState(4.2);
+  const [gpuLoad, setGpuLoad] = React.useState(34);
+  const [bufferLevel, setBufferLevel] = React.useState(65);
+
+  const [ddosActive, setDdosActive] = React.useState(false);
+  const [drStep, setDrStep] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!isTranscoding) return;
+    const interval = setInterval(() => {
+      setTranscodeSpeed(parseFloat((3.8 + Math.random() * 0.8).toFixed(1)));
+      setGpuLoad(Math.floor(29 + Math.random() * 11));
+      setBufferLevel(prev => {
+        const next = prev + (Math.random() > 0.5 ? 2 : -2);
+        return Math.min(Math.max(next, 55), 75);
+      });
+    }, 800);
+    return () => clearInterval(interval);
+  }, [isTranscoding]);
+
+  React.useEffect(() => {
+    const handleDdos = (e) => {
+      setDdosActive(e.detail.active);
+    };
+    const handleDr = (e) => {
+      setDrStep(e.detail.step);
+    };
+
+    window.addEventListener('homelab-ddos', handleDdos);
+    window.addEventListener('homelab-dr', handleDr);
+
+    return () => {
+      window.removeEventListener('homelab-ddos', handleDdos);
+      window.removeEventListener('homelab-dr', handleDr);
+    };
+  }, []);
   return (
     <section className="mb-24">
       <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-10 gap-2 border-b border-white/5 pb-4">
@@ -73,16 +157,84 @@ const WorkloadLayer = () => {
                     <PlexLogo className="w-7 h-7 text-[#EBA000]" />
                   </div>
                   <div>
-                    <h5 className="text-lg font-black text-white italic uppercase tracking-tight">Plex Media Server</h5>
-                    <p className="text-[10px] text-slate-500 font-mono">Running natively on ZuluServer (Ubuntu)</p>
+                    <h5 className="text-lg font-black text-white italic uppercase tracking-tight text-left">Plex Media Server</h5>
+                    <p className="text-[10px] text-slate-500 font-mono text-left">Running natively on ZuluServer (Ubuntu)</p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Badge color="amber">IHD Graphics Passthrough</Badge>
-                  <Badge color="azure">Native Performance</Badge>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => setIsTranscoding(!isTranscoding)}
+                    className={`px-3 py-1.5 rounded-lg font-mono text-[9px] font-black uppercase transition-all duration-300 relative z-20 ${
+                      isTranscoding 
+                        ? 'bg-amber-500 text-black border border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.4)] animate-pulse' 
+                        : 'bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10'
+                    }`}
+                  >
+                    {isTranscoding ? '⏹ Stop HW Stream' : '▶ Simulate 4K transcode'}
+                  </button>
+                  <div className="hidden sm:flex gap-2">
+                    <Badge color="amber">IHD Graphics Passthrough</Badge>
+                    <Badge color="azure">Native Performance</Badge>
+                  </div>
                 </div>
              </div>
-             <p className="text-[11px] text-slate-500 italic mt-4 leading-relaxed px-2">
+             
+             {isTranscoding && (
+               <div className="mt-4 p-4 bg-black/60 border border-amber-500/20 rounded-2xl space-y-4 relative overflow-hidden crt-screen">
+                 <div className="flex justify-between items-center text-[8px] font-mono text-amberGold border-b border-white/5 pb-2 relative z-20 crt-text">
+                   <span>INTEL QUICK SYNC VIDEO (QSV) DECODE/ENCODE PIPELINE</span>
+                   <span className="flex items-center gap-1.5 uppercase font-bold text-emerald-400">
+                     <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" /> Hardware Active
+                   </span>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-3 items-center justify-between gap-4 font-mono text-[10px] py-2 relative z-20 text-slate-300">
+                   <div className="flex flex-col items-center justify-center p-3 bg-white/5 rounded-xl border border-white/5 relative">
+                     <span className="text-slate-500 font-extrabold uppercase text-[7px] tracking-wider mb-1">Source Stream</span>
+                     <span className="text-white font-black uppercase text-[10px] italic">4K HEVC HDR10</span>
+                     <span className="text-slate-400 text-[8px] mt-0.5">Bitrate: 68 Mbps</span>
+                   </div>
+
+                   <div className="flex flex-col items-center justify-center p-3 bg-amber-500/5 rounded-xl border border-amber-500/20 relative group">
+                     <span className="text-amberGold font-extrabold uppercase text-[7px] tracking-wider mb-1 crt-text">GPU Transcoder</span>
+                     <span className="text-amber-400 font-black uppercase text-[10px] italic flex items-center gap-1">
+                       <Zap size={10} className="animate-bounce" /> QSV Engine
+                     </span>
+                     <span className="text-slate-400 text-[8px] mt-0.5">Speed: {transcodeSpeed}x</span>
+                   </div>
+
+                   <div className="flex flex-col items-center justify-center p-3 bg-white/5 rounded-xl border border-white/5">
+                     <span className="text-slate-500 font-extrabold uppercase text-[7px] tracking-wider mb-1">Destination</span>
+                     <span className="text-white font-black uppercase text-[10px] italic text-emerald-400">1080P H.264 SDR</span>
+                     <span className="text-slate-400 text-[8px] mt-0.5">Bitrate: 8 Mbps</span>
+                   </div>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-[9px] border-t border-white/5 pt-3 relative z-20 crt-text text-slate-300 text-left">
+                   <div className="space-y-1.5">
+                     <div className="flex justify-between">
+                       <span>Intel UHD Graphics 730 Load</span>
+                       <span className="text-amber-400 font-bold">{gpuLoad}%</span>
+                     </div>
+                     <div className="h-1 w-full bg-white/5 border border-white/10 rounded-full overflow-hidden">
+                       <div className="h-full bg-amber-500 rounded-full transition-all duration-700" style={{ width: `${gpuLoad}%` }} />
+                     </div>
+                   </div>
+
+                   <div className="space-y-1.5">
+                     <div className="flex justify-between">
+                       <span>Hardware Transcode Buffer Fill</span>
+                       <span className="text-emerald-400 font-bold">{bufferLevel}%</span>
+                     </div>
+                     <div className="h-1 w-full bg-white/5 border border-white/10 rounded-full overflow-hidden">
+                       <div className="h-full bg-emerald-400 rounded-full transition-all duration-700" style={{ width: `${bufferLevel}%` }} />
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             )}
+
+             <p className="text-[11px] text-slate-500 italic mt-4 leading-relaxed px-2 text-left">
                Strategically deployed as a native host-OS application to ensure direct access to <strong>Intel QuickSync GPU</strong> instructions for 4K HW transcoding, bypassing containerized driver overhead.
              </p>
           </Card>
@@ -91,6 +243,51 @@ const WorkloadLayer = () => {
         {/* Logical Stack Integration */}
         <Card title="Observability Stack" glowColor="rgba(16, 185, 129, 0.1)">
           <div className="space-y-6">
+            {/* Real-time Observability Sparklines HUD */}
+            <div className="p-4 bg-black/60 border border-white/5 rounded-2xl space-y-4 crt-screen">
+              <div className="flex justify-between items-center text-[10px] font-black uppercase text-emerald-400 border-b border-white/5 pb-1 relative z-20 crt-text">
+                <span>Grafana Live Telemetry</span>
+                <span className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" /> Real-time
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-2 relative z-20 font-mono text-[9px] text-left">
+                {/* CPU Sparkline */}
+                <div className="flex flex-col bg-white/5 border border-white/5 rounded-xl p-2 text-slate-300">
+                  <span className="text-slate-500 font-extrabold uppercase text-[7px] leading-none mb-1">Sim CPU</span>
+                  <span className={`text-[11px] font-black italic ${ddosActive ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {ddosActive ? '94.6%' : '14.2%'}
+                  </span>
+                  <div className="mt-1">
+                    <Sparkline type="cpu" ddosActive={ddosActive} drStep={drStep} />
+                  </div>
+                </div>
+
+                {/* Net Sparkline */}
+                <div className="flex flex-col bg-white/5 border border-white/5 rounded-xl p-2 text-slate-300">
+                  <span className="text-slate-500 font-extrabold uppercase text-[7px] leading-none mb-1">Sim Net</span>
+                  <span className={`text-[11px] font-black italic ${ddosActive ? 'text-red-400 animate-pulse' : 'text-emerald-400'}`}>
+                    {ddosActive ? '892 MB/s' : '412 KB/s'}
+                  </span>
+                  <div className="mt-1">
+                    <Sparkline type="network" ddosActive={ddosActive} drStep={drStep} />
+                  </div>
+                </div>
+
+                {/* Disk IO Sparkline */}
+                <div className="flex flex-col bg-white/5 border border-white/5 rounded-xl p-2 text-slate-300">
+                  <span className="text-slate-500 font-extrabold uppercase text-[7px] leading-none mb-1">Sim Disk</span>
+                  <span className={`text-[11px] font-black italic ${(drStep === 2 || drStep === 3) ? 'text-amber-400 animate-pulse' : 'text-emerald-400'}`}>
+                    {(drStep === 2 || drStep === 3) ? '280 MB/s' : '1.8 MB/s'}
+                  </span>
+                  <div className="mt-1">
+                    <Sparkline type="disk" ddosActive={ddosActive} drStep={drStep} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl">
               <div className="flex items-center gap-2 mb-3">
                 <Activity size={14} className="text-emerald-400" />

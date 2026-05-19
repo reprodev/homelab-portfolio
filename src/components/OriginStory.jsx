@@ -2,6 +2,44 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { HelpCircle, ArrowLeft, Terminal, Zap, Cpu, Share2 } from 'lucide-react';
 
+const playSynthesizedSound = (type = 'click') => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (type === 'click') {
+      osc.frequency.setValueAtTime(1200, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.012, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.04);
+    } else if (type === 'enter') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1300, ctx.currentTime + 0.35);
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(600, ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(3200, ctx.currentTime + 0.35);
+
+      osc.disconnect(gain);
+      osc.connect(filter);
+      filter.connect(gain);
+
+      gain.gain.setValueAtTime(0.025, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    }
+  } catch (e) {}
+};
+
 /* 
   Khurram Nazir - The Origin Story Component (V1.5.0)
   A 'behind-the-scenes' component detailing the site's creation.
@@ -141,14 +179,22 @@ const OriginStory = ({ onBack, onOpenCaseStudy }) => {
 
         <div className="flex flex-wrap items-center justify-center gap-6">
           <button 
-            onClick={onBack}
+            onClick={() => {
+              playSynthesizedSound('click');
+              onBack();
+            }}
+            aria-label="Return to Selection Portal"
             className="flex items-center gap-3 px-10 py-5 rounded-full bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-sm hover:bg-white/10 hover:border-white/20 transition-all hover:-translate-x-1"
           >
             <ArrowLeft size={18} /> Return to Portal
           </button>
           
           <button 
-            onClick={onOpenCaseStudy}
+            onClick={() => {
+              playSynthesizedSound('enter');
+              onOpenCaseStudy();
+            }}
+            aria-label="Explore the Technical Documentation"
             className="flex items-center gap-3 px-10 py-5 rounded-full bg-white text-slate-950 font-black uppercase tracking-widest text-sm hover:shadow-[0_0_50px_rgba(255,255,255,0.4)] transition-all hover:scale-105"
           >
             Explore the Documentation <Share2 size={18} />

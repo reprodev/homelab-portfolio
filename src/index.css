@@ -3,19 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --bg-main: #0a0a0a;
+  --bg-main: #050505;
 }
 
 @layer base {
   body {
-    @apply bg-[#0a0a0a] text-slate-100 font-outfit antialiased overflow-x-hidden;
+    @apply bg-[#050505] text-slate-100 font-outfit antialiased overflow-x-hidden;
   }
 }
 
 /* Texture Overlay */
 .noise-overlay {
   @apply fixed inset-0 pointer-events-none z-[50];
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.008'/%3E%3C/svg%3E");
 }
 
 /* Custom Gradient Text */
@@ -55,6 +55,60 @@
 .no-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+/* Technical Dotted Blueprint Canvas Background (Pure CSS, high performance) */
+.blueprint-dots {
+  background-image: radial-gradient(circle, rgba(96, 165, 250, 0.035) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-attachment: fixed;
+}
+
+/* High-Performance phosphor-CRT Monitor Effect */
+.crt-screen {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Base Scanlines - Hardware Accelerated */
+.crt-screen::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.08) 50%);
+  background-size: 100% 4px;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+/* Vignette Glass Core Overlay */
+.crt-screen::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: radial-gradient(circle, transparent 65%, rgba(0, 0, 0, 0.2) 100%);
+  z-index: 11;
+  pointer-events: none;
+}
+
+/* CRT Vector Text Glowing Treatment */
+.crt-text {
+  text-shadow: 0 0 4px currentColor;
+}
+
+/* Subtly flicker only on Desktop to conserve mobile battery/performance */
+@media (min-width: 1024px) {
+  @keyframes crt-flicker {
+    0% { opacity: 0.985; }
+    50% { opacity: 1; }
+    100% { opacity: 0.99; }
+  }
+  .crt-screen {
+    animation: crt-flicker 0.25s infinite;
+  }
 }
 
 @keyframes sweep {

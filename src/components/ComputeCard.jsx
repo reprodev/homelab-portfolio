@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Cpu, Database, Activity } from 'lucide-react';
 import Badge from './Badge';
 
-const ComputeCard = ({ name, sub, status = "active", managedBy, glowColor = "emerald", icon }) => {
+const ComputeCard = ({ name, sub, status = "active", managedBy, glowColor = "emerald", icon, isScanning }) => {
   const accentColor = glowColor === 'emerald' ? 'text-emerald-400' : glowColor === 'azure' ? 'text-azure' : 'text-amber-400';
   const borderColor = glowColor === 'emerald' ? 'border-emerald-500/10' : glowColor === 'azure' ? 'border-azure/10' : 'border-amber-500/10';
 
@@ -10,8 +10,16 @@ const ComputeCard = ({ name, sub, status = "active", managedBy, glowColor = "eme
     <motion.div 
       whileHover={{ scale: 1.02, y: -5, boxShadow: "0 20px 40px rgba(0,0,0,0.4)" }}
       whileTap={{ scale: 0.98 }}
-      className={`group relative p-5 bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-2xl transition-colors duration-500 hover:bg-slate-800/60 hover:border-white/10 overflow-hidden cursor-pointer`}
+      className={`group relative p-5 bg-slate-900/40 backdrop-blur-md border rounded-2xl transition-all duration-500 hover:bg-slate-800/60 overflow-hidden cursor-pointer ${
+        isScanning 
+          ? 'border-emerald-400/80 bg-emerald-500/15 shadow-[0_0_20px_rgba(16,185,129,0.3)] scale-[1.02]' 
+          : 'border-white/5 hover:border-white/10'
+      }`}
     >
+      {/* Sonar Ping Ring */}
+      {isScanning && (
+        <div className="absolute inset-0 border border-emerald-400/60 rounded-2xl animate-ping opacity-70 pointer-events-none" />
+      )}
       {/* Accent Strip */}
       <div className={`absolute top-0 left-0 bottom-0 w-1 ${glowColor === 'emerald' ? 'bg-emerald-500' : glowColor === 'azure' ? 'bg-azure' : 'bg-amber-500'} opacity-30 group-hover:opacity-100 transition-opacity`} />
       
@@ -25,9 +33,21 @@ const ComputeCard = ({ name, sub, status = "active", managedBy, glowColor = "eme
           </div>
           <div>
             <h5 className="text-[15px] font-bold text-white tracking-tight leading-none mb-1 group-hover:text-emerald-400 transition-colors uppercase italic">{name}</h5>
-            <div className="flex items-center gap-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${status === 'active' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-600'}`} />
-              <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">{status}</p>
+            <div className="flex items-center gap-2">
+              {/* Skeuomorphic tactile physical LED indicator */}
+              <div className="relative w-3.5 h-3.5 flex items-center justify-center rounded-full bg-slate-950/80 shadow-[inset_0_1px_3px_rgba(0,0,0,0.8),0_1px_1px_rgba(255,255,255,0.05)] border border-white/5 p-[1.5px]">
+                <div className={`w-2 h-2 rounded-full transition-all duration-700
+                  ${status === 'active' 
+                    ? glowColor === 'emerald' 
+                      ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8),inset_0_-1px_1.5px_rgba(0,0,0,0.3)] animate-pulse' 
+                      : glowColor === 'azure'
+                        ? 'bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.8),inset_0_-1px_1.5px_rgba(0,0,0,0.3)] animate-pulse'
+                        : 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8),inset_0_-1px_1.5px_rgba(0,0,0,0.3)] animate-pulse'
+                    : 'bg-slate-800 shadow-[inset_0_1px_1px_rgba(0,0,0,0.4)]'
+                  }`} 
+                />
+              </div>
+              <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest leading-none pt-0.5">{status}</p>
             </div>
           </div>
         </div>
