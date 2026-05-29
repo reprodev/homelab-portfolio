@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
+import { useSimEvent, SIM_EVENTS } from '../lib/simBus';
 
 const CollapsibleSection = ({ children, id, layerId, title, defaultExpanded = false }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -14,6 +15,12 @@ const CollapsibleSection = ({ children, id, layerId, title, defaultExpanded = fa
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // The guided tour requests sections open by id (matters on mobile where they
+  // collapse). Desktop is always expanded, so this is a no-op there.
+  useSimEvent(SIM_EVENTS.expand, ({ id: targetId }) => {
+    if (targetId === id) setIsExpanded(true);
+  });
 
   const toggle = () => {
     if (isMobile) {

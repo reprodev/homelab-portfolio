@@ -4,6 +4,7 @@ import Badge from './Badge';
 import RationaleSection from './RationaleSection';
 import { LayoutGrid, Globe, Shield, Terminal, Boxes, Zap, ExternalLink } from 'lucide-react';
 import { DockerLogo, PlexLogo } from './BrandLogos';
+import { triggerTranscode, useSimEvent, SIM_EVENTS } from '../lib/simBus';
 
 const Sparkline = ({ type, ddosActive, drStep }) => {
   const [points, setPoints] = React.useState(Array.from({ length: 20 }, () => 15));
@@ -74,22 +75,12 @@ const WorkloadLayer = () => {
     return () => clearInterval(interval);
   }, [isTranscoding]);
 
-  React.useEffect(() => {
-    const handleDdos = (e) => {
-      setDdosActive(e.detail.active);
-    };
-    const handleDr = (e) => {
-      setDrStep(e.detail.step);
-    };
+  // Global simulation bus: keep sparklines + telemetry reacting to events fired
+  // anywhere on the page (the Layer 1 DDoS button, the DR drill, or the tour).
+  useSimEvent(SIM_EVENTS.ddos, ({ active }) => setDdosActive(active));
+  useSimEvent(SIM_EVENTS.dr, ({ step }) => setDrStep(step));
+  useSimEvent(SIM_EVENTS.transcode, ({ active }) => setIsTranscoding(active));
 
-    window.addEventListener('homelab-ddos', handleDdos);
-    window.addEventListener('homelab-dr', handleDr);
-
-    return () => {
-      window.removeEventListener('homelab-ddos', handleDdos);
-      window.removeEventListener('homelab-dr', handleDr);
-    };
-  }, []);
   return (
     <section className="mb-24">
       <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-10 gap-2 border-b border-white/5 pb-4">
@@ -162,8 +153,8 @@ const WorkloadLayer = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => setIsTranscoding(!isTranscoding)}
+                  <button
+                    onClick={() => triggerTranscode(!isTranscoding)}
                     className={`px-3 py-1.5 rounded-lg font-mono text-[9px] font-black uppercase transition-all duration-300 relative z-20 ${
                       isTranscoding 
                         ? 'bg-amber-500 text-black border border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.4)] animate-pulse' 

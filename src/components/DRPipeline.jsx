@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Card from './Card';
 import Badge from './Badge';
 import RationaleSection from './RationaleSection';
 import { ShieldCheck, CloudLightning, Database, AlertOctagon, CheckCircle2, Play, RefreshCw } from 'lucide-react';
 import { WindowsLogo, DropboxLogo } from './BrandLogos';
+import { triggerDr, useSimEvent, SIM_EVENTS } from '../lib/simBus';
 
 const VeeamLogo = ({ className }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -17,10 +18,17 @@ const DRPipeline = () => {
   const [drillStep, setDrillStep] = useState(0); // 0: Idle, 1: Outage, 2: Recovering, 3: Verifying, 4: Restored
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState([]);
+  const runningRef = useRef(false); // re-entrancy guard (listener closures are stale)
 
-  // Failover simulation sequence
-  const startFailoverDrill = () => {
-    if (drillActive) return;
+  // Button / tour entry points only broadcast intent on the global bus.
+  const startFailoverDrill = () => triggerDr(1);
+  const resetDrill = () => triggerDr(0);
+
+  // Failover orchestration: owns the timeline and re-broadcasts each step so the
+  // cockpit HUD, ambient orbs, workload sparklines and 3D topology react in sync.
+  const runDrill = () => {
+    if (runningRef.current) return;
+    runningRef.current = true;
     setDrillActive(true);
     setDrillStep(1);
     setProgress(0);
@@ -29,21 +37,37 @@ const DRPipeline = () => {
     // Outage -> Decompression Recovery
     setTimeout(() => {
       setDrillStep(2);
+      triggerDr(2);
       setLogs(prev => [...prev, "[1.5s] [VEEAM] Initializing RTO failover routine from Knightbox repo...", "[2.0s] [VEEAM] Fetching incremental block metadata slices..."]);
     }, 1800);
 
     // Verifying
     setTimeout(() => {
       setDrillStep(3);
+      triggerDr(3);
       setLogs(prev => [...prev, "[4.2s] [STORAGE] Decompressing LZ4 block storage (482GB restored)...", "[4.8s] [TERRAFORM] Spin up hot-standby VM template [SUCCESS].", "[5.2s] [ANSIBLE] Re-binding network bridges and storage shares..."]);
     }, 4500);
 
     // Restored
     setTimeout(() => {
       setDrillStep(4);
+      triggerDr(4);
       setLogs(prev => [...prev, "[6.5s] [SYSTEM] Integrity check passed. Primary workloads [ ONLINE ].", "[7.0s] [SUCCESS] DR Failover drill complete. Zero data loss."]);
     }, 7000);
   };
+
+  // step 1 = start request (button or tour); step 0 = reset. Steps 2-4 are
+  // emitted by runDrill itself and ignored here as control signals.
+  useSimEvent(SIM_EVENTS.dr, ({ step }) => {
+    if (step === 1) runDrill();
+    else if (step === 0) {
+      runningRef.current = false;
+      setDrillActive(false);
+      setDrillStep(0);
+      setProgress(0);
+      setLogs([]);
+    }
+  });
 
   // Progress bar animation during step 2 & 3
   useEffect(() => {
@@ -75,13 +99,6 @@ const DRPipeline = () => {
     }
     return () => clearInterval(interval);
   }, [drillStep]);
-
-  const resetDrill = () => {
-    setDrillActive(false);
-    setDrillStep(0);
-    setProgress(0);
-    setLogs([]);
-  };
 
   return (
     <section className="mb-24">

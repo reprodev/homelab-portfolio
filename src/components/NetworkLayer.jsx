@@ -5,6 +5,7 @@ import Badge from './Badge';
 import RationaleSection from './RationaleSection';
 import { ShieldCheck, ShieldAlert, Terminal, Key, RefreshCw } from 'lucide-react';
 import { CloudflareLogo, TailscaleLogo } from './BrandLogos';
+import { triggerDdos, useSimEvent, SIM_EVENTS } from '../lib/simBus';
 
 // HMR Cache Bust: 1
 const NetworkLayer = () => {
@@ -13,6 +14,7 @@ const NetworkLayer = () => {
   const [vpnActive, setVpnActive] = useState(false);
   const [logs, setLogs] = useState([]);
   const logsContainerRef = useRef(null);
+  const ddosRef = useRef(false); // tracks last broadcast state to log clean transitions
 
   // Resize listener
   useEffect(() => {
@@ -77,22 +79,28 @@ const NetworkLayer = () => {
     }
   }, [logs]);
 
-  const toggleDdos = () => {
-    if (ddosActive) {
-      setDdosActive(false);
-      setLogs(prev => [...prev, "[WAF-ALERT] WAF mitigation complete. Zero system intrusion verified.", " "]);
-    } else {
-      setDdosActive(true);
+  // Button only broadcasts intent on the global bus; the listener below is the
+  // single source of truth, so the tour can drive the exact same behaviour.
+  const toggleDdos = () => triggerDdos(!ddosActive);
+
+  // React to DDoS state from anywhere (this button, or the GuidedTour).
+  useSimEvent(SIM_EVENTS.ddos, ({ active }) => {
+    const wasActive = ddosRef.current;
+    ddosRef.current = active;
+    setDdosActive(active);
+    if (active) {
       setVpnActive(false); // Can't VPN during attack
       setLogs(prev => [
-        ...prev, 
+        ...prev,
         " ",
         "[WAF-ALERT] CRITICAL DDoS ATTEMPT DETECTED AT EDGE GATEWAYS!",
         "[WAF-ALERT] Cloudflare WAF dynamic mitigation levels raised to high.",
         " "
       ]);
+    } else if (wasActive) {
+      setLogs(prev => [...prev, "[WAF-ALERT] WAF mitigation complete. Zero system intrusion verified.", " "]);
     }
-  };
+  });
 
   const toggleVpn = () => {
     if (ddosActive) return; // Block VPN activation during active attack
@@ -112,7 +120,8 @@ const NetworkLayer = () => {
   };
 
   const resetAll = () => {
-    setDdosActive(false);
+    triggerDdos(false);
+    ddosRef.current = false;
     setVpnActive(false);
     setLogs(["Active Edge Monitoring online. Logs cleared.", " "]);
   };

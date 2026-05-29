@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Database, Cpu, Repeat, LayoutGrid, Menu, X, Volume2, VolumeX, Sliders } from 'lucide-react';
+import { Shield, Database, Cpu, Repeat, LayoutGrid, Menu, X, Volume2, VolumeX, Sliders, Network } from 'lucide-react';
 
 const LayerHUD = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -141,6 +141,7 @@ const LayerHUD = () => {
   }, []);
 
   const sections = [
+    { id: 'topology', icon: <Network size={18} />, label: '3D Topology' },
     { id: 'layer-1', icon: <Shield size={18} />, label: 'Edge & Ingress' },
     { id: 'layer-2', icon: <Database size={18} />, label: 'Hardware' },
     { id: 'layer-3', icon: <Cpu size={18} />, label: 'Logical' },
