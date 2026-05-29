@@ -4,6 +4,7 @@ import { Music, BookOpen, Database, ArrowRight, ChevronRight, ChevronDown, HelpC
 import OriginStory from './OriginStory.jsx';
 import CaseStudyPost from './CaseStudyPost.jsx';
 import ServiceDeskSimDetails from './ServiceDeskSimDetails.jsx';
+import { usePrefersReducedMotion } from '../lib/simBus';
 
 const playSynthesizedSound = (type = 'click') => {
   try {
@@ -329,6 +330,7 @@ const SplashHub = ({ onDismiss }) => {
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const reducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
@@ -472,8 +474,8 @@ const SplashHub = ({ onDismiss }) => {
         {/* Grain Overlay (V1.5.0 Refinement) */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 
-        {/* Mouse-Reactive Particle Canvas Constellation */}
-        {(stage === 'intro' || stage === 'selection') && (
+        {/* Mouse-Reactive Particle Canvas Constellation (skipped on reduced motion) */}
+        {(stage === 'intro' || stage === 'selection') && !reducedMotion && (
           <ParticleCanvas isMobile={isMobile} />
         )}
       </div>

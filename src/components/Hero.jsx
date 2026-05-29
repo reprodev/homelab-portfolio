@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Badge from './Badge';
-import { Github, Linkedin, Globe, ExternalLink, Terminal } from 'lucide-react';
+import { Github, Linkedin, Globe, ExternalLink, Terminal, Play } from 'lucide-react';
+import { TOUR_START_EVENT } from '../lib/tourScript';
 
 const Hero = () => {
   const [isReturningUser, setIsReturningUser] = useState(false);
@@ -136,6 +137,25 @@ const Hero = () => {
             <motion.p variants={item} className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl">
               Showcasing a production-grade, declarative home datacenter built <strong className="text-white font-extrabold drop-shadow-[0_0_6px_rgba(255,255,255,0.15)]">almost entirely on Linux</strong>. This living portfolio demonstrates full-stack expertise in virtualization, GitOps CI/CD, and zero-trust edge networking.
             </motion.p>
+
+            <motion.div variants={item} className="mt-8">
+              <button
+                onClick={() => {
+                  playSynthesizedSound('click');
+                  window.dispatchEvent(new CustomEvent(TOUR_START_EVENT));
+                }}
+                aria-label="Play a guided cinematic tour of the infrastructure"
+                className="group relative inline-flex items-center gap-3 pl-4 pr-6 py-3.5 rounded-2xl bg-gradient-to-r from-azure-dark/40 to-azure/20 border border-azure/40 text-white font-bold tracking-tight hover:border-azure/70 hover:shadow-[0_0_30px_rgba(96,165,250,0.3)] transition-all active:scale-95"
+              >
+                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-azure/30 text-azure-light group-hover:bg-azure/50 group-hover:text-white transition-colors">
+                  <Play size={16} fill="currentColor" className="ml-0.5" />
+                </span>
+                <span className="flex flex-col items-start leading-tight">
+                  <span className="text-[9px] font-mono font-black uppercase tracking-[0.25em] text-azure-light/80">Auto Demo</span>
+                  <span className="text-sm">Play Guided Tour</span>
+                </span>
+              </button>
+            </motion.div>
           </div>
  
           <motion.div variants={item} className="flex flex-wrap gap-4 pt-4 lg:pt-0">

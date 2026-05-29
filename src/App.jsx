@@ -10,9 +10,30 @@ import KnowledgeLayer from './components/KnowledgeLayer.jsx';
 import CollapsibleSection from './components/CollapsibleSection.jsx';
 import InstructionalTip from './components/InstructionalTip.jsx';
 import LayerHUD from './components/LayerHUD.jsx';
-import { LayoutGrid } from 'lucide-react';
+import GuidedTour from './components/GuidedTour.jsx';
+import { LayoutGrid, Network } from 'lucide-react';
+import { useSimEvent, SIM_EVENTS } from './lib/simBus.js';
 
 const SplashHub = React.lazy(() => import('./components/SplashHub.jsx'));
+const Topology3D = React.lazy(() => import('./components/Topology3D.jsx'));
+
+// Mounts its children only once they scroll near the viewport, so the heavy
+// WebGL topology chunk never costs first paint.
+const LazyInView = ({ children, className, rootMargin = '300px' }) => {
+  const ref = React.useRef(null);
+  const [visible, setVisible] = React.useState(false);
+  React.useEffect(() => {
+    const node = ref.current;
+    if (!node || visible) return undefined;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { rootMargin }
+    );
+    obs.observe(node);
+    return () => obs.disconnect();
+  }, [visible, rootMargin]);
+  return <div ref={ref} className={className}>{visible ? children : null}</div>;
+};
 
 function App() {
   const [showSplash, setShowSplash] = useState(null); // 'null' for the initial checking frame
@@ -38,34 +59,17 @@ function App() {
     }
   }, []);
 
-  // Event listeners for global simulation status updates
-  useEffect(() => {
-    const handleDdos = (e) => {
-      setDdosActive(e.detail.active);
-      if (e.detail.active) {
-        setAmbientTheme('ddos');
-      } else {
-        setAmbientTheme('default');
-      }
-    };
-    const handleDr = (e) => {
-      const active = e.detail.step > 0 && e.detail.step < 4;
-      setDrActive(active);
-      if (active) {
-        setAmbientTheme('dr');
-      } else {
-        setAmbientTheme('default');
-      }
-    };
-
-    window.addEventListener('homelab-ddos', handleDdos);
-    window.addEventListener('homelab-dr', handleDr);
-
-    return () => {
-      window.removeEventListener('homelab-ddos', handleDdos);
-      window.removeEventListener('homelab-dr', handleDr);
-    };
-  }, []);
+  // Global simulation bus: drive the cockpit HUD + ambient orb theme from events
+  // dispatched anywhere on the page (now wired via src/lib/simBus.js).
+  useSimEvent(SIM_EVENTS.ddos, ({ active }) => {
+    setDdosActive(active);
+    setAmbientTheme(active ? 'ddos' : 'default');
+  });
+  useSimEvent(SIM_EVENTS.dr, ({ step }) => {
+    const active = step > 0 && step < 4;
+    setDrActive(active);
+    setAmbientTheme(active ? 'dr' : 'default');
+  });
 
   // Avoid FOUC (flash of unstyled content) or dashboard flicker
   if (showSplash === null) return (
@@ -172,6 +176,9 @@ function App() {
 
             {/* Nav HUD & Portal Switcher */}
             <LayerHUD />
+
+            {/* Guided cinematic auto-tour controller */}
+            <GuidedTour />
             
             <motion.button
               initial={{ scale: 0, opacity: 0 }}
@@ -251,6 +258,29 @@ function App() {
               <InstructionalTip />
               
               <main className="max-w-[1300px] mx-auto px-6 py-12 space-y-12">
+                {/* Live 3D Infrastructure Topology — the WebGL centerpiece */}
+                <section id="topology" className="scroll-mt-24">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-6 gap-2 border-b border-white/5 pb-4">
+                    <h3 className="text-2xl md:text-3xl font-extralight tracking-tight text-white m-0 italic flex items-center gap-3">
+                      <Network size={22} className="text-azure-light" /> Live Infrastructure Topology
+                    </h3>
+                    <span className="text-sm font-mono text-slate-400">
+                      Interactive 3D map · <strong className="text-azure-light font-normal uppercase tracking-tighter">reacts to every simulation</strong>
+                    </span>
+                  </div>
+                  <LazyInView>
+                    <Suspense fallback={
+                      <div className="w-full h-[460px] md:h-[560px] rounded-[2rem] border border-white/10 bg-black/40 flex items-center justify-center">
+                        <div className="text-white/20 text-[10px] md:text-xs font-mono uppercase tracking-[0.6em] animate-pulse">
+                          Rendering Topology...
+                        </div>
+                      </div>
+                    }>
+                      <Topology3D />
+                    </Suspense>
+                  </LazyInView>
+                </section>
+
                 <CollapsibleSection id="layer-1" layerId="Layer 1" title="Edge & Auth Ingress" defaultExpanded={true}>
                   <div onMouseEnter={() => setAmbientTheme('layer-1')} onMouseLeave={() => setAmbientTheme('default')}>
                     <NetworkLayer />

@@ -119,3 +119,25 @@
 .animate-sweep {
   animation: sweep 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Accessibility: respect the OS "reduce motion" preference.
+   Kills the CRT flicker and tames looping decorative animations site-wide while
+   leaving meaningful one-shot transitions intact. JS-driven loops (particle
+   constellation, 3D auto-rotate, tour scrolling) are gated separately via the
+   usePrefersReducedMotion hook. */
+@media (prefers-reduced-motion: reduce) {
+  .crt-screen {
+    animation: none !important;
+  }
+  .animate-sweep,
+  .animate-float {
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
