@@ -24,7 +24,16 @@ const CollapsibleSection = ({ children, id, layerId, title, defaultExpanded = fa
 
   const toggle = () => {
     if (isMobile) {
-      setIsExpanded(!isExpanded);
+      const nextState = !isExpanded;
+      setIsExpanded(nextState);
+      if (nextState) {
+        setTimeout(() => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 180);
+      }
     }
   };
 
