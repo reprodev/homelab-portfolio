@@ -613,7 +613,7 @@ const NodeDetailPanel = ({ node }) => {
                 {/* SVG Topology Canvas */}
                 <svg className="absolute inset-0 w-full h-full p-4 overflow-visible" viewBox="0 0 400 100" preserveAspectRatio="none" fill="none">
                   {/* Passthrough Circuit Dashed Path */}
-                  <path d="M 40,50 L 140,50 L 240,50 L 350,50" stroke="rgba(255, 255, 255, 0.05)" strokeWidth={1.5} strokeDasharray="3 3" />
+                  <path d="M 35,50 L 135,50 L 235,50 L 345,50" stroke="rgba(255, 255, 255, 0.05)" strokeWidth={1.5} strokeDasharray="3 3" />
                   
                   {/* Glowing Active Path Tracks */}
                   {gitopsStage >= 1 && (
@@ -621,11 +621,11 @@ const NodeDetailPanel = ({ node }) => {
                       initial={{ pathLength: 0 }}
                       animate={{ pathLength: 1 }}
                       transition={{ duration: 0.8, ease: "easeOut" }}
-                      d="M 40,50 L 140,50" 
-                      stroke="url(#gradient-github-cf)" 
+                      d="M 35,50 L 135,50" 
+                      stroke="url(#gradient-github-gitlab)" 
                       strokeWidth={2} 
                       strokeLinecap="round"
-                      className="drop-shadow-[0_0_8px_#38bdf8]"
+                      className="drop-shadow-[0_0_8px_#f97316]"
                     />
                   )}
                   {gitopsStage >= 2 && (
@@ -633,11 +633,11 @@ const NodeDetailPanel = ({ node }) => {
                       initial={{ pathLength: 0 }}
                       animate={{ pathLength: 1 }}
                       transition={{ duration: 0.8, ease: "easeOut" }}
-                      d="M 140,50 L 240,50" 
-                      stroke="url(#gradient-cf-agent)" 
+                      d="M 135,50 L 235,50" 
+                      stroke="url(#gradient-gitlab-ecr)" 
                       strokeWidth={2} 
                       strokeLinecap="round"
-                      className="drop-shadow-[0_0_8px_#fb923c]"
+                      className="drop-shadow-[0_0_8px_#a855f7]"
                     />
                   )}
                   {gitopsStage >= 3 && (
@@ -645,8 +645,8 @@ const NodeDetailPanel = ({ node }) => {
                       initial={{ pathLength: 0 }}
                       animate={{ pathLength: 1 }}
                       transition={{ duration: 0.8, ease: "easeOut" }}
-                      d="M 240,50 L 350,50" 
-                      stroke="url(#gradient-agent-target)" 
+                      d="M 235,50 L 345,50" 
+                      stroke="url(#gradient-ecr-target)" 
                       strokeWidth={2} 
                       strokeLinecap="round"
                       className="drop-shadow-[0_0_8px_#10b981]"
@@ -657,9 +657,20 @@ const NodeDetailPanel = ({ node }) => {
                   {gitopsStage === 1 && (
                     <motion.circle
                       r={3.5}
-                      fill="#38bdf8"
-                      className="drop-shadow-[0_0_6px_#38bdf8]"
-                      animate={{ cx: [40, 140] }}
+                      fill="#f97316"
+                      className="drop-shadow-[0_0_6px_#f97316]"
+                      animate={{ cx: [35, 135] }}
+                      transition={{ duration: 1.0, ease: "linear", repeat: Infinity }}
+                    />
+                  )}
+
+                  {/* Flowing Build Image Particle */}
+                  {gitopsStage === 2 && (
+                    <motion.circle
+                      r={3.5}
+                      fill="#a855f7"
+                      className="drop-shadow-[0_0_6px_#a855f7]"
+                      animate={{ cx: [135, 235] }}
                       transition={{ duration: 1.0, ease: "linear", repeat: Infinity }}
                     />
                   )}
@@ -670,23 +681,23 @@ const NodeDetailPanel = ({ node }) => {
                       r={3.5}
                       fill="#10b981"
                       className="drop-shadow-[0_0_6px_#10b981]"
-                      animate={{ cx: [240, 350] }}
+                      animate={{ cx: [235, 345] }}
                       transition={{ duration: 1.0, ease: "linear", repeat: Infinity }}
                     />
                   )}
 
                   <defs>
-                    <linearGradient id="gradient-github-cf" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <linearGradient id="gradient-github-gitlab" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#38bdf8" />
-                      <stop offset="100%" stopColor="#fb923c" />
+                      <stop offset="100%" stopColor="#f97316" />
                     </linearGradient>
-                    <linearGradient id="gradient-cf-agent" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#fb923c" />
+                    <linearGradient id="gradient-gitlab-ecr" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#f97316" />
+                      <stop offset="100%" stopColor="#a855f7" />
+                    </linearGradient>
+                    <linearGradient id="gradient-ecr-target" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#a855f7" />
                       <stop offset="100%" stopColor="#10b981" />
-                    </linearGradient>
-                    <linearGradient id="gradient-agent-target" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#10b981" />
-                      <stop offset="100%" stopColor="#fbbf24" />
                     </linearGradient>
                   </defs>
                 </svg>
@@ -694,7 +705,7 @@ const NodeDetailPanel = ({ node }) => {
                 {/* HTML Nodes positioned absolutely over the canvas */}
                 
                 {/* GitHub VCS Source Node */}
-                <div className="absolute left-[10%] -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-center">
+                <div className="absolute left-[8%] -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-center">
                   <div className={`p-2 rounded-2xl border transition-all duration-500 flex items-center justify-center relative
                     ${gitopsStage >= 1 
                       ? 'bg-azure/15 border-azure text-azure shadow-[0_0_15px_rgba(0,102,204,0.3)] scale-105' 
@@ -705,47 +716,57 @@ const NodeDetailPanel = ({ node }) => {
                       <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
                     </svg>
                   </div>
-                  <span className="text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider text-slate-500">GitHub VCS</span>
-                  <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">branch: main</span>
+                  <span className="text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider text-slate-500">GitHub Repo</span>
+                  <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">Webhook</span>
                 </div>
 
-                {/* Cloudflare Secure HA Ingress Node */}
-                <div className="absolute left-[35%] -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-center">
+                {/* GitLab CI/CD Build Node */}
+                <div className="absolute left-[34%] -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-center">
                   <div className={`p-2 rounded-2xl border transition-all duration-500 flex items-center justify-center relative
                     ${gitopsStage >= 1 
                       ? 'bg-orange-500/15 border-orange-500 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.3)] scale-105' 
                       : 'bg-slate-900/60 border-white/5 text-slate-500'
                     }`}
                   >
-                    <Shield size={14} className={gitopsStage === 1 ? 'animate-pulse' : ''} />
+                    {/* Spin gear when building/scanning */}
+                    {gitopsStage === 1 && (
+                      <span className="absolute inset-0 rounded-2xl border border-orange-400/50 animate-ping opacity-75" />
+                    )}
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                      <path d="M23.953 13.072l-1.077-3.311-.005-.015-1.921-5.91a.916.916 0 0 0-1.742-.012l-1.91 5.875H6.702l-1.91-5.875a.915.915 0 0 0-1.741.012L1.13 9.746l-.005.015-1.077 3.311a1.267 1.267 0 0 0 .461 1.417l10.957 7.962a.915.915 0 0 0 1.076 0l10.957-7.962a1.267 1.267 0 0 0 .461-1.417z"/>
+                    </svg>
                   </div>
-                  <span className="text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider text-slate-500">CF Ingress</span>
-                  <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">zero-trust</span>
+                  <span className="text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider text-slate-500">GitLab CI</span>
+                  <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">Trivy Scan</span>
                 </div>
 
-                {/* GitOps Agent / Ansible Engine Node */}
+                {/* AWS ECR Repository Node */}
                 <div className="absolute left-[60%] -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-center">
                   <div className={`p-2 rounded-2xl border transition-all duration-500 flex items-center justify-center relative
                     ${gitopsStage >= 2 
-                      ? 'bg-emerald-500/15 border-emerald text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] scale-105' 
+                      ? 'bg-purple-500/15 border-purple-500 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] scale-105' 
                       : 'bg-slate-900/60 border-white/5 text-slate-500'
                     }`}
                   >
-                    {/* Sonar Ring propagation when analyzing drift */}
+                    {/* Pulsating glow when pushing image */}
                     {gitopsStage === 2 && (
                       <>
-                        <span className="absolute inset-0 rounded-2xl border border-emerald-400/50 animate-ping opacity-75" />
-                        <span className="absolute -inset-2 rounded-2xl border border-emerald-400/30 animate-pulse opacity-50" />
+                        <span className="absolute inset-0 rounded-2xl border border-purple-400/50 animate-ping opacity-75" />
+                        <span className="absolute -inset-2 rounded-2xl border border-purple-400/30 animate-pulse opacity-50" />
                       </>
                     )}
-                    <Cpu size={14} className={gitopsStage === 2 ? 'animate-spin-slow' : ''} />
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                      <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                      <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                      <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>
+                    </svg>
                   </div>
-                  <span className="text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider text-slate-500">GitOps Agent</span>
-                  <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">Auto-Sync</span>
+                  <span className="text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider text-slate-500">AWS ECR</span>
+                  <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">Registry</span>
                 </div>
 
-                {/* Target Node VM Pods Node */}
-                <div className="absolute left-[87.5%] -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-center">
+                {/* ECS Fargate / K3s Target Node */}
+                <div className="absolute left-[86%] -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-center">
                   <div className={`p-2 rounded-2xl border transition-all duration-500 flex items-center justify-center relative
                     ${gitopsStage === 4 
                       ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.5)] scale-105' 
@@ -759,11 +780,19 @@ const NodeDetailPanel = ({ node }) => {
                       <span className="absolute inset-0 rounded-2xl border border-amber-500 animate-ping opacity-60" />
                     )}
                     <div className="scale-[0.7] origin-center flex items-center justify-center">
-                      {node.icon ? node.icon : <Server size={14} />}
+                      {node.id === 'zulu' ? (
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-emerald-400">
+                          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                        </svg>
+                      ) : node.icon ? node.icon : <Server size={14} />}
                     </div>
                   </div>
-                  <span className="text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider text-slate-500">{node.name}</span>
-                  <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">{node.tag}</span>
+                  <span className="text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider text-slate-500">
+                    {node.id === 'zulu' ? 'ECS Fargate' : node.name}
+                  </span>
+                  <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">
+                    {node.id === 'zulu' ? 'Serverless' : node.tag}
+                  </span>
                 </div>
 
               </div>
@@ -780,31 +809,31 @@ const NodeDetailPanel = ({ node }) => {
                 {gitopsStage === 0 && (
                   <span className="text-yellow-400/90 font-black animate-pulse flex items-center justify-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-ping" />
-                    GITOPS SYSTEM READY • SELECT "GITOPS sync" ACTIONS BELOW
+                    GITOPS HYBRID PIPELINE READY • CLICK "GITOPS sync" ACTIONS BELOW
                   </span>
                 )}
                 {gitopsStage === 1 && (
                   <span className="text-azure font-black animate-pulse">
-                    ▸ TRIGGERING WEBHOOK EVENT: Dispatching push payload through Cloudflare edge gateway...
+                    ▸ [GITHUB] Webhook event dispatched! Triggering GitLab CI/CD build runner...
                   </span>
                 )}
                 {gitopsStage === 2 && (
-                  <span className="text-emerald-400 font-black animate-pulse">
-                    ▸ DRIFT DETECTION ACTIVE: Reconciling desired declarative state VM files & drifts...
+                  <span className="text-orange-400 font-black animate-pulse">
+                    ▸ [GITLAB CI] Running Trivy vulnerability scans... Building multi-stage container... Pushing to AWS ECR...
                   </span>
                 )}
                 {gitopsStage === 3 && (
                   <span className="text-amber-400 font-black animate-pulse">
-                    ▸ ROLLING OUT DEPLOYMENT SPECIFICATIONS: Updating container workload pools on {node.name}...
+                    ▸ [AWS ECR] Image parsed successfully! Rolling out task rollout deployment to {node.id === 'zulu' ? 'AWS ECS Fargate' : node.name}...
                   </span>
                 )}
                 {gitopsStage === 4 && (
                   <div className="flex flex-col gap-1 items-center">
                     <span className="text-emerald-400 font-black flex items-center gap-1.5">
-                      ✔ STATE RECONCILIATION SUCCESSFUL
+                      ✔ STATE RECONCILIATION SUCCESSFUL • DEPLOYMENT HEALTHY
                     </span>
                     <span className="text-[8px] text-slate-500">
-                      Commit Hash: <strong className="text-slate-300 font-mono">f8b2d19</strong> • Local Drift: <strong className="text-emerald-400 font-mono">0.00%</strong>
+                      Target: <strong className="text-slate-300 font-mono">{node.id === 'zulu' ? 'ECS Fargate Service' : node.name}</strong> • Local Drift: <strong className="text-emerald-400 font-mono">0.00%</strong>
                     </span>
                   </div>
                 )}
