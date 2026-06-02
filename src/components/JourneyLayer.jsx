@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from './Card';
 import Badge from './Badge';
-import { Calendar, CheckCircle2, ChevronRight, Server, Cloud, ShieldCheck, Cpu } from 'lucide-react';
+import { Calendar, CheckCircle2, ChevronRight, Server, Cloud, ShieldCheck, Cpu, Circle, Clock } from 'lucide-react';
 
 const playClick = () => {
   try {
@@ -99,6 +99,31 @@ const JourneyLayer = () => {
           evidence: "Detailed technical interview runbooks focusing on DevSecOps, IaC, and S3 DR protocols."
         }
       ]
+    },
+    {
+      month: 4,
+      title: "Future Roadmap: AWS Infrastructure Migration",
+      subtitle: "Offsite S3 / Glacier replication & cloud burst compute",
+      status: "PLANNED",
+      color: "purple",
+      icon: Cpu,
+      achievements: [
+        {
+          title: "Veeam S3 & Glacier Deep Archive Target",
+          desc: "Transitioning cold offsite copy jobs from Dropbox directly to encrypted AWS S3 buckets. Bootstrapping bucket lifecycle rules to auto-transition historic backups to Glacier Deep Archive, securing 99.999999999% durability at less than $0.00099/GB.",
+          evidence: "Restricted AWS IAM user policies, bucket KMS key rotation, lifecycle transitions."
+        },
+        {
+          title: "Hybrid DNS & Edge Routing (Route 53)",
+          desc: "Integrating local Cloudflared/Nginx ingress endpoints with AWS Route 53 global dynamic DNS zones to allow resilient hybrid name resolution and active-passive routing failovers.",
+          evidence: "Route 53 hosted zones, IAM dynamic DNS profiles, hybrid routing latency policies."
+        },
+        {
+          title: "Serverless Burst-Compute Tasks (ECS Fargate)",
+          desc: "Containerizing secondary workloads and configuring AWS on-demand task runners to dynamically scale out to ECS Fargate during Proxmox physical hypervisor maintenance windows.",
+          evidence: "Serverless Task definitions, GitOps-triggered cloud burst automation webhooks."
+        }
+      ]
     }
   ];
 
@@ -120,7 +145,8 @@ const JourneyLayer = () => {
               const accentColor = 
                 phase.month === 1 ? 'border-emerald-500/30 text-emerald-400' :
                 phase.month === 2 ? 'border-azure/30 text-azure' :
-                'border-amber-500/30 text-amber-400';
+                phase.month === 3 ? 'border-amber-500/30 text-amber-400' :
+                'border-purple-500/30 text-purple-400';
               
               return (
                 <motion.button
@@ -142,7 +168,9 @@ const JourneyLayer = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="font-black italic text-white uppercase text-[9px] tracking-tight truncate">Month {phase.month}</span>
+                      <span className="font-black italic text-white uppercase text-[9px] tracking-tight truncate">
+                        {phase.month === 4 ? 'Future' : `Month ${phase.month}`}
+                      </span>
                       <span className={`text-[7px] font-black px-1.5 py-0.5 border rounded uppercase tracking-tighter ${accentColor}`}>
                         {phase.status}
                       </span>
@@ -175,40 +203,72 @@ const JourneyLayer = () => {
                 <Card 
                   title={
                     <div className="flex items-center gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full animate-pulse bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+                      <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${
+                        activeMonth === 1 ? 'bg-emerald-400 shadow-[0_0_8px_#10b981]' :
+                        activeMonth === 2 ? 'bg-blue-400 shadow-[0_0_8px_#3b82f6]' :
+                        activeMonth === 3 ? 'bg-amber-400 shadow-[0_0_8px_#f59e0b]' :
+                        'bg-purple-400 shadow-[0_0_8px_#a855f7]'
+                      }`} />
                       <span>{roadmapData.find(p => p.month === activeMonth).title}</span>
                     </div>
                   }
                   glowColor={
                     activeMonth === 1 ? 'rgba(16, 185, 129, 0.08)' :
                     activeMonth === 2 ? 'rgba(96, 165, 250, 0.08)' :
-                    'rgba(245, 158, 11, 0.08)'
+                    activeMonth === 3 ? 'rgba(245, 158, 11, 0.08)' :
+                    'rgba(168, 85, 247, 0.08)'
                   }
                   className="border border-white/5"
                 >
                   <div className="space-y-6">
-                    {roadmapData.find(p => p.month === activeMonth).achievements.map((item, idx) => (
-                      <div key={idx} className="flex gap-4 items-start border-l border-white/5 pl-4 ml-1 relative">
-                        {/* Dynamic timeline node indicator */}
-                        <div className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full border border-[#050505] bg-emerald-400 shadow-[0_0_6px_#10b981]" />
+                    {(() => {
+                      const phase = roadmapData.find(p => p.month === activeMonth);
+                      const isComplete = phase.status.includes("COMPLETE");
+                      const isInProgress = phase.status.includes("IN PROGRESS");
+                      
+                      return phase.achievements.map((item, idx) => {
+                        let dotClass = 'bg-emerald-400 shadow-[0_0_6px_#10b981]';
+                        let StatusIcon = <CheckCircle2 size={11} className="text-emerald-400 shrink-0" />;
                         
-                        <div className="space-y-1.5 flex-1 min-w-0">
-                          <h5 className="text-[11px] font-black text-white italic uppercase tracking-tight flex items-center gap-2">
-                            <span>{item.title}</span>
-                            <CheckCircle2 size={11} className="text-emerald-400 shrink-0" />
-                          </h5>
-                          <p className="text-[10px] text-slate-400 font-medium leading-relaxed italic">
-                            {item.desc}
-                          </p>
-                          <div className="flex items-center gap-1.5 pt-1">
-                            <span className="text-[7.5px] font-black uppercase text-slate-600 tracking-wider">Telemetry Evidence:</span>
-                            <span className="text-[8px] font-mono text-emerald-300 font-bold tracking-tight bg-emerald-950/10 border border-emerald-500/10 px-2 py-0.5 rounded-md truncate">
-                              {item.evidence}
-                            </span>
+                        if (isInProgress) {
+                          dotClass = 'bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.8)] animate-pulse';
+                          StatusIcon = <Clock size={11} className="text-amber-400 animate-pulse shrink-0" />;
+                        } else if (!isComplete) {
+                          dotClass = 'bg-purple-500/80 shadow-[0_0_6px_rgba(168,85,247,0.5)]';
+                          StatusIcon = <Circle size={11} className="text-purple-400 shrink-0" />;
+                        }
+                        
+                        return (
+                          <div key={idx} className="flex gap-4 items-start border-l border-white/5 pl-4 ml-1 relative">
+                            {/* Dynamic timeline node indicator */}
+                            <div className={`absolute -left-[5px] top-1.5 w-2 h-2 rounded-full border border-[#050505] ${dotClass}`} />
+                            
+                            <div className="space-y-1.5 flex-1 min-w-0">
+                              <h5 className="text-[11px] font-black text-white italic uppercase tracking-tight flex items-center gap-2">
+                                <span>{item.title}</span>
+                                {StatusIcon}
+                              </h5>
+                              <p className="text-[10px] text-slate-400 font-medium leading-relaxed italic">
+                                {item.desc}
+                              </p>
+                              <div className="flex items-center gap-1.5 pt-1">
+                                <span className="text-[7.5px] font-black uppercase text-slate-600 tracking-wider">Telemetry Evidence:</span>
+                                <span className={`text-[8px] font-mono font-bold tracking-tight border px-2 py-0.5 rounded-md truncate
+                                  ${isComplete 
+                                    ? 'bg-emerald-950/10 border-emerald-500/10 text-emerald-300' 
+                                    : isInProgress 
+                                      ? 'bg-amber-950/10 border-amber-500/10 text-amber-300' 
+                                      : 'bg-purple-950/10 border-purple-500/10 text-purple-300'
+                                  }`}
+                                >
+                                  {item.evidence}
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      });
+                    })()}
                   </div>
                 </Card>
               </motion.div>

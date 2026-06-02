@@ -259,6 +259,7 @@ const PortalCard = ({ card, index, isMobile, hoveredId, setHoveredId, handleActi
       }}
       className={`relative group cursor-pointer overflow-hidden rounded-[2.5rem] border border-white/10 shadow-2xl transition-all duration-500 
         ${isMobile ? 'h-[480px] w-full' : 'h-full'}
+        ${card.id === 'homelab' ? 'order-first lg:order-none' : ''}
         ${card.id === 'music' ? 'order-last' : ''}
         ${!isMobile && hoveredId === card.id ? 'flex-[2.5] border-white/40 shadow-[0_0_50px_rgba(0,240,255,0.15)]' : !isMobile && hoveredId !== null ? 'flex-1 opacity-60 grayscale-[0.3]' : !isMobile ? 'flex-[1.5]' : ''}
       `}

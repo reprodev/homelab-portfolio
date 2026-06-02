@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Database, Cpu, Repeat, LayoutGrid, Menu, X, Volume2, VolumeX, Sliders, Network, ArrowUp } from 'lucide-react';
+import { triggerExpand } from '../lib/simBus.js';
 
 const LayerHUD = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -178,10 +179,13 @@ const LayerHUD = () => {
   }, []);
 
   const scrollToSection = (id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    triggerExpand(id);
+    setTimeout(() => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 120);
     if (isMobile) setIsOpen(false);
   };
 
