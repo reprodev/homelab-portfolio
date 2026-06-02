@@ -59,6 +59,215 @@ const playSynthesizedSound = (type = 'click') => {
   } catch (e) {}
 };
 
+const K3sAutoscalerSandbox = () => {
+  const [trafficActive, setTrafficActive] = useState(false);
+  const [scalingStage, setScalingStage] = useState(0); // 0: idle, 1: overload, 2: scaling, 3: balanced
+  const [pods, setPods] = useState([
+    { id: 1, name: 'status-pod-01', cpu: 14, status: 'Running' }
+  ]);
+  const [hpaMetrics, setHpaMetrics] = useState({ replicas: 1, load: 14 });
+
+  // Handle traffic simulation loop
+  useEffect(() => {
+    let timer;
+    if (trafficActive) {
+      // Stage 1: Overload single pod
+      setScalingStage(1);
+      setPods([{ id: 1, name: 'status-pod-01', cpu: 94, status: 'Overload' }]);
+      setHpaMetrics({ replicas: 1, load: 94 });
+      playSynthesizedSound('ping');
+
+      // Stage 2: HPA Detects and starts scaling
+      timer = setTimeout(() => {
+        setScalingStage(2);
+        playSynthesizedSound('click');
+        setPods([
+          { id: 1, name: 'status-pod-01', cpu: 94, status: 'Overload' },
+          { id: 2, name: 'status-pod-02', cpu: 0, status: 'Pending' },
+          { id: 3, name: 'status-pod-03', cpu: 0, status: 'Pending' },
+          { id: 4, name: 'status-pod-04', cpu: 0, status: 'Pending' }
+        ]);
+        setHpaMetrics({ replicas: 4, load: 94 });
+
+        // Stage 3: Settle load and mark running
+        timer = setTimeout(() => {
+          setScalingStage(3);
+          playSynthesizedSound('success');
+          setPods([
+            { id: 1, name: 'status-pod-01', cpu: 23, status: 'Running' },
+            { id: 2, name: 'status-pod-02', cpu: 21, status: 'Running' },
+            { id: 3, name: 'status-pod-03', cpu: 24, status: 'Running' },
+            { id: 4, name: 'status-pod-04', cpu: 22, status: 'Running' }
+          ]);
+          setHpaMetrics({ replicas: 4, load: 22 });
+        }, 1800);
+
+      }, 1500);
+    } else {
+      // Reset state
+      setScalingStage(0);
+      setPods([{ id: 1, name: 'status-pod-01', cpu: 14, status: 'Running' }]);
+      setHpaMetrics({ replicas: 1, load: 14 });
+    }
+
+    return () => clearTimeout(timer);
+  }, [trafficActive]);
+
+  const toggleTraffic = () => {
+    setTrafficActive(!trafficActive);
+    playSynthesizedSound('click');
+  };
+
+  return (
+    <div className="flex flex-col h-full justify-between gap-4 font-mono text-[10px]">
+      {/* Metrics Row */}
+      <div className="grid grid-cols-2 gap-2 border-b border-white/5 pb-3">
+        <div className="bg-black/40 border border-white/5 rounded-lg p-2 flex flex-col justify-between">
+          <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold">HPA Status</span>
+          <span className={`text-[10px] font-black tracking-tight mt-1 flex items-center gap-1.5 ${
+            scalingStage === 1 ? 'text-red-400 animate-pulse' : scalingStage === 2 ? 'text-amber-400 animate-pulse' : 'text-emerald-400'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              scalingStage === 1 ? 'bg-red-500 animate-ping' : scalingStage === 2 ? 'bg-amber-500 animate-ping' : 'bg-emerald-500 shadow-[0_0_6px_#10b981]'
+            }`} />
+            {scalingStage === 0 ? 'NOMINAL' : scalingStage === 1 ? 'SPIKE DETECTED' : scalingStage === 2 ? 'SCALING UP...' : 'BALANCED'}
+          </span>
+        </div>
+        <div className="bg-black/40 border border-white/5 rounded-lg p-2 flex flex-col justify-between">
+          <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold">Avg Pod CPU</span>
+          <span className={`text-[10px] font-black mt-1 font-mono ${
+            scalingStage === 1 ? 'text-red-400 font-extrabold' : scalingStage === 2 ? 'text-amber-400' : 'text-white'
+          }`}>
+            {hpaMetrics.load}% <span className="text-[8px] text-slate-500 font-medium">/ 80% HPA</span>
+          </span>
+        </div>
+      </div>
+
+      {/* Visual Canvas Panel */}
+      <div className="relative w-full h-[150px] bg-slate-950/60 border border-white/5 rounded-2xl overflow-hidden shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] flex items-center justify-between p-4">
+        {/* Cyber grid background */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none" />
+        
+        {/* SVG connection lines */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" fill="none">
+          {pods.map((pod, i) => {
+            const startX = 40;
+            const startY = 75;
+            const endX = 145;
+            const stepY = 28;
+            // Distribute Y based on total replicas
+            let endY = 75;
+            if (pods.length > 1) {
+              endY = 75 + (i - 1.5) * stepY;
+            }
+            
+            // Draw path curve
+            const controlPointX = (startX + endX) / 2;
+            const dPath = `M ${startX},${startY} C ${controlPointX},${startY} ${controlPointX},${endY} ${endX},${endY}`;
+            
+            return (
+              <g key={`path-${pod.id}`}>
+                <path 
+                  d={dPath} 
+                  stroke={scalingStage === 1 ? 'rgba(239, 68, 68, 0.15)' : scalingStage === 2 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.15)'}
+                  strokeWidth={1.5}
+                />
+                
+                {/* Traffic packet animations */}
+                {trafficActive && (
+                  <motion.circle
+                    r={2.5}
+                    fill={scalingStage === 1 ? '#ef4444' : scalingStage === 2 ? '#fbbf24' : '#10b981'}
+                    className={scalingStage === 1 ? 'drop-shadow-[0_0_4px_#ef4444]' : 'drop-shadow-[0_0_4px_#10b981]'}
+                  >
+                    <animateMotion 
+                      path={dPath} 
+                      dur={scalingStage === 1 ? '0.5s' : '1.2s'} 
+                      repeatCount="indefinite" 
+                    />
+                  </motion.circle>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* Load Balancer Node */}
+        <div className="flex flex-col items-center gap-1 z-10 relative">
+          <div className={`p-2 rounded-xl border flex items-center justify-center transition-all duration-500 ${
+            trafficActive 
+              ? 'bg-azure/10 border-azure text-azure shadow-[0_0_12px_rgba(96,165,250,0.3)] scale-105' 
+              : 'bg-slate-900/60 border-white/5 text-slate-500'
+          }`}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M3 12h18M12 3l4 4M12 3L8 7M12 21l4-4M12 21l-4-4" />
+            </svg>
+          </div>
+          <span className="text-[7px] font-black uppercase text-slate-500 tracking-wider">Haproxy LB</span>
+          <span className="text-[5.5px] font-mono leading-none text-slate-600">Port 80</span>
+        </div>
+
+        {/* Pods Grid Stack */}
+        <div className="flex flex-col justify-center gap-1.5 z-10 relative mr-2 w-[110px]">
+          <AnimatePresence>
+            {pods.map((pod, i) => (
+              <motion.div
+                key={pod.id}
+                initial={{ opacity: 0, x: 15, scale: 0.85 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: 15, scale: 0.85 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                className={`px-2 py-1 bg-black/60 border rounded-lg flex items-center justify-between text-[7px] ${
+                  pod.status === 'Overload' 
+                    ? 'border-red-500/40 text-red-300 shadow-[0_0_8px_rgba(239,68,68,0.15)]' 
+                    : pod.status === 'Pending' 
+                      ? 'border-amber-500/30 text-amber-300 animate-pulse'
+                      : 'border-emerald-500/20 text-emerald-300'
+                }`}
+              >
+                <div className="flex flex-col w-[60%]">
+                  <span className="font-mono font-black italic tracking-tight uppercase leading-none">{pod.name}</span>
+                  <div className="h-1 bg-white/5 rounded-full overflow-hidden mt-1 w-full">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pod.cpu}%` }}
+                      className={`h-full rounded-full ${
+                        pod.status === 'Overload' ? 'bg-red-500 shadow-[0_0_4px_#ef4444]' : 'bg-emerald-500'
+                      }`}
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="font-mono font-black tracking-tight text-[7px]">{pod.cpu}%</span>
+                  <span className={`text-[5px] font-black uppercase tracking-tighter ${
+                    pod.status === 'Overload' ? 'text-red-400' : pod.status === 'Pending' ? 'text-amber-400' : 'text-slate-500'
+                  }`}>
+                    {pod.status}
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Interactive Controls */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={toggleTraffic}
+          className={`flex-1 py-1.5 rounded-lg border text-[8px] font-mono font-black uppercase tracking-wider transition-all duration-300 ${
+            trafficActive
+              ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20'
+              : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:border-white/20 active:scale-95'
+          }`}
+        >
+          {trafficActive ? '■ Halt Simulation' : '▶ Inject Web Traffic'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const LogicalLayer = () => {
   const [expandedNode, setExpandedNode] = useState(null);
 
@@ -176,25 +385,7 @@ const LogicalLayer = () => {
             <span>K3s Cluster Sandbox</span>
           </div>
         } glowColor="rgba(50, 108, 229, 0.15)">
-           <ul className="space-y-4 mb-12">
-            <li className="flex justify-between items-center border-b border-white/5 pb-4">
-              <span className="text-sm text-slate-300 italic tracking-tight font-medium">Control Plane</span>
-              <Badge color="success">2 Cores / 2GB</Badge>
-            </li>
-            <li className="flex justify-between items-center border-b border-white/5 pb-4">
-              <span className="text-sm text-slate-300 italic tracking-tight font-medium">Worker Node</span>
-              <Badge color="azure">2 Cores / 2GB</Badge>
-            </li>
-            <li className="flex justify-between items-center pt-2">
-              <span className="text-sm text-slate-300 italic tracking-tight font-medium">OS Template</span>
-              <Badge color="muted">Ubuntu 24.04 LTS</Badge>
-            </li>
-          </ul>
-          <div className="flex flex-wrap gap-2 mt-auto">
-            <Badge color="azure">Terraform Managed</Badge>
-            <Badge color="muted">prevent_destroy = false</Badge>
-            <Badge color="success">CI/CD Triggered</Badge>
-          </div>
+          <K3sAutoscalerSandbox />
         </Card>
       </div>
 
