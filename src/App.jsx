@@ -7,6 +7,7 @@ import LogicalLayer from './components/LogicalLayer.jsx';
 import WorkloadLayer from './components/WorkloadLayer.jsx';
 import DRPipeline from './components/DRPipeline.jsx';
 import KnowledgeLayer from './components/KnowledgeLayer.jsx';
+import JourneyLayer from './components/JourneyLayer.jsx';
 import CollapsibleSection from './components/CollapsibleSection.jsx';
 import InstructionalTip from './components/InstructionalTip.jsx';
 import LayerHUD from './components/LayerHUD.jsx';
@@ -308,6 +309,12 @@ function App() {
                 <CollapsibleSection id="layer-4" layerId="Layer 4" title="Distributed Workloads">
                   <div onMouseEnter={() => setAmbientTheme('layer-4')} onMouseLeave={() => setAmbientTheme('default')}>
                     <WorkloadLayer />
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection id="layer-journey" layerId="Roadmap" title="Enterprise Modernization Journey" defaultExpanded={true}>
+                  <div>
+                    <JourneyLayer />
                   </div>
                 </CollapsibleSection>
 
