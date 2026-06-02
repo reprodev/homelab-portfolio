@@ -60,6 +60,19 @@ function App() {
     }
   }, []);
 
+  // Prevent background scrolling while splash is active, and reset scroll to top on dismissal
+  useEffect(() => {
+    if (showSplash) {
+      document.body.style.overflow = 'hidden';
+    } else if (showSplash === false) {
+      document.body.style.overflow = '';
+      window.scrollTo(0, 0);
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showSplash]);
+
   // Global simulation bus: drive the cockpit HUD + ambient orb theme from events
   // dispatched anywhere on the page (now wired via src/lib/simBus.js).
   useSimEvent(SIM_EVENTS.ddos, ({ active }) => {
@@ -312,7 +325,7 @@ function App() {
                   </div>
                 </CollapsibleSection>
 
-                <CollapsibleSection id="layer-journey" layerId="Roadmap" title="Enterprise Modernization Journey" defaultExpanded={true}>
+                <CollapsibleSection id="layer-journey" layerId="Roadmap" title="Enterprise Modernization Journey">
                   <div>
                     <JourneyLayer />
                   </div>
