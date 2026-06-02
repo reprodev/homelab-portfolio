@@ -259,6 +259,7 @@ const PortalCard = ({ card, index, isMobile, hoveredId, setHoveredId, handleActi
       }}
       className={`relative group cursor-pointer overflow-hidden rounded-[2.5rem] border border-white/10 shadow-2xl transition-all duration-500 
         ${isMobile ? 'h-[480px] w-full' : 'h-full'}
+        ${card.id === 'music' ? 'order-last' : ''}
         ${!isMobile && hoveredId === card.id ? 'flex-[2.5] border-white/40 shadow-[0_0_50px_rgba(0,240,255,0.15)]' : !isMobile && hoveredId !== null ? 'flex-1 opacity-60 grayscale-[0.3]' : !isMobile ? 'flex-[1.5]' : ''}
       `}
       onClick={() => {
@@ -347,17 +348,6 @@ const SplashHub = ({ onDismiss }) => {
 
   const portalCards = [
     {
-      id: 'music',
-      title: 'Music Portfolio',
-      tagline: 'Sonic Landscapes',
-      description: 'Original compositions and immersive digital soundscapes explore the intersection of rhythm and atmosphere.',
-      url: 'https://allcloudsrun.com',
-      image: '/splash/music.webp',
-      color: 'from-azure-dark/90 to-blue-950/40',
-      icon: <Music className="text-azure-light" size={28} />,
-      tag: 'ALL CLOUDS RUN'
-    },
-    {
       id: 'kb',
       title: 'Knowledge Base',
       tagline: 'Technical Archive',
@@ -400,6 +390,17 @@ const SplashHub = ({ onDismiss }) => {
       color: 'from-slate-700/90 to-black/40',
       icon: <HelpCircle className="text-white" size={28} />,
       tag: 'DOCUMENTATION / AI'
+    },
+    {
+      id: 'music',
+      title: 'Music Portfolio',
+      tagline: 'Sonic Landscapes',
+      description: 'Original compositions and immersive digital soundscapes explore the intersection of rhythm and atmosphere.',
+      url: 'https://allcloudsrun.com',
+      image: '/splash/music.webp',
+      color: 'from-azure-dark/90 to-blue-950/40',
+      icon: <Music className="text-azure-light" size={28} />,
+      tag: 'ALL CLOUDS RUN'
     }
   ];
 
