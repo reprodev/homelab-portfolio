@@ -19,6 +19,12 @@ const DRPipeline = () => {
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState([]);
   const runningRef = useRef(false); // re-entrancy guard (listener closures are stale)
+  const timersRef = useRef([]); // pending drill timeouts, cleared on reset/unmount
+
+  const clearDrillTimers = () => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+  };
 
   // Button / tour entry points only broadcast intent on the global bus.
   const startFailoverDrill = () => triggerDr(1);
@@ -35,32 +41,36 @@ const DRPipeline = () => {
     setLogs(["[0.0s] [ALERT] Catastrophic host VM shutdown simulated.", "[0.4s] [ALERT] ZuluServer primary instance is [ OFFLINE ]."]);
 
     // Outage -> Decompression Recovery
-    setTimeout(() => {
+    timersRef.current.push(setTimeout(() => {
       setDrillStep(2);
       triggerDr(2);
       setLogs(prev => [...prev, "[1.5s] [VEEAM] Initializing RTO failover routine from Knightbox repo...", "[2.0s] [VEEAM] Fetching incremental block metadata slices..."]);
-    }, 1800);
+    }, 1800));
 
     // Verifying
-    setTimeout(() => {
+    timersRef.current.push(setTimeout(() => {
       setDrillStep(3);
       triggerDr(3);
       setLogs(prev => [...prev, "[4.2s] [STORAGE] Decompressing LZ4 block storage (482GB restored)...", "[4.8s] [TERRAFORM] Spin up hot-standby VM template [SUCCESS].", "[5.2s] [ANSIBLE] Re-binding network bridges and storage shares..."]);
-    }, 4500);
+    }, 4500));
 
     // Restored
-    setTimeout(() => {
+    timersRef.current.push(setTimeout(() => {
       setDrillStep(4);
       triggerDr(4);
       setLogs(prev => [...prev, "[6.5s] [SYSTEM] Integrity check passed. Primary workloads [ ONLINE ].", "[7.0s] [SUCCESS] DR Failover drill complete. Zero data loss."]);
-    }, 7000);
+    }, 7000));
   };
+
+  // Cancel any in-flight drill timeline on unmount (section collapse, page swap)
+  useEffect(() => clearDrillTimers, []);
 
   // step 1 = start request (button or tour); step 0 = reset. Steps 2-4 are
   // emitted by runDrill itself and ignored here as control signals.
   useSimEvent(SIM_EVENTS.dr, ({ step }) => {
     if (step === 1) runDrill();
     else if (step === 0) {
+      clearDrillTimers(); // kill any in-flight drill stages so reset actually sticks
       runningRef.current = false;
       setDrillActive(false);
       setDrillStep(0);

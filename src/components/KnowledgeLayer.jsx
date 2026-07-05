@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
-import { Terminal, HardDrive, ExternalLink, Cpu, Code, Zap, Archive, Github, ChevronLeft, ChevronRight, Monitor } from 'lucide-react';
+import { Terminal, HardDrive, ExternalLink, Cpu, Code, Zap, Archive, Github, ChevronLeft, ChevronRight, Monitor, Network, Database, Music } from 'lucide-react';
 import Card from './Card';
+import Reveal from './Reveal.jsx';
 
 const TutorialCard = ({ title, desc, icon: Icon, link, tags, time, type = "Guide", glowColor, image }) => (
   <div className="snap-center shrink-0 w-[85vw] md:w-auto h-full p-1">
@@ -103,6 +104,33 @@ const KnowledgeLayer = () => {
 
   const guides = [
     {
+      title: "Decoupling Docker Configs: AppData to NFS",
+      desc: "Migrating Docker AppData configs to an OpenMediaVault NFS share while keeping SQLite-backed containers local to avoid database corruption.",
+      icon: Database,
+      link: "https://reprodev.com/decoupling-docker-configs-moving-appdata-to-nfs-without-breaking-sqlite/",
+      tags: ["Docker", "NFS", "New"],
+      time: "Jul 2026",
+      glowColor: "rgba(16, 185, 129, 0.2)"
+    },
+    {
+      title: "From USB to NFS: 10TB Storage Migration",
+      desc: "Moving a 10TB USB storage drive out of a Proxmox VM onto an NFS share without breaking any dependent services.",
+      icon: HardDrive,
+      link: "https://reprodev.com/from-usb-to-nfs-moving-a-10tb-usb-storage-drive-out-of-a-proxmox-vm-without-breaking-anything/",
+      tags: ["Proxmox", "Storage", "New"],
+      time: "Jun 2026",
+      glowColor: "rgba(168, 85, 247, 0.2)"
+    },
+    {
+      title: "Tailscale: Simple Remote Access",
+      desc: "Standing up a Tailscale mesh VPN for secure remote homelab access, without exposing services or wrestling with router configs.",
+      icon: Network,
+      link: "https://reprodev.com/tailscale-simple-remote-access-for-your-homelab-without-the-headache/",
+      tags: ["Networking", "Zero Trust", "New"],
+      time: "Mar 2026",
+      glowColor: "rgba(96, 165, 250, 0.2)"
+    },
+    {
       title: "Docker Masterclass: Implementation Series",
       desc: "Complete lifecycle management covering Portainer, Nginx Proxy Manager, Pi-Hole, and Automated Watchtower updates.",
       icon: Terminal,
@@ -142,12 +170,23 @@ const KnowledgeLayer = () => {
 
   const projects = [
     {
+      title: "Capo2Keys",
+      desc: "A Flask app, deployed as a Docker container, that converts guitar chord charts to piano-compatible keys — preserving lyrics and structure, exporting to PDF/TXT.",
+      icon: Music,
+      link: "https://github.com/reprodev/Capo2Keys",
+      tags: ["Flask", "Docker", "New"],
+      time: "Feb 2026",
+      type: "Project",
+      glowColor: "rgba(236, 72, 153, 0.25)",
+      image: "https://reprodev.com/content/images/size/w2000/2026/02/Ghost-Blog-Featured-Image12.png"
+    },
+    {
       title: "Service Desk Sim",
       desc: "A dystopian corporate simulation of enterprise IT support chaos, exploring operational psychology and procedural logic.",
       icon: Monitor,
-      link: "https://servicedesksim.com",
-      tags: ["Godot", "Simulation", "Featured"],
-      time: "v1.1 Gold",
+      link: "https://store.steampowered.com/app/4851960/Service_Desk_Sim/",
+      tags: ["Steam", "Godot", "Featured"],
+      time: "Wishlist Now",
       type: "Project",
       glowColor: "rgba(139, 92, 246, 0.3)",
       image: "https://servicedesksim.com/ServiceDeskSimLogoV1.webp"
@@ -233,7 +272,9 @@ const KnowledgeLayer = () => {
         className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-20 overflow-x-auto md:overflow-x-visible px-4 md:px-0 snap-x snap-mandatory scrollbar-hide pb-8 md:pb-0"
       >
         {guides.map((guide, idx) => (
-          <TutorialCard key={`guide-${idx}`} {...guide} />
+          <Reveal key={`guide-${idx}`} delay={idx * 0.08} className="snap-center shrink-0 md:shrink h-full">
+            <TutorialCard {...guide} />
+          </Reveal>
         ))}
         <div className="md:hidden shrink-0 w-8" />
       </div>
@@ -253,7 +294,9 @@ const KnowledgeLayer = () => {
         className="flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 overflow-x-auto md:overflow-x-visible px-4 md:px-0 snap-x snap-mandatory scrollbar-hide pb-8 md:pb-0"
       >
         {projects.map((project, idx) => (
-          <TutorialCard key={`project-${idx}`} {...project} />
+          <Reveal key={`project-${idx}`} delay={idx * 0.08} className="snap-center shrink-0 md:shrink h-full">
+            <TutorialCard {...project} />
+          </Reveal>
         ))}
         <div className="md:hidden shrink-0 w-8" />
       </div>

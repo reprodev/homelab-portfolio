@@ -3,23 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Card from './Card';
 import Badge from './Badge';
 import { Calendar, CheckCircle2, ChevronRight, Server, Cloud, ShieldCheck, Cpu, Circle, Clock } from 'lucide-react';
-
-const playClick = () => {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') ctx.resume();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(1200, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.04);
-    gain.gain.setValueAtTime(0.01, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.04);
-  } catch (e) {}
-};
+import { playSound } from '../lib/audio';
 
 const JourneyLayer = () => {
   const [activeMonth, setActiveMonth] = useState(1);
@@ -155,7 +139,7 @@ const JourneyLayer = () => {
                   whileTap={{ scale: 0.99 }}
                   onClick={() => {
                     setActiveMonth(phase.month);
-                    playClick();
+                    playSound('click', { gain: 0.01 });
                   }}
                   className={`flex-1 shrink-0 w-[75vw] lg:w-full flex items-center gap-4 p-4 rounded-2xl border text-left transition-all duration-300 backdrop-blur-md relative snap-center ${
                     isActive 

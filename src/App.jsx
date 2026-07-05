@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useSpring, useTransform } from 'framer-motion';
 import Hero from './components/Hero.jsx';
 import NetworkLayer from './components/NetworkLayer.jsx';
 import HardwareLayer from './components/HardwareLayer.jsx';
@@ -14,9 +14,19 @@ import LayerHUD from './components/LayerHUD.jsx';
 import GuidedTour from './components/GuidedTour.jsx';
 import { LayoutGrid, Network } from 'lucide-react';
 import { useSimEvent, SIM_EVENTS } from './lib/simBus.js';
+import Reveal from './components/Reveal.jsx';
 
 const SplashHub = React.lazy(() => import('./components/SplashHub.jsx'));
 const Topology3D = React.lazy(() => import('./components/Topology3D.jsx'));
+
+// Cockpit stat that springs toward each new telemetry value instead of
+// snapping — the count-up sells the "live instrument" feel.
+const AnimatedStat = ({ value, decimals = 0 }) => {
+  const spring = useSpring(value, { stiffness: 90, damping: 22 });
+  const display = useTransform(spring, (v) => v.toFixed(decimals));
+  useEffect(() => { spring.set(value); }, [value, spring]);
+  return <motion.span>{display}</motion.span>;
+};
 
 // Mounts its children only once they scroll near the viewport, so the heavy
 // WebGL topology chunk never costs first paint.
@@ -41,6 +51,7 @@ function App() {
   const [ambientTheme, setAmbientTheme] = useState('default');
   const [ddosActive, setDdosActive] = useState(false);
   const [drActive, setDrActive] = useState(false);
+  const [vitals, setVitals] = useState({ watts: 92, temp: 42.7 });
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -84,6 +95,25 @@ function App() {
     setDrActive(active);
     setAmbientTheme(active ? 'dr' : 'default');
   });
+
+  // Cockpit telemetry jitter — a real interval (paused when the tab is hidden)
+  // so the "live" watts/temp readings genuinely tick instead of only re-rolling
+  // on unrelated re-renders.
+  useEffect(() => {
+    const roll = () => {
+      if (document.hidden) return;
+      setVitals(
+        ddosActive
+          ? { watts: Math.floor(184 + Math.random() * 8), temp: +(58.2 + Math.random() * 1.5).toFixed(1) }
+          : drActive
+            ? { watts: Math.floor(118 + Math.random() * 5), temp: +(48.1 + Math.random() * 0.8).toFixed(1) }
+            : { watts: Math.floor(91 + Math.random() * 4), temp: +(42.5 + Math.random() * 0.4).toFixed(1) }
+      );
+    };
+    roll();
+    const interval = setInterval(roll, 2000);
+    return () => clearInterval(interval);
+  }, [ddosActive, drActive]);
 
   // Avoid FOUC (flash of unstyled content) or dashboard flicker
   if (showSplash === null) return (
@@ -242,11 +272,7 @@ function App() {
                     <span className="text-slate-400 font-extrabold uppercase text-[8px] tracking-wider leading-none">Fleet Power Draw</span>
                     <span className="text-white text-[11px] font-black italic flex items-baseline gap-1">
                       <span className="text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]">
-                        {ddosActive 
-                          ? Math.floor(184 + Math.random() * 8) 
-                          : drActive 
-                            ? Math.floor(118 + Math.random() * 5) 
-                            : Math.floor(91 + Math.random() * 4)}
+                        <AnimatedStat value={vitals.watts} />
                       </span>
                       <span className="text-[8px] text-slate-400 font-normal uppercase">Watts</span>
                     </span>
@@ -257,11 +283,7 @@ function App() {
                     <span className="text-slate-400 font-extrabold uppercase text-[8px] tracking-wider leading-none">CPU Thermal Core</span>
                     <span className="text-white text-[11px] font-black italic flex items-baseline gap-1">
                       <span className={ddosActive ? 'text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]' : drActive ? 'text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]' : 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]'}>
-                        {ddosActive 
-                          ? parseFloat((58.2 + Math.random() * 1.5).toFixed(1)) 
-                          : drActive 
-                            ? parseFloat((48.1 + Math.random() * 0.8).toFixed(1)) 
-                            : parseFloat((42.5 + Math.random() * 0.4).toFixed(1))}
+                        <AnimatedStat value={vitals.temp} decimals={1} />
                       </span>
                       <span className="text-[8px] text-slate-400 font-normal uppercase">°C</span>
                     </span>
@@ -335,12 +357,14 @@ function App() {
               </main>
 
               <footer className="py-24 border-t border-white/5 text-center px-6">
-                <p className="text-white font-bold tracking-tight mb-3 text-sm md:text-base">
-                  Khurram Nazir &copy; 2026
-                </p>
-                <p className="text-slate-400 text-[11px] md:text-xs uppercase tracking-widest font-medium">
-                  Built with <span className="text-azure-light">React</span> & <span className="text-emerald-400">Tailwind CSS</span> • Infrastructure Visualizer
-                </p>
+                <Reveal y={16}>
+                  <p className="text-white font-bold tracking-tight mb-3 text-sm md:text-base">
+                    Khurram Nazir &copy; 2026
+                  </p>
+                  <p className="text-slate-400 text-[11px] md:text-xs uppercase tracking-widest font-medium">
+                    Built with <span className="text-azure-light">React</span> & <span className="text-emerald-400">Tailwind CSS</span> • Infrastructure Visualizer
+                  </p>
+                </Reveal>
               </footer>
             </div>
           </motion.div>

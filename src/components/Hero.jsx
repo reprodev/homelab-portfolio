@@ -3,66 +3,45 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Badge from './Badge';
 import { Github, Linkedin, Globe, ExternalLink, Terminal, Play } from 'lucide-react';
 import { TOUR_START_EVENT } from '../lib/tourScript';
+import { playSound } from '../lib/audio';
+import useIsMobile from '../hooks/useIsMobile';
+
+const BOOT_SEQUENCE = [
+  "[INIT] SECURE_HANDSHAKE_COMPLETE...",
+  "[LAYER] EDGE_INGRESS_VERIFIED (CLOUDFLARE_TUNNEL)",
+  "[AUTH] KHURRAM_NAZIR_IDENTITY_CONFIRMED",
+  "[SYSLOG] FLEET_RECONCILED: 100% OPERATIONAL",
+  "--- SYSTEM_READY ---"
+];
 
 const Hero = () => {
   const [isReturningUser, setIsReturningUser] = useState(false);
   const [bootLog, setBootLog] = useState("");
-  const [isMobile, setIsMobile] = useState(false);
-
-  const playSynthesizedSound = (type = 'click') => {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      if (ctx.state === 'suspended') ctx.resume();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      if (type === 'click') {
-        osc.frequency.setValueAtTime(1200, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.04);
-        gain.gain.setValueAtTime(0.012, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.04);
-      }
-    } catch (e) {}
-  };
-  
-  const bootSequence = [
-    "[INIT] SECURE_HANDSHAKE_COMPLETE...",
-    "[LAYER] EDGE_INGRESS_VERIFIED (CLOUDFLARE_TUNNEL)",
-    "[AUTH] KHURRAM_NAZIR_IDENTITY_CONFIRMED",
-    "[SYSLOG] FLEET_RECONCILED: 100% OPERATIONAL",
-    "--- SYSTEM_READY ---"
-  ];
+  const isMobile = useIsMobile(768);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    
     // Check if user has permanently dismissed splash
     const isPermanentlyHidden = localStorage.getItem('hideSplashPermanently');
     if (isPermanentlyHidden === 'true') {
       setIsReturningUser(true);
     }
 
-    // Small terminal sequence for "Enter Dashboard" feel
+    // Small terminal sequence for "Enter Dashboard" feel.
+    // Runs once on mount (cadence fixed at start) so a mid-play isMobile flip
+    // never restarts the sequence.
+    const cadence = window.innerWidth < 768 ? 600 : 800;
     let logIndex = 0;
     const interval = setInterval(() => {
-      if (logIndex < bootSequence.length) {
-        setBootLog(bootSequence[logIndex]);
+      if (logIndex < BOOT_SEQUENCE.length) {
+        setBootLog(BOOT_SEQUENCE[logIndex]);
         logIndex++;
       } else {
         clearInterval(interval);
       }
-    }, isMobile ? 600 : 800);
+    }, cadence);
 
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [isMobile]);
+    return () => clearInterval(interval);
+  }, []);
 
   const container = {
     hidden: { opacity: 0 },
@@ -108,7 +87,7 @@ const Hero = () => {
             </motion.div>
             
             <motion.h1 variants={item} className="text-4xl md:text-7xl font-extrabold tracking-tight leading-tight mb-4">
-              <span className="bg-gradient-to-r from-azure-light via-white to-amberGold bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-azure-light via-white to-amberGold bg-clip-text text-transparent gradient-shimmer">
                 Khurram Nazir
               </span>
             </motion.h1>
@@ -141,7 +120,7 @@ const Hero = () => {
             <motion.div variants={item} className="mt-8">
               <button
                 onClick={() => {
-                  playSynthesizedSound('click');
+                  playSound('click');
                   window.dispatchEvent(new CustomEvent(TOUR_START_EVENT));
                 }}
                 aria-label="Play a guided cinematic tour of the infrastructure"
@@ -164,7 +143,7 @@ const Hero = () => {
               target="_blank" 
               rel="noreferrer" 
               aria-label="Visit Khurram Nazir's GitHub Profile"
-              onClick={() => playSynthesizedSound('click')}
+              onClick={() => playSound('click')}
               className="flex items-center gap-2.5 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all text-sm font-medium group text-white hover:shadow-[0_0_15px_rgba(255,255,255,0.05)]"
             >
               <Github size={18} className="text-slate-400 group-hover:text-white transition-colors" />
@@ -176,7 +155,7 @@ const Hero = () => {
               target="_blank" 
               rel="noreferrer" 
               aria-label="Visit Khurram Nazir's LinkedIn Profile"
-              onClick={() => playSynthesizedSound('click')}
+              onClick={() => playSound('click')}
               className="flex items-center gap-2.5 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all text-sm font-medium group text-white hover:shadow-[0_0_15px_rgba(0,119,181,0.1)]"
             >
               <Linkedin size={18} className="text-[#0077B5] group-hover:text-[#00A0DC] transition-colors" />
@@ -188,7 +167,7 @@ const Hero = () => {
               target="_blank" 
               rel="noreferrer" 
               aria-label="Visit Khurram Nazir's Developer Website"
-              onClick={() => playSynthesizedSound('click')}
+              onClick={() => playSound('click')}
               className="flex items-center gap-2.5 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-azure/30 transition-all text-sm font-medium group text-white hover:shadow-[0_0_15px_rgba(96,165,250,0.15)]"
             >
               <Globe size={18} className="text-emerald-400 group-hover:text-emerald-300 transition-colors" />
@@ -202,7 +181,7 @@ const Hero = () => {
           {["Linux Ecosystem", "Terraform Core", "Kubernetes (K3s)", "Ansible Automation", "Proxmox Bare-metal", "Zero Trust Edge"].map((skill) => (
             <span 
               key={skill} 
-              onMouseEnter={() => playSynthesizedSound('click')}
+              onMouseEnter={() => playSound('click')}
               className="px-4 py-2 bg-black/50 border border-azure/30 hover:border-azure/60 hover:bg-azure/10 rounded-lg text-azure-light text-xs font-mono transition-all hover:scale-105 duration-300 cursor-default hover:shadow-[0_0_15px_rgba(96,165,250,0.25)]"
             >
               {skill}

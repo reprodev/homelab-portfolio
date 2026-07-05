@@ -3,6 +3,9 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Line, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useSimEvent, usePrefersReducedMotion, SIM_EVENTS } from '../lib/simBus';
+import useIsMobile from '../hooks/useIsMobile';
+import useInViewPause from '../hooks/useInViewPause';
+import { playSound } from '../lib/audio';
 
 /*
   Topology3D — interactive WebGL centerpiece.
@@ -51,6 +54,18 @@ const EDGES = [
   ['core', 'vm1'], ['core', 'vm2'], ['core', 'vm3'], ['core', 'vm4'],
 ];
 
+// Inspector chip copy per node (click-to-inspect)
+const NODE_DETAILS = {
+  edge: 'WAF + Zero Trust ingress via dual Argo tunnels',
+  tunA: 'Raspberry Pi 4 · cloudflared primary tunnel',
+  tunB: 'DietPi node · cloudflared failover tunnel',
+  core: 'Bare-metal hypervisor · VM + LXC fleet',
+  vm1:  'Proxmox VM 102 · Plex media host',
+  vm2:  'Self-hosted Docker microservices pool',
+  vm3:  'OpenMediaVault · 6TB passthrough storage',
+  vm4:  'Veeam immutable backup repository',
+};
+
 const v = (p) => new THREE.Vector3(p[0], p[1], p[2]);
 
 // A single packet travelling along an edge.
@@ -72,25 +87,49 @@ function Packet({ from, to, color, speed = 0.35, offset = 0, reverse = false, si
   );
 }
 
-// A node sphere with a glow + floating HTML label.
-function Node({ data, color, pulsing }) {
+// A node sphere with a glow + floating HTML label. Hover to highlight,
+// click to pin the inspector chip (V5.0 showstopper pass).
+function Node({ id, data, color, pulsing, isActive, onHover, onUnhover, onSelect }) {
   const ref = useRef();
   const matRef = useRef();
   useFrame(({ clock }) => {
     if (!ref.current) return;
-    const base = 1;
+    const base = isActive ? 1.18 : 1;
     if (pulsing) {
       const s = base + Math.sin(clock.getElapsedTime() * 6) * 0.12;
       ref.current.scale.setScalar(s);
       if (matRef.current) matRef.current.emissiveIntensity = 0.8 + Math.sin(clock.getElapsedTime() * 6) * 0.5;
     } else {
       ref.current.scale.setScalar(base);
-      if (matRef.current) matRef.current.emissiveIntensity = 0.6;
+      if (matRef.current) matRef.current.emissiveIntensity = isActive ? 1.4 : 0.6;
     }
   });
   const radius = data.tier === 'core' ? 0.5 : data.tier === 'edge' && data.label.includes('Cloudflare') ? 0.45 : 0.34;
   return (
-    <group position={data.pos}>
+    <group
+      position={data.pos}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        document.body.style.cursor = 'pointer';
+        onHover(id);
+      }}
+      onPointerOut={(e) => {
+        e.stopPropagation();
+        document.body.style.cursor = '';
+        onUnhover();
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(id);
+      }}
+    >
+      {/* Selection halo */}
+      {isActive && (
+        <mesh scale={[1.5, 1.5, 1.5]}>
+          <sphereGeometry args={[radius, 16, 16]} />
+          <meshBasicMaterial color={color} transparent opacity={0.16} wireframe />
+        </mesh>
+      )}
       <mesh ref={ref}>
         <sphereGeometry args={[radius, 32, 32]} />
         <meshStandardMaterial
@@ -113,7 +152,7 @@ function Node({ data, color, pulsing }) {
   );
 }
 
-function Scene({ mode, reducedMotion }) {
+function Scene({ mode, reducedMotion, hoveredNode, selectedNode, onHover, onUnhover, onSelect }) {
   const groupRef = useRef();
 
   // Gentle idle rotation (disabled on reduced motion).
@@ -177,7 +216,17 @@ function Scene({ mode, reducedMotion }) {
 
         {/* Nodes */}
         {Object.entries(NODES).map(([id, data]) => (
-          <Node key={id} data={data} color={nodeColor(id)} pulsing={isPulsing(id)} />
+          <Node
+            key={id}
+            id={id}
+            data={data}
+            color={nodeColor(id)}
+            pulsing={isPulsing(id)}
+            isActive={hoveredNode === id || selectedNode === id}
+            onHover={onHover}
+            onUnhover={onUnhover}
+            onSelect={onSelect}
+          />
         ))}
       </group>
 
@@ -236,8 +285,13 @@ function TopologyFallback({ mode }) {
 
 export default function Topology3D() {
   const reducedMotion = usePrefersReducedMotion();
-  const [isMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1024);
+  const isMobile = useIsMobile(1024); // live-updating, swaps 3D/flat on breakpoint cross
+  // Pause the WebGL frameloop entirely once the scene scrolls out of view —
+  // otherwise the rAF loop renders forever in the background.
+  const [viewRef, inView] = useInViewPause('200px');
   const [mode, setMode] = useState('default'); // default | ddos | dr | transcode
+  const [hoveredNode, setHoveredNode] = useState(null);
+  const [selectedNode, setSelectedNode] = useState(null); // click-pinned inspector
 
   useSimEvent(SIM_EVENTS.ddos, ({ active }) => setMode((m) => (active ? 'ddos' : m === 'ddos' ? 'default' : m)));
   useSimEvent(SIM_EVENTS.dr, ({ step }) => setMode((m) => (step > 0 && step < 4 ? 'dr' : m === 'dr' ? 'default' : m)));
@@ -253,7 +307,7 @@ export default function Topology3D() {
     mode === 'ddos' ? 'text-red-400' : mode === 'dr' ? 'text-amber-400' : mode === 'transcode' ? 'text-amber-400' : 'text-emerald-400';
 
   return (
-    <div className="relative w-full h-[460px] md:h-[560px] rounded-[2rem] border border-white/10 bg-black/40 overflow-hidden shadow-2xl crt-screen">
+    <div ref={viewRef} className="relative w-full h-[460px] md:h-[560px] rounded-[2rem] border border-white/10 bg-black/40 overflow-hidden shadow-2xl crt-screen">
       {/* Status badge */}
       <div className="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-950/80 border border-white/10 backdrop-blur-md">
         <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${statusColor.replace('text-', 'bg-')}`} />
@@ -261,16 +315,53 @@ export default function Topology3D() {
       </div>
       {!useFlat && (
         <div className="absolute bottom-4 right-4 z-20 text-[8px] font-mono uppercase tracking-[0.2em] text-white/30 pointer-events-none">
-          Drag to orbit • Scroll to zoom
+          Drag to orbit • Scroll to zoom • Click node to inspect
         </div>
       )}
+
+      {/* Node inspector chip — pinned by click, previewed on hover */}
+      {!useFlat && (hoveredNode || selectedNode) && (() => {
+        const activeId = hoveredNode || selectedNode;
+        const node = NODES[activeId];
+        if (!node) return null;
+        return (
+          <div className="absolute bottom-4 left-4 z-20 max-w-[260px] px-4 py-3 rounded-2xl bg-slate-950/85 border border-white/10 backdrop-blur-md shadow-2xl pointer-events-none">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: node.color, boxShadow: `0 0 8px ${node.color}` }} />
+              <span className="text-[12px] font-black italic text-white leading-none">{node.label}</span>
+              {selectedNode === activeId && (
+                <span className="text-[7px] font-mono uppercase tracking-[0.2em] text-azure-light/70 border border-azure/20 rounded px-1 py-0.5">Pinned</span>
+              )}
+            </div>
+            <div className="text-[9px] font-mono uppercase tracking-[0.15em] text-slate-400 mb-1.5">{node.sub}</div>
+            <div className="text-[10px] text-slate-300 leading-relaxed">{NODE_DETAILS[activeId]}</div>
+          </div>
+        );
+      })()}
 
       {useFlat ? (
         <TopologyFallback mode={mode} />
       ) : (
-        <Canvas camera={{ position: [0, 0.5, 11], fov: 50 }} dpr={[1, 1.75]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
+        <Canvas
+          frameloop={inView ? 'always' : 'never'}
+          camera={{ position: [0, 0.5, 11], fov: 50 }}
+          dpr={[1, 1.75]}
+          gl={{ antialias: true, powerPreference: 'high-performance' }}
+          onPointerMissed={() => setSelectedNode(null)}
+        >
           <Suspense fallback={null}>
-            <Scene mode={mode} reducedMotion={reducedMotion} />
+            <Scene
+              mode={mode}
+              reducedMotion={reducedMotion}
+              hoveredNode={hoveredNode}
+              selectedNode={selectedNode}
+              onHover={setHoveredNode}
+              onUnhover={() => setHoveredNode(null)}
+              onSelect={(id) => {
+                playSound('ping');
+                setSelectedNode((prev) => (prev === id ? null : id));
+              }}
+            />
           </Suspense>
         </Canvas>
       )}

@@ -1,21 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Activity, ShieldCheck, Zap, Globe, ShieldAlert } from 'lucide-react';
+import { useSimEvent, SIM_EVENTS } from '../lib/simBus';
 
+/*
+  NOTE: InfraHUD is currently NOT mounted anywhere — LayerHUD superseded it as
+  the fixed cockpit bar. Kept for reference/possible revival; if remounted, the
+  telemetry interval below pauses while the tab is hidden.
+*/
 const InfraHUD = () => {
   const [latency, setLatency] = useState(12);
   const [cpu, setCpu] = useState(0.35);
   const [ddosActive, setDdosActive] = useState(false);
   const [drStep, setDrStep] = useState(0);
 
-  // Simulated telemetry oscillation
+  // Simulated telemetry oscillation (skips ticks while the tab is hidden)
   useEffect(() => {
     const interval = setInterval(() => {
-      setLatency(prev => {
+      if (document.hidden) return;
+      setLatency(() => {
         if (ddosActive) return 140 + Math.floor(Math.random() * 50); // High latency during attack
         return 10 + Math.floor(Math.random() * 8);
       });
-      setCpu(prev => {
+      setCpu(() => {
         if (ddosActive) return 0.88 + Math.random() * 0.08; // CPU spikes to 90%+
         if (drStep > 0 && drStep < 4) return 0.62 + Math.random() * 0.18; // Disk restore activity
         return 0.15 + Math.random() * 0.1; // Peaceful idling
@@ -24,19 +31,9 @@ const InfraHUD = () => {
     return () => clearInterval(interval);
   }, [ddosActive, drStep]);
 
-  // Event bus listeners
-  useEffect(() => {
-    const handleDdos = (e) => setDdosActive(e.detail.active);
-    const handleDr = (e) => setDrStep(e.detail.step);
-
-    window.addEventListener('homelab-ddos', handleDdos);
-    window.addEventListener('homelab-dr', handleDr);
-
-    return () => {
-      window.removeEventListener('homelab-ddos', handleDdos);
-      window.removeEventListener('homelab-dr', handleDr);
-    };
-  }, []);
+  // Event bus listeners — same simBus contracts as the rest of the site
+  useSimEvent(SIM_EVENTS.ddos, ({ active }) => setDdosActive(active));
+  useSimEvent(SIM_EVENTS.dr, ({ step }) => setDrStep(step));
 
   return (
     <motion.div 
