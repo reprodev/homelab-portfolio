@@ -1,44 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { HelpCircle, ArrowLeft, Terminal, Zap, Cpu, Share2 } from 'lucide-react';
-
-const playSynthesizedSound = (type = 'click') => {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') ctx.resume();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    if (type === 'click') {
-      osc.frequency.setValueAtTime(1200, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.04);
-      gain.gain.setValueAtTime(0.012, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.04);
-    } else if (type === 'enter') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(320, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1300, ctx.currentTime + 0.35);
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(600, ctx.currentTime);
-      filter.frequency.exponentialRampToValueAtTime(3200, ctx.currentTime + 0.35);
-
-      osc.disconnect(gain);
-      osc.connect(filter);
-      filter.connect(gain);
-
-      gain.gain.setValueAtTime(0.025, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
-
-      osc.start();
-      osc.stop(ctx.currentTime + 0.35);
-    }
-  } catch (e) {}
-};
+import { playSound } from '../lib/audio';
 
 /* 
   Khurram Nazir - The Origin Story Component (V1.5.0)
@@ -180,7 +143,7 @@ const OriginStory = ({ onBack, onOpenCaseStudy }) => {
         <div className="flex flex-wrap items-center justify-center gap-6">
           <button 
             onClick={() => {
-              playSynthesizedSound('click');
+              playSound('click');
               onBack();
             }}
             aria-label="Return to Selection Portal"
@@ -191,7 +154,7 @@ const OriginStory = ({ onBack, onOpenCaseStudy }) => {
           
           <button 
             onClick={() => {
-              playSynthesizedSound('enter');
+              playSound('enter');
               onOpenCaseStudy();
             }}
             aria-label="Explore the Technical Documentation"

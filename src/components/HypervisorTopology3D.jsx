@@ -3,6 +3,8 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Line, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { usePrefersReducedMotion } from '../lib/simBus';
+import useIsMobile from '../hooks/useIsMobile';
+import useInViewPause from '../hooks/useInViewPause';
 import { HardDrive, Server, Cpu, Database } from 'lucide-react';
 
 /*
@@ -78,14 +80,15 @@ function StoragePacket({ from, to, color, speed = 1.2, offset = 0, size = 0.08 }
 }
 
 // A node in the hypervisor topology
-function HypervisorNode({ id, data, isHovered, onHover, onUnhover }) {
+function HypervisorNode({ id, data, isHovered, onHover, onUnhover, reducedMotion }) {
   const ref = useRef();
   const matRef = useRef();
   
   useFrame(({ clock }) => {
     if (!ref.current) return;
     const baseScale = isHovered ? 1.25 : 1.0;
-    const pulse = isHovered ? Math.sin(clock.getElapsedTime() * 12) * 0.08 : Math.sin(clock.getElapsedTime() * 3) * 0.03;
+    // Respect prefers-reduced-motion: hold a steady scale, keep hover emphasis
+    const pulse = reducedMotion ? 0 : isHovered ? Math.sin(clock.getElapsedTime() * 12) * 0.08 : Math.sin(clock.getElapsedTime() * 3) * 0.03;
     ref.current.scale.setScalar(baseScale + pulse);
     
     if (matRef.current) {
@@ -235,6 +238,7 @@ function HypervisorScene({ hoveredNode, onHover, onUnhover, reducedMotion }) {
               isHovered={isNodeHovered}
               onHover={onHover}
               onUnhover={onUnhover}
+              reducedMotion={reducedMotion}
             />
           );
         })}
@@ -320,13 +324,15 @@ function HypervisorFallback({ hoveredNode, setHoveredNode }) {
 
 export default function HypervisorTopology3D() {
   const reducedMotion = usePrefersReducedMotion();
-  const [isMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1024);
+  const isMobile = useIsMobile(1024); // live-updating, swaps 3D/flat on breakpoint cross
+  // Pause the WebGL frameloop when the mesh scrolls out of view (perf guard)
+  const [viewRef, inView] = useInViewPause('200px');
   const [hoveredNode, setHoveredNode] = useState(null);
 
   const useFlat = isMobile || reducedMotion;
 
   return (
-    <div className="relative w-full h-[400px] md:h-[460px] rounded-2xl border border-white/5 bg-slate-950/40 overflow-hidden shadow-xl flex items-center justify-center select-none blueprint-dots">
+    <div ref={viewRef} className="relative w-full h-[400px] md:h-[460px] rounded-2xl border border-white/5 bg-slate-950/40 overflow-hidden shadow-xl flex items-center justify-center select-none blueprint-dots">
       {/* Top Banner HUD instructions */}
       <div className="absolute top-3 left-4 z-20 flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-slate-950/80 border border-white/10 backdrop-blur-md">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -345,6 +351,7 @@ export default function HypervisorTopology3D() {
         <HypervisorFallback hoveredNode={hoveredNode} setHoveredNode={setHoveredNode} />
       ) : (
         <Canvas 
+          frameloop={inView ? 'always' : 'never'}
           camera={{ position: [0, 0.2, 8.5], fov: 45 }} 
           dpr={[1, 1.5]} 
           gl={{ antialias: true, powerPreference: 'high-performance' }}

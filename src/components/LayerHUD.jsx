@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Database, Cpu, Repeat, LayoutGrid, Menu, X, Volume2, VolumeX, Sliders, Network, ArrowUp } from 'lucide-react';
+import { Shield, Database, Cpu, Repeat, LayoutGrid, Menu, X, Volume2, VolumeX, Sliders, Network, ArrowUp, Map, BookOpen } from 'lucide-react';
 import { triggerExpand } from '../lib/simBus.js';
+import { playSound, getAudioContext, setUiSoundsEnabled } from '../lib/audio';
+import useIsMobile from '../hooks/useIsMobile';
 
 const LayerHUD = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile(1024);
   
   // Audio state
   const [volume, setVolume] = useState(30); // Default comfortable 30% volume
@@ -27,7 +29,9 @@ const LayerHUD = () => {
   const initAudio = () => {
     if (audioCtxRef.current) return;
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      // Hum engine rides the site-wide shared AudioContext (src/lib/audio.js)
+      const ctx = getAudioContext();
+      if (!ctx) return;
       audioCtxRef.current = ctx;
 
       // Click Sound Gain Node (tactile clicks)
@@ -96,35 +100,18 @@ const LayerHUD = () => {
     }
   };
 
+  // Tactile clicks now come from the shared engine (src/lib/audio.js);
+  // LayerHUD's tick keeps its signature sharp 1500->250 sweep via overrides.
   const playSynthesizedSound = (type = 'click') => {
     if (!clickActive) return;
-    try {
-      initAudio();
-      const ctx = audioCtxRef.current;
-      if (!ctx) return;
-      if (ctx.state === 'suspended') {
-        ctx.resume().catch(() => {});
-      }
-
-      if (type === 'click' && clickGainNodeRef.current) {
-        const osc = ctx.createOscillator();
-        const localGain = ctx.createGain();
-
-        osc.connect(localGain);
-        localGain.connect(clickGainNodeRef.current);
-
-        // Tech tick: sharp frequency sweep downwards
-        osc.frequency.setValueAtTime(1500, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(250, ctx.currentTime + 0.04);
-
-        localGain.gain.setValueAtTime(0.08, ctx.currentTime);
-        localGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
-
-        osc.start();
-        osc.stop(ctx.currentTime + 0.04);
-      }
-    } catch (e) {}
+    playSound(type, type === 'click' ? { start: 1500, end: 250 } : undefined);
   };
+
+  // The settings-cockpit toggle now mutes tactile UI sounds site-wide,
+  // not just LayerHUD's own buttons.
+  useEffect(() => {
+    setUiSoundsEnabled(clickActive);
+  }, [clickActive]);
 
   // Sync ambient parameters with state updates to prevent pops
   useEffect(() => {
@@ -138,13 +125,6 @@ const LayerHUD = () => {
     }
   }, [volume, humActive]);
 
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 1024);
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   const sections = [
     { id: 'topology', icon: <Network size={18} />, label: '3D Topology' },
     { id: 'layer-1', icon: <Shield size={18} />, label: 'Edge & Ingress' },
@@ -152,30 +132,41 @@ const LayerHUD = () => {
     { id: 'layer-3', icon: <Cpu size={18} />, label: 'Logical' },
     { id: 'layer-dr', icon: <Repeat size={18} />, label: 'Disaster Recovery' },
     { id: 'layer-4', icon: <LayoutGrid size={18} />, label: 'Workloads' },
+    { id: 'layer-journey', icon: <Map size={18} />, label: 'Roadmap' },
+    { id: 'knowledge-base', icon: <BookOpen size={18} />, label: 'Knowledge' },
   ];
 
-  // Scrollspy & Scroll To Top Visibility Controller
+  // Scroll-to-top visibility — passive listener, no layout reads
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollPos = window.scrollY;
-      setShowScrollTop(scrollPos > 350);
+    const handleScroll = () => setShowScrollTop(window.scrollY > 350);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-      // Identify active visible layer
-      const scrollOffset = scrollPos + 260;
-      for (const section of sections) {
-        const el = document.getElementById(section.id);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollOffset >= top && scrollOffset < top + height) {
-            setActiveSection(section.id);
+  // Scrollspy via IntersectionObserver — replaces the per-scroll-event
+  // offsetTop/offsetHeight walk (which forced synchronous layout on every
+  // scroll tick). The active section is whichever intersects a band near
+  // the top quarter of the viewport.
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
             break;
           }
         }
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+      },
+      { rootMargin: '-15% 0px -65% 0px' }
+    );
+    // CollapsibleSections mount their wrappers immediately, so observing on
+    // mount is safe even while collapsed.
+    sections.forEach(({ id }) => {
+      const el = document.getElementById(id);
+      if (el) obs.observe(el);
+    });
+    return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const scrollToSection = (id) => {

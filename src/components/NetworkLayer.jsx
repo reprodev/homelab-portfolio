@@ -6,23 +6,18 @@ import RationaleSection from './RationaleSection';
 import { ShieldCheck, ShieldAlert, Terminal, Key, RefreshCw } from 'lucide-react';
 import { CloudflareLogo, TailscaleLogo } from './BrandLogos';
 import { triggerDdos, useSimEvent, SIM_EVENTS } from '../lib/simBus';
+import useIsMobile from '../hooks/useIsMobile';
+import useInViewPause from '../hooks/useInViewPause';
 
 // HMR Cache Bust: 1
 const NetworkLayer = () => {
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile(768);
+  const [viewRef, inView] = useInViewPause('150px'); // pause log generator off-screen
   const [ddosActive, setDdosActive] = useState(false);
   const [vpnActive, setVpnActive] = useState(false);
   const [logs, setLogs] = useState([]);
   const logsContainerRef = useRef(null);
   const ddosRef = useRef(false); // tracks last broadcast state to log clean transitions
-
-  // Resize listener
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Standard live request logs generator
   const getStandardLog = () => {
@@ -50,8 +45,9 @@ const NetworkLayer = () => {
     return `[BLOCKED] ${randomIP} - ${randomAttack}`;
   };
 
-  // Dynamic log scrolling interval
+  // Dynamic log scrolling interval (paused while the section is off-screen)
   useEffect(() => {
+    if (!inView) return undefined;
     // Fill console with some initial logs
     const initialLogs = Array.from({ length: 5 }, () => getStandardLog());
     setLogs(initialLogs);
@@ -67,7 +63,7 @@ const NetworkLayer = () => {
     }, ddosActive ? 300 : 2500);
 
     return () => clearInterval(interval);
-  }, [ddosActive]);
+  }, [ddosActive, inView]);
 
   // Handle auto-scroll to bottom of WAF logs container without scrolling window
   useEffect(() => {
@@ -127,7 +123,7 @@ const NetworkLayer = () => {
   };
 
   return (
-    <section className="mb-16">
+    <section ref={viewRef} className="mb-16">
       <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-6 gap-2 border-b border-white/5 pb-4 text-center md:text-left">
         <h3 className="text-3xl font-extralight tracking-tight text-white m-0 italic">Layer 1: The Edge & Ingress</h3>
         <span className="text-sm font-mono text-slate-400">
@@ -274,7 +270,7 @@ const NetworkLayer = () => {
             </circle>
 
             <circle cx="230" cy="140" r="2.5" fill="#3b82f6" />
-            <circle cx="770" cy="140" r="2.5" fill={vpnActive ? "#10b981" : "#10b981/50"} />
+            <circle cx="770" cy="140" r="2.5" fill="#10b981" fillOpacity={vpnActive ? 1 : 0.5} />
             <circle cx="500" cy="260" r="3.5" fill="#f59e0b" className="animate-pulse" />
           </svg>
           

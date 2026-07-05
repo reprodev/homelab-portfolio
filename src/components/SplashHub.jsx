@@ -5,52 +5,8 @@ import OriginStory from './OriginStory.jsx';
 import CaseStudyPost from './CaseStudyPost.jsx';
 import ServiceDeskSimDetails from './ServiceDeskSimDetails.jsx';
 import { usePrefersReducedMotion } from '../lib/simBus';
-
-const playSynthesizedSound = (type = 'click') => {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') ctx.resume();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    if (type === 'hover') {
-      osc.frequency.setValueAtTime(1600, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.015);
-      gain.gain.setValueAtTime(0.003, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.015);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.015);
-    } else if (type === 'click') {
-      osc.frequency.setValueAtTime(1200, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.04);
-      gain.gain.setValueAtTime(0.012, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.04);
-    } else if (type === 'enter') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(320, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1300, ctx.currentTime + 0.35);
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(600, ctx.currentTime);
-      filter.frequency.exponentialRampToValueAtTime(3200, ctx.currentTime + 0.35);
-
-      osc.disconnect(gain);
-      osc.connect(filter);
-      filter.connect(gain);
-
-      gain.gain.setValueAtTime(0.025, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
-
-      osc.start();
-      osc.stop(ctx.currentTime + 0.35);
-    }
-  } catch (e) {}
-};
+import { playSound } from '../lib/audio';
+import useIsMobile from '../hooks/useIsMobile';
 
 /* 
   Khurram Nazir - Multi-Stage Digital Ecosystem Hub (V1.5.0 Gold Master)
@@ -251,7 +207,7 @@ const PortalCard = ({ card, index, isMobile, hoveredId, setHoveredId, handleActi
       onMouseEnter={() => {
         if (!isMobile) {
           setHoveredId(card.id);
-          playSynthesizedSound('hover');
+          playSound('hover');
         }
       }}
       onMouseLeave={() => {
@@ -264,7 +220,7 @@ const PortalCard = ({ card, index, isMobile, hoveredId, setHoveredId, handleActi
         ${!isMobile && hoveredId === card.id ? 'flex-[2.5] border-white/40 shadow-[0_0_50px_rgba(0,240,255,0.15)]' : !isMobile && hoveredId !== null ? 'flex-1 opacity-60 grayscale-[0.3]' : !isMobile ? 'flex-[1.5]' : ''}
       `}
       onClick={() => {
-        playSynthesizedSound('enter');
+        playSound('enter');
         handleAction(card.url);
       }}
     >
@@ -292,7 +248,17 @@ const PortalCard = ({ card, index, isMobile, hoveredId, setHoveredId, handleActi
          </motion.div>
 
          <div className="space-y-1 mb-4">
-           <span className="text-[10px] font-mono tracking-[0.3em] text-white/50 uppercase font-bold">{card.tag}</span>
+           <div className="flex items-center gap-2 flex-wrap">
+             <span className="text-[10px] font-mono tracking-[0.3em] text-white/50 uppercase font-bold">{card.tag}</span>
+             {card.id === 'servicedesk' && (
+               <span className="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-400/30 text-[8px] font-mono uppercase tracking-wider text-blue-300 font-bold flex items-center gap-1">
+                 <svg className="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                   <path d="M12 0C5.38 0 0 5.38 0 12c0 5.58 3.82 10.28 9 11.62V15.7c-.8-.34-1.36-1.12-1.36-2.05 0-1.22 1-2.22 2.22-2.22.25 0 .48.04.7.12l2.67-3.83c-.02-.15-.04-.3-.04-.46 0-1.78 1.44-3.22 3.22-3.22s3.22 1.44 3.22 3.22c0 1.78-1.44 3.22-3.22 3.22-.26 0-.5-.04-.73-.1l-3.5 2.53c.03.17.05.34.05.52 0 .6-.2 1.15-.55 1.6l2.36 1c4.28-1.16 7.4-5.06 7.4-9.7C24 5.38 18.62 0 12 0zm5.22 6.58c0-.73.6-1.33 1.33-1.33s1.33.6 1.33 1.33c0 .73-.6 1.33-1.33 1.33s-1.33-.6-1.33-1.33zm-9.35 6.07c0-.62.5-1.12 1.12-1.12.16 0 .3.03.44.1l-1.33 1.6c-.14-.15-.23-.35-.23-.58zm1.12 2.24c-.62 0-1.12-.5-1.12-1.12 0-.08.02-.16.04-.24l1.37-1.65c.57.17.97.7 1 1.3-.02.94-.65 1.7-1.3 1.71z"/>
+                 </svg>
+                 Steam Wishlist
+               </span>
+             )}
+           </div>
            <h3 className={`font-black text-white leading-none transition-all duration-500 ${!isMobile && hoveredId === card.id ? 'text-4xl' : 'text-2xl'}`}>
              {card.title}
            </h3>
@@ -330,16 +296,9 @@ const PortalCard = ({ card, index, isMobile, hoveredId, setHoveredId, handleActi
 const SplashHub = ({ onDismiss }) => {
   const [stage, setStage] = useState('intro'); // 'intro', 'selection', 'origin', 'casestudy'
   const [dontShowAgain, setDontShowAgain] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile(1024);
   const [hasScrolled, setHasScrolled] = useState(false);
   const reducedMotion = usePrefersReducedMotion();
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 1024);
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const handleScroll = (e) => {
     if (e.target.scrollTop > 50 && !hasScrolled) {
@@ -509,7 +468,7 @@ const SplashHub = ({ onDismiss }) => {
                     transition={{ delay: 0.5, duration: isMobile ? 0.6 : 0.8 }}
                     className="text-[clamp(2.5rem,10vw,8rem)] font-black tracking-tighter leading-none mb-2"
                   >
-                    <span className="bg-gradient-to-r from-azure-light via-white to-amberGold bg-clip-text text-transparent px-4">
+                    <span className="bg-gradient-to-r from-azure-light via-white to-amberGold bg-clip-text text-transparent px-4 gradient-shimmer">
                       Khurram Nazir
                     </span>
                   </motion.h1>
@@ -523,7 +482,7 @@ const SplashHub = ({ onDismiss }) => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => {
-                        playSynthesizedSound('click');
+                        playSound('click');
                         setStage('selection');
                       }}
                       className="group relative px-10 py-5 bg-white text-slate-950 font-black uppercase tracking-widest rounded-full overflow-hidden transition-all hover:shadow-[0_0_40px_rgba(255,255,255,0.3)]"
@@ -585,7 +544,7 @@ const SplashHub = ({ onDismiss }) => {
                         className="sr-only peer"
                         checked={dontShowAgain}
                         onChange={(e) => {
-                          playSynthesizedSound('click');
+                          playSound('click');
                           setDontShowAgain(e.target.checked);
                         }}
                       />
@@ -600,7 +559,7 @@ const SplashHub = ({ onDismiss }) => {
                 
                 <button 
                   onClick={() => {
-                    playSynthesizedSound('enter');
+                    playSound('enter');
                     handleAction('homelab');
                   }}
                   className="text-white/30 hover:text-white transition-colors text-[10px] font-mono uppercase tracking-[0.15em] flex items-center gap-4 group mb-20"

@@ -6,6 +6,7 @@ import RationaleSection from './RationaleSection';
 import { BookOpen, Cpu, ChevronDown, Activity, Terminal as TerminalIcon, Shield, Server } from 'lucide-react';
 import { UbuntuLogo, DietPiLogo, OMVLogo, RaspberryPiLogo } from './BrandLogos';
 import useTypewriter from '../hooks/useTypewriter';
+import { playSound } from '../lib/audio';
 
 const TerraformLogo = ({ className }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -25,40 +26,6 @@ const KubernetesLogo = ({ className }) => (
   </svg>
 );
 
-const playSynthesizedSound = (type = 'click') => {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') ctx.resume();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    
-    if (type === 'click') {
-      osc.frequency.setValueAtTime(1200, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.04);
-      gain.gain.setValueAtTime(0.012, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.04);
-    } else if (type === 'ping') {
-      osc.frequency.setValueAtTime(1600, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.15);
-      gain.gain.setValueAtTime(0.008, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.15);
-    } else if (type === 'success') {
-      osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-      osc.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.25); // C6
-      gain.gain.setValueAtTime(0.015, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.25);
-    }
-  } catch (e) {}
-};
-
 const K3sAutoscalerSandbox = () => {
   const [trafficActive, setTrafficActive] = useState(false);
   const [scalingStage, setScalingStage] = useState(0); // 0: idle, 1: overload, 2: scaling, 3: balanced
@@ -75,12 +42,12 @@ const K3sAutoscalerSandbox = () => {
       setScalingStage(1);
       setPods([{ id: 1, name: 'status-pod-01', cpu: 94, status: 'Overload' }]);
       setHpaMetrics({ replicas: 1, load: 94 });
-      playSynthesizedSound('ping');
+      playSound('ping');
 
       // Stage 2: HPA Detects and starts scaling
       timer = setTimeout(() => {
         setScalingStage(2);
-        playSynthesizedSound('click');
+        playSound('click');
         setPods([
           { id: 1, name: 'status-pod-01', cpu: 94, status: 'Overload' },
           { id: 2, name: 'status-pod-02', cpu: 0, status: 'Pending' },
@@ -92,7 +59,7 @@ const K3sAutoscalerSandbox = () => {
         // Stage 3: Settle load and mark running
         timer = setTimeout(() => {
           setScalingStage(3);
-          playSynthesizedSound('success');
+          playSound('success');
           setPods([
             { id: 1, name: 'status-pod-01', cpu: 23, status: 'Running' },
             { id: 2, name: 'status-pod-02', cpu: 21, status: 'Running' },
@@ -115,7 +82,7 @@ const K3sAutoscalerSandbox = () => {
 
   const toggleTraffic = () => {
     setTrafficActive(!trafficActive);
-    playSynthesizedSound('click');
+    playSound('click');
   };
 
   return (
@@ -356,7 +323,7 @@ const LogicalLayer = () => {
                   isExpanded={expandedNode === node.id}
                   onClick={() => {
                     setExpandedNode(expandedNode === node.id ? null : node.id);
-                    playSynthesizedSound('click');
+                    playSound('click');
                   }}
                 />
               ))}
@@ -568,8 +535,21 @@ const NodeDetailPanel = ({ node }) => {
     }
   };
 
+  // Single source of truth for each node's shell prompt hostname
+  const PROMPT_NAMES = { pi4: 'pibuster4', zulu: 'zuluserver', ha: 'dietpi-cluster' };
+  const getPromptName = (id) => PROMPT_NAMES[id] || 'omv-nas';
+
+  // In-flight command timers (Ansible/GitOps streams) — cleared on node switch /
+  // unmount so a running command never bleeds logs into the next node's shell.
+  const cmdTimersRef = useRef([]);
+  const clearCmdTimers = () => {
+    cmdTimersRef.current.forEach(clearInterval); // clearInterval also clears timeouts
+    cmdTimersRef.current = [];
+  };
+
   // Stream logs line-by-line when node is opened
   useEffect(() => {
+    clearCmdTimers();
     setLogs([]);
     setActiveCommand(null);
     setGitopsStage(0);
@@ -588,7 +568,10 @@ const NodeDetailPanel = ({ node }) => {
       }
     }, 80);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      clearCmdTimers();
+    };
   }, [node.id]);
 
   // Scroll to bottom of terminal
@@ -602,7 +585,7 @@ const NodeDetailPanel = ({ node }) => {
     if (activeCommand) return;
     setActiveCommand('ansible');
     setActiveTab('terminal');
-    const promptName = node.id === 'pi4' ? 'pibuster4' : node.id === 'zulu' ? 'zuluserver' : node.id === 'ha' ? 'dietpi-cluster' : 'omv-nas';
+    const promptName = getPromptName(node.id);
     
     setLogs(prev => prev.slice(0, -1).concat([
       `$ ansible-playbook playbooks/harden.yml --limit ${node.name}`,
@@ -637,6 +620,7 @@ const NodeDetailPanel = ({ node }) => {
         clearInterval(timer);
       }
     }, 300);
+    cmdTimersRef.current.push(timer);
   };
 
   const triggerGitOps = () => {
@@ -644,7 +628,7 @@ const NodeDetailPanel = ({ node }) => {
     setActiveCommand('gitops');
     setActiveTab('gitops');
     setGitopsStage(1);
-    const promptName = node.id === 'pi4' ? 'pibuster4' : node.id === 'zulu' ? 'zuluserver' : node.id === 'ha' ? 'dietpi-cluster' : 'omv-nas';
+    const promptName = getPromptName(node.id);
 
     setLogs(prev => prev.slice(0, -1).concat([
       `$ git pull origin main`,
@@ -656,21 +640,21 @@ const NodeDetailPanel = ({ node }) => {
     ]));
 
     // Step-by-step visual sync stage propagation with mechanical audio triggers
-    setTimeout(() => {
+    cmdTimersRef.current.push(setTimeout(() => {
       setGitopsStage(2);
-      playSynthesizedSound('ping');
-    }, 1200);
-    
-    setTimeout(() => {
+      playSound('ping');
+    }, 1200));
+
+    cmdTimersRef.current.push(setTimeout(() => {
       setGitopsStage(3);
-      playSynthesizedSound('ping');
-    }, 2400);
-    
-    setTimeout(() => {
+      playSound('ping');
+    }, 2400));
+
+    cmdTimersRef.current.push(setTimeout(() => {
       setGitopsStage(4);
-      playSynthesizedSound('success');
+      playSound('success');
       setActiveCommand(null);
-    }, 3800);
+    }, 3800));
 
     let step = 0;
     const steps = [
@@ -691,11 +675,12 @@ const NodeDetailPanel = ({ node }) => {
         clearInterval(timer);
       }
     }, 600);
+    cmdTimersRef.current.push(timer);
   };
 
   const clearConsole = () => {
     if (activeCommand) return;
-    const promptName = node.id === 'pi4' ? 'pibuster4' : node.id === 'zulu' ? 'zuluserver' : node.id === 'ha' ? 'dietpi-cluster' : 'omv-nas';
+    const promptName = getPromptName(node.id);
     setLogs([`${promptName}:~# _`]);
     setGitopsStage(0);
   };
@@ -763,7 +748,7 @@ const NodeDetailPanel = ({ node }) => {
               <button 
                 onClick={() => {
                   setActiveTab('terminal');
-                  playSynthesizedSound('click');
+                  playSound('click');
                 }}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all ${activeTab === 'terminal' ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-black' : 'text-slate-400 hover:text-white'}`}
               >
@@ -773,7 +758,7 @@ const NodeDetailPanel = ({ node }) => {
               <button 
                 onClick={() => {
                   setActiveTab('gitops');
-                  playSynthesizedSound('click');
+                  playSound('click');
                 }}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all ${activeTab === 'gitops' ? 'bg-azure/10 border border-azure/30 text-azure font-black' : 'text-slate-400 hover:text-white'}`}
               >
@@ -1062,7 +1047,7 @@ const NodeDetailPanel = ({ node }) => {
             <button
               onClick={() => {
                 triggerAnsible();
-                playSynthesizedSound('click');
+                playSound('click');
               }}
               disabled={activeCommand !== null}
               className={`flex-1 py-1.5 rounded-lg border text-[9px] font-mono font-black uppercase tracking-wider transition-all 
@@ -1078,7 +1063,7 @@ const NodeDetailPanel = ({ node }) => {
             <button
               onClick={() => {
                 triggerGitOps();
-                playSynthesizedSound('click');
+                playSound('click');
               }}
               disabled={activeCommand !== null}
               className={`flex-1 py-1.5 rounded-lg border text-[9px] font-mono font-black uppercase tracking-wider transition-all 
@@ -1094,7 +1079,7 @@ const NodeDetailPanel = ({ node }) => {
             <button
               onClick={() => {
                 clearConsole();
-                playSynthesizedSound('click');
+                playSound('click');
               }}
               disabled={activeCommand !== null}
               className={`px-3 py-1.5 rounded-lg border text-[9px] font-mono font-black uppercase tracking-wider transition-all 

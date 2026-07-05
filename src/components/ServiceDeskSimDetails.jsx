@@ -2,6 +2,12 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Monitor, ArrowLeft, ExternalLink, Shield, Cpu, Terminal, Users, Code, Globe, Music } from 'lucide-react';
 
+const SteamLogo = ({ className = "w-5 h-5" }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 0C5.38 0 0 5.38 0 12c0 5.58 3.82 10.28 9 11.62V15.7c-.8-.34-1.36-1.12-1.36-2.05 0-1.22 1-2.22 2.22-2.22.25 0 .48.04.7.12l2.67-3.83c-.02-.15-.04-.3-.04-.46 0-1.78 1.44-3.22 3.22-3.22s3.22 1.44 3.22 3.22c0 1.78-1.44 3.22-3.22 3.22-.26 0-.5-.04-.73-.1l-3.5 2.53c.03.17.05.34.05.52 0 .6-.2 1.15-.55 1.6l2.36 1c4.28-1.16 7.4-5.06 7.4-9.7C24 5.38 18.62 0 12 0zm5.22 6.58c0-.73.6-1.33 1.33-1.33s1.33.6 1.33 1.33c0 .73-.6 1.33-1.33 1.33s-1.33-.6-1.33-1.33zm-9.35 6.07c0-.62.5-1.12 1.12-1.12.16 0 .3.03.44.1l-1.33 1.6c-.14-.15-.23-.35-.23-.58zm1.12 2.24c-.62 0-1.12-.5-1.12-1.12 0-.08.02-.16.04-.24l1.37-1.65c.57.17.97.7 1 1.3-.02.94-.65 1.7-1.3 1.71z"/>
+  </svg>
+);
+
 /* 
   Khurram Nazir - Service Desk Sim Details (V1.5.0)
   Intermediate 'blurb' stage for the game project.
@@ -208,25 +214,34 @@ const ServiceDeskSimDetails = ({ onBack }) => {
               </button>
               
               <a 
+                href="https://store.steampowered.com/app/4851960/Service_Desk_Sim/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 px-10 py-5 rounded-full bg-gradient-to-r from-[#1b2838] to-[#2a475e] border border-[#66c0f4]/30 text-[#66c0f4] font-black uppercase tracking-widest text-sm hover:from-[#1078ff] hover:to-[#00c0ff] hover:text-white hover:border-transparent hover:shadow-[0_0_50px_rgba(0,192,255,0.4)] transition-all hover:scale-105"
+              >
+                <SteamLogo className="w-5 h-5 fill-current" /> Wishlist on Steam
+              </a>
+
+              <a 
                 href="https://servicedesksim.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 px-10 py-5 rounded-full bg-violet-600 text-white font-black uppercase tracking-widest text-sm hover:shadow-[0_0_50px_rgba(139,92,246,0.4)] transition-all hover:scale-105"
+                className="flex items-center gap-3 px-10 py-5 rounded-full bg-violet-600/20 border border-violet-500/30 text-violet-300 font-black uppercase tracking-widest text-sm hover:bg-violet-600 hover:text-white hover:shadow-[0_0_50px_rgba(139,92,246,0.3)] transition-all hover:scale-105"
               >
                 Access Portal <ExternalLink size={18} />
               </a>
             </div>
           </div>
 
-          <div className="w-full max-w-[552px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black">
+          <div className="w-full max-w-[646px] h-[190px] rounded-2xl overflow-hidden border border-[#2a475e]/30 shadow-2xl bg-[#1b2838]">
             <iframe 
+              src="https://store.steampowered.com/widget/4851960/" 
               frameBorder="0" 
-              src="https://itch.io/embed/4343790?linkback=true&amp;dark=true" 
-              width="552" 
-              height="167"
-              title="SDS Embed"
+              width="100%" 
+              height="190"
+              title="Steam Widget"
             >
-              <a href="https://reprodev.itch.io/servicedesksim">Service Desk Sim</a>
+              <a href="https://store.steampowered.com/app/4851960/Service_Desk_Sim/">Wishlist Service Desk Sim on Steam</a>
             </iframe>
           </div>
         </div>

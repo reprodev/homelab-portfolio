@@ -23,6 +23,20 @@
   @apply bg-gradient-to-br from-azure to-amberGold bg-clip-text text-transparent;
 }
 
+/* One-time headline shimmer: the signature gradient sweeps across the name on
+   load, then settles. Pure background-position keyframe — no layout work. */
+@keyframes gradient-shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: 0% center; }
+}
+.gradient-shimmer {
+  background-size: 200% auto;
+  animation: gradient-shimmer 2.4s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gradient-shimmer { animation: none; background-position: 0% center; }
+}
+
 /* ... (animations remain same) */
 
 /* HUD Components */

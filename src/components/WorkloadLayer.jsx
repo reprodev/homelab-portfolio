@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { DockerLogo, PlexLogo } from './BrandLogos';
 import { triggerTranscode, triggerDr, useSimEvent, SIM_EVENTS } from '../lib/simBus';
+import { playSound, getAudioContext } from '../lib/audio';
 
 // High-fidelity Docker daemon container telemetry profiles
 const CONTAINER_DATA = {
@@ -241,39 +242,39 @@ let sirenInterval = null;
 let osc1 = null;
 let osc2 = null;
 let gainNode = null;
-let audioCtx = null;
 
 const startSiren = () => {
   try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    
-    osc1 = audioCtx.createOscillator();
-    osc2 = audioCtx.createOscillator();
-    gainNode = audioCtx.createGain();
-    
+    // Reuse the site-wide shared AudioContext — never construct (or close) our own.
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    osc1 = ctx.createOscillator();
+    osc2 = ctx.createOscillator();
+    gainNode = ctx.createGain();
+
     osc1.type = 'sawtooth';
     osc2.type = 'sine';
-    
-    osc1.frequency.setValueAtTime(480, audioCtx.currentTime);
-    osc2.frequency.setValueAtTime(490, audioCtx.currentTime);
-    
+
+    osc1.frequency.setValueAtTime(480, ctx.currentTime);
+    osc2.frequency.setValueAtTime(490, ctx.currentTime);
+
     // Extremely subtle volume (polite UX guidelines)
-    gainNode.gain.setValueAtTime(0.005, audioCtx.currentTime);
-    
+    gainNode.gain.setValueAtTime(0.005, ctx.currentTime);
+
     osc1.connect(gainNode);
     osc2.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    
+    gainNode.connect(ctx.destination);
+
     osc1.start();
     osc2.start();
-    
+
     let high = true;
     sirenInterval = setInterval(() => {
-      if (!audioCtx) return;
+      if (!osc1 || !osc2) return;
       const targetFreq = high ? 600 : 400;
-      osc1.frequency.exponentialRampToValueAtTime(targetFreq, audioCtx.currentTime + 0.45);
-      osc2.frequency.exponentialRampToValueAtTime(targetFreq + 10, audioCtx.currentTime + 0.45);
+      osc1.frequency.exponentialRampToValueAtTime(targetFreq, ctx.currentTime + 0.45);
+      osc2.frequency.exponentialRampToValueAtTime(targetFreq + 10, ctx.currentTime + 0.45);
       high = !high;
     }, 500);
   } catch (e) {}
@@ -282,16 +283,15 @@ const startSiren = () => {
 const stopSiren = () => {
   if (sirenInterval) clearInterval(sirenInterval);
   try {
+    // Disconnect our nodes only — the shared context stays alive for the site.
     if (osc1) { osc1.stop(); osc1.disconnect(); }
     if (osc2) { osc2.stop(); osc2.disconnect(); }
     if (gainNode) { gainNode.disconnect(); }
-    if (audioCtx) { audioCtx.close(); }
   } catch (e) {}
   sirenInterval = null;
   osc1 = null;
   osc2 = null;
   gainNode = null;
-  audioCtx = null;
 };
 
 // SRE Chaos Control Center Widget Card Component
@@ -301,22 +301,6 @@ const SREChaosIncidentDeck = ({ ddosActive, drStep }) => {
   const [chaosLogs, setChaosLogs] = useState(["[SYSTEM] Chaos Daemon initialized.", "[SYSTEM] Node heartbeat monitor nominal. Ready."]);
   const logEndRef = useRef(null);
 
-  // Play micro click sound safely
-  const playClick = () => {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(1000, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.04);
-      gain.gain.setValueAtTime(0.015, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.04);
-    } catch (e) {}
-  };
 
   useEffect(() => {
     if (logEndRef.current) {
@@ -332,7 +316,7 @@ const SREChaosIncidentDeck = ({ ddosActive, drStep }) => {
 
   const triggerChaos = (type) => {
     if (activeIncident) return;
-    playClick();
+    playSound('click');
     setActiveIncident(type);
     setChaosLogs([]);
     
@@ -388,7 +372,7 @@ const SREChaosIncidentDeck = ({ ddosActive, drStep }) => {
         
         {/* Skeuomorphic tactile sound toggle */}
         <button
-          onClick={() => { playClick(); setSoundEnabled(!soundEnabled); if (soundEnabled) stopSiren(); }}
+          onClick={() => { playSound('click'); setSoundEnabled(!soundEnabled); if (soundEnabled) stopSiren(); }}
           className={`p-1.5 rounded-xl border transition-all duration-300 relative z-30 ${
             soundEnabled 
               ? 'bg-red-500/10 border-red-500/30 text-red-400' 
@@ -463,23 +447,9 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
   const [cpuLoad, setCpuLoad] = useState(1.4);
   const [ramLoad, setRamLoad] = useState(118);
   const consoleEndRef = useRef(null);
+  const restartTimerRef = useRef(null); // cleared on unmount so a mid-restart close never leaks
 
-  // Play a click sound safely
-  const playClick = () => {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(1400, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.03);
-      gain.gain.setValueAtTime(0.01, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.03);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.03);
-    } catch (e) {}
-  };
+  useEffect(() => () => clearInterval(restartTimerRef.current), []);
 
   useEffect(() => {
     if (!data) return;
@@ -515,7 +485,7 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
   }, [visibleLogs]);
 
   const handleRestart = () => {
-    playClick();
+    playSound('click');
     setStatus('restarting');
     setCpuLoad(0);
     const restartLogs = [
@@ -532,12 +502,12 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
     let index = 0;
     setVisibleLogs([]);
 
-    const logTimer = setInterval(() => {
+    restartTimerRef.current = setInterval(() => {
       if (index < restartLogs.length) {
         setVisibleLogs(prev => [...prev, restartLogs[index]]);
         index += 1;
       } else {
-        clearInterval(logTimer);
+        clearInterval(restartTimerRef.current);
         setStatus('running');
         setVisibleLogs([...data.logs]);
         setCpuLoad(parseFloat((1.1 + Math.random() * 2.5).toFixed(1)));
@@ -546,7 +516,7 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
   };
 
   const handleStop = () => {
-    playClick();
+    playSound('click');
     if (status === 'running') {
       setStatus('stopped');
       setCpuLoad(0);
@@ -583,7 +553,7 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
           </div>
         </div>
         <button 
-          onClick={() => { playClick(); onClose(); }}
+          onClick={() => { playSound('click'); onClose(); }}
           className="p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:text-white transition-all"
         >
           <X size={16} />
@@ -615,7 +585,7 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
       {/* Tabs */}
       <div className="flex border-b border-white/5 bg-black/20 text-[9px] font-black uppercase tracking-widest">
         <button
-          onClick={() => { playClick(); setActiveTab('logs'); }}
+          onClick={() => { playSound('click'); setActiveTab('logs'); }}
           className={`flex-1 py-3 text-center border-r border-white/5 transition-all flex items-center justify-center gap-2 ${
             activeTab === 'logs' ? 'bg-slate-900/50 text-[#39ff14] border-b-2 border-b-[#39ff14]' : 'text-slate-400 hover:text-white'
           }`}
@@ -623,7 +593,7 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
           <Terminal size={10} /> CLI Console logs
         </button>
         <button
-          onClick={() => { playClick(); setActiveTab('inspect'); }}
+          onClick={() => { playSound('click'); setActiveTab('inspect'); }}
           className={`flex-1 py-3 text-center transition-all flex items-center justify-center gap-2 ${
             activeTab === 'inspect' ? 'bg-slate-900/50 text-[#39ff14] border-b-2 border-b-[#39ff14]' : 'text-slate-400 hover:text-white'
           }`}
@@ -739,8 +709,11 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
 
 const Sparkline = ({ type, ddosActive, drStep }) => {
   const [points, setPoints] = React.useState(Array.from({ length: 20 }, () => 15));
+  // Pause the 150ms tick once the sparkline scrolls out of view
+  const [viewRef, inView] = useInViewPause('100px');
 
   React.useEffect(() => {
+    if (!inView) return undefined;
     const interval = setInterval(() => {
       setPoints(prev => {
         let val;
@@ -757,7 +730,7 @@ const Sparkline = ({ type, ddosActive, drStep }) => {
       });
     }, 150);
     return () => clearInterval(interval);
-  }, [ddosActive, drStep, type]);
+  }, [ddosActive, drStep, type, inView]);
 
   const width = 190;
   const height = 45;
@@ -778,7 +751,7 @@ const Sparkline = ({ type, ddosActive, drStep }) => {
       : 'stroke-emerald-400';
 
   return (
-    <svg className="w-full h-[45px]" viewBox={`0 0 ${width} ${height}`}>
+    <svg ref={viewRef} className="w-full h-[45px]" viewBox={`0 0 ${width} ${height}`}>
       <path d={pathD} fill="none" className={`transition-all duration-300 ${strokeColor}`} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
