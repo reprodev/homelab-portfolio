@@ -81,6 +81,25 @@ export const TailscaleLogo = ({ className }) => (
   </svg>
 );
 
+export const TerraformLogo = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M1.44 0v7.575l6.561 3.79V3.787L1.44 0zm7.222 4.168l6.562 3.787v7.575l-6.562-3.79V4.168zM1.44 8.425l6.561 3.79v7.575l-6.561-3.79V8.425zm7.222 4.168l6.562 3.787v7.575l-6.562-3.79v-7.572zm7.222-8.425v7.575l6.561 3.79V3.787L15.884 0z"/>
+  </svg>
+);
+
+export const AnsibleLogo = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2.2c5.413 0 9.8 4.387 9.8 9.8 0 5.413-4.387 9.8-9.8 9.8-5.413 0-9.8-4.387-9.8-9.8 0-5.413 4.387-9.8 9.8-9.8zm-.01 2.923l-5.61 13.846h2.24l1.12-2.923h4.48l1.12 2.923h2.24L12.01 5.123h-.02zm.02 2.654l1.64 4.308h-3.28l1.64-4.308z"/>
+  </svg>
+);
+
+export const PackerLogo = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M7 0v4.2L12.6 7v12.5L7 16.3v4.2l10.6 5.5V5.5L7 0z"/>
+    <path d="M4.4 2.9v14.7l1.8.9V3.9l-1.8-1z" opacity="0.6"/>
+  </svg>
+);
+
 export const AWSLogo = ({ className }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
     {/* Stylized high-performance AWS cloud logo */}

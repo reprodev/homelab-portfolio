@@ -178,7 +178,7 @@ const Hero = () => {
         </div>
  
         <motion.div variants={item} className="mt-12 flex flex-wrap gap-3">
-          {["Linux Ecosystem", "Terraform Core", "Kubernetes (K3s)", "Ansible Automation", "Proxmox Bare-metal", "Zero Trust Edge"].map((skill) => (
+          {["Linux Ecosystem", "Terraform Core", "Packer Golden Images", "Kubernetes (K3s)", "Ansible Automation", "Proxmox Bare-metal", "Zero Trust Edge"].map((skill) => (
             <span 
               key={skill} 
               onMouseEnter={() => playSound('click')}

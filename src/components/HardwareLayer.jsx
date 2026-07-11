@@ -154,7 +154,7 @@ const HardwareLayer = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
                       { name: "ZuluServer", sub: "Plex Media (Host) • Ubuntu", managed: "Terraform", color: "emerald", icon: <UbuntuLogo className="w-4 h-4 text-orange-400" /> },
-                      { name: "OMV NAS", sub: "80GB Disk + Passthrough", managed: "Ansible", color: "azure", icon: <OMVLogo className="w-4 h-4 text-[#4D80B3]" /> },
+                      { name: "OMV NAS", sub: "80GB Disk + Passthrough", managed: "Terraform", color: "azure", icon: <OMVLogo className="w-4 h-4 text-[#4D80B3]" /> },
                       { name: "ha01 (CF)", sub: "8GB Disk • DietPi", color: "emerald", icon: <DietPiLogo className="w-4 h-4 text-[#91C300]" /> },
                       { name: "ha02 (Vault)", sub: "8GB Disk • DietPi", color: "emerald", icon: <DietPiLogo className="w-4 h-4 text-[#91C300]" /> },
                       { name: "ha03 (Guac)", sub: "8GB Disk • DietPi", color: "emerald", icon: <DietPiLogo className="w-4 h-4 text-[#91C300]" /> },
@@ -217,7 +217,7 @@ const HardwareLayer = () => {
             <ul className="text-slate-400 text-xs space-y-3 list-none p-0">
               <li className="flex items-start gap-3">
                 <span className="text-amber-500 font-bold">◃</span>
-                <span><strong>Provisioning:</strong> Bare-metal nodes are flashed via CI/CD pipelines (Terraform/Ansible).</span>
+                <span><strong>Provisioning:</strong> VMs are cloned from Packer golden images and provisioned by Terraform; Ansible converges config — see Lifecycle 01 · Code.</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-amber-500 font-bold">◃</span>

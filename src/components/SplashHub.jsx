@@ -379,7 +379,6 @@ const SplashHub = ({ onDismiss }) => {
     }
 
     // Sync persistence settings
-    sessionStorage.setItem('hasSeenSplashHub', 'true');
     if (dontShowAgain) {
       localStorage.setItem('hideSplashPermanently', 'true');
     }

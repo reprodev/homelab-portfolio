@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Database, Cpu, Repeat, LayoutGrid, Menu, X, Volume2, VolumeX, Sliders, Network, ArrowUp, Map, BookOpen } from 'lucide-react';
+import { Shield, Database, Cpu, Repeat, LayoutGrid, Menu, X, Volume2, VolumeX, Sliders, Network, ArrowUp, Map, BookOpen, GitBranch } from 'lucide-react';
 import { triggerExpand } from '../lib/simBus.js';
 import { playSound, getAudioContext, setUiSoundsEnabled } from '../lib/audio';
 import useIsMobile from '../hooks/useIsMobile';
@@ -125,13 +125,17 @@ const LayerHUD = () => {
     }
   }, [volume, humActive]);
 
+  // Order mirrors the lifecycle layout in App.jsx <main> (Code → Provision →
+  // Run → Protect → Learn). Ids are legacy addresses — never rename them here
+  // without the matching App.jsx/tourScript sweep (see Decision Record 2026-07-11).
   const sections = [
     { id: 'topology', icon: <Network size={18} />, label: '3D Topology' },
-    { id: 'layer-1', icon: <Shield size={18} />, label: 'Edge & Ingress' },
+    { id: 'layer-code', icon: <GitBranch size={18} />, label: 'Code / IaC' },
     { id: 'layer-2', icon: <Database size={18} />, label: 'Hardware' },
-    { id: 'layer-3', icon: <Cpu size={18} />, label: 'Logical' },
-    { id: 'layer-dr', icon: <Repeat size={18} />, label: 'Disaster Recovery' },
+    { id: 'layer-1', icon: <Shield size={18} />, label: 'Edge & Ingress' },
+    { id: 'layer-3', icon: <Cpu size={18} />, label: 'Fleet' },
     { id: 'layer-4', icon: <LayoutGrid size={18} />, label: 'Workloads' },
+    { id: 'layer-dr', icon: <Repeat size={18} />, label: 'Disaster Recovery' },
     { id: 'layer-journey', icon: <Map size={18} />, label: 'Roadmap' },
     { id: 'knowledge-base', icon: <BookOpen size={18} />, label: 'Knowledge' },
   ];
