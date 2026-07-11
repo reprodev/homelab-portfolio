@@ -11,6 +11,7 @@ import {
 import { DockerLogo, PlexLogo } from './BrandLogos';
 import { triggerTranscode, triggerDr, useSimEvent, SIM_EVENTS } from '../lib/simBus';
 import { playSound, getAudioContext } from '../lib/audio';
+import { lockScroll, unlockScroll } from '../lib/scrollLock';
 
 // High-fidelity Docker daemon container telemetry profiles
 const CONTAINER_DATA = {
@@ -787,22 +788,18 @@ const WorkloadLayer = () => {
   useSimEvent(SIM_EVENTS.dr, ({ step }) => setDrStep(step));
   useSimEvent(SIM_EVENTS.transcode, ({ active }) => setIsTranscoding(active));
 
-  // Disable background scrolling when drawer is active
+  // Disable background scrolling while the drawer is open (counter-based lock —
+  // the splash gate shares body.overflow, so never assign it directly).
   useEffect(() => {
-    if (inspectContainer) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
+    if (!inspectContainer) return undefined;
+    lockScroll();
+    return () => unlockScroll();
   }, [inspectContainer]);
 
   return (
     <section className="mb-24 relative select-none">
       <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-10 gap-2 border-b border-white/5 pb-4">
-        <h3 className="text-3xl font-extralight tracking-tight text-white m-0">Layer 4: Distributed Services & Workloads</h3>
+        <h3 className="text-3xl font-extralight tracking-tight text-white m-0">Lifecycle 03: Distributed Services & Workloads</h3>
         <span className="text-sm font-mono text-slate-400">
           Core Skills: <strong className="text-emerald-400 font-normal">Docker Ecosystem, Microservices, Reverse Proxy, Observability</strong>
         </span>
@@ -1065,7 +1062,7 @@ const WorkloadLayer = () => {
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-emerald-500 font-bold">◃</span>
-                <span><strong>Persistence:</strong> Named Docker volumes are backed up daily using the Layer 3.5 pipeline to ensure no data loss during service migrations.</span>
+                <span><strong>Persistence:</strong> Named Docker volumes are backed up daily using the DR pipeline (Lifecycle 04) to ensure no data loss during service migrations.</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-emerald-500 font-bold">◃</span>

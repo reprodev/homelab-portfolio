@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /*
   simBus — the global simulation event bus.
 
   The app already *listens* for these window CustomEvents in several places
-  (App.jsx cockpit HUD, WorkloadLayer sparklines, InfraHUD). Historically nothing
+  (App.jsx cockpit HUD, WorkloadLayer sparklines, LayerHUD). Historically nothing
   ever dispatched them, so the local simulations (DDoS button, DR drill, Plex
   transcode) stayed siloed. These helpers are the single dispatch surface — used
   both by the interactive controls themselves and by the GuidedTour controller —
@@ -14,12 +14,17 @@ import { useEffect, useState } from 'react';
     homelab-ddos      -> { active: boolean }
     homelab-dr        -> { step: number }   // 0 idle, 1 outage, 2 recovering, 3 verifying, 4 restored
     homelab-transcode -> { active: boolean }
+    homelab-terraform -> { phase: 'idle'|'plan'|'apply'|'done', resource?: number, auto?: boolean }
+      // 'plan'/'apply' without `resource` are control commands; 'apply' WITH
+      // `resource` (1..3) is TerraformSim's own progress broadcast; 'done'
+      // persists until reset. Full contract: docs/iac-layer-spec.md §b.
 */
 
 export const SIM_EVENTS = {
   ddos: 'homelab-ddos',
   dr: 'homelab-dr',
   transcode: 'homelab-transcode',
+  terraform: 'homelab-terraform',
   expand: 'homelab-expand', // request a CollapsibleSection (by id) to open (tour, mobile)
 };
 
@@ -31,6 +36,7 @@ const dispatch = (name, detail) => {
 export const triggerDdos = (active) => dispatch(SIM_EVENTS.ddos, { active: !!active });
 export const triggerDr = (step) => dispatch(SIM_EVENTS.dr, { step });
 export const triggerTranscode = (active) => dispatch(SIM_EVENTS.transcode, { active: !!active });
+export const triggerTerraform = (phase, extra = {}) => dispatch(SIM_EVENTS.terraform, { phase, ...extra });
 export const triggerExpand = (id) => dispatch(SIM_EVENTS.expand, { id });
 
 /* Reset every simulation back to idle (used on tour exit / cleanup). */
@@ -38,20 +44,28 @@ export const resetSims = () => {
   triggerDdos(false);
   triggerDr(0);
   triggerTranscode(false);
+  triggerTerraform('idle');
 };
 
 /*
   useSimEvent — subscribe to a window CustomEvent and receive its `detail`.
   Dedupes the addEventListener/removeEventListener boilerplate scattered across
   components. `handler` receives the event's detail object.
+
+  The handler is kept in a ref (latest-ref pattern): the listener is attached
+  once per event name but always invokes the current render's handler, so
+  handlers may safely read component state without going stale. (Refs like
+  DRPipeline's `runningRef` are still the right tool for re-entrancy guards.)
 */
 export const useSimEvent = (name, handler) => {
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
+
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
-    const listener = (e) => handler(e.detail);
+    const listener = (e) => handlerRef.current(e.detail);
     window.addEventListener(name, listener);
     return () => window.removeEventListener(name, listener);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name]);
 };
 

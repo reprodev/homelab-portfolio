@@ -134,6 +134,15 @@
   animation: sweep 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Stagger utilities for the ambient orbs' float drift (App.jsx) — desyncs the
+   three orbs so they don't move in lockstep. */
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
 /* Accessibility: respect the OS "reduce motion" preference.
    Kills the CRT flicker and tames looping decorative animations site-wide while
    leaving meaningful one-shot transitions intact. JS-driven loops (particle

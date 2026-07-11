@@ -1,4 +1,4 @@
-import { triggerDdos, triggerDr, triggerTranscode } from './simBus';
+import { triggerDdos, triggerDr, triggerTranscode, triggerTerraform } from './simBus';
 
 /*
   tourScript — the scripted sequence the GuidedTour controller plays back.
@@ -19,44 +19,52 @@ export const TOUR_STEPS = [
     durationMs: 6000,
   },
   {
+    sectionId: 'layer-code',
+    title: 'Lifecycle 01 — Code',
+    caption: 'terraform plan → apply: watch the fleet converge to its declared state, resource by resource.',
+    durationMs: 17000, // covers plan (~6.1s) + auto-chain (1.2s) + apply (~7.7s) + a beat on 'done'
+    onEnter: () => triggerTerraform('plan', { auto: true }),
+    onExit: () => triggerTerraform('idle'),
+  },
+  {
+    sectionId: 'layer-2',
+    title: 'Lifecycle 02 — Provision',
+    caption: 'A Proxmox hypervisor running a decoupled fleet of VMs across NVMe + SATA storage.',
+    durationMs: 6000,
+  },
+  {
     sectionId: 'layer-1',
-    title: 'Layer 1 — Zero Trust Edge',
+    title: 'Lifecycle 03 — Run: Zero Trust Edge',
     caption: 'Watch the Cloudflare WAF absorb a simulated DDoS while the whole fleet goes red.',
     durationMs: 8500,
     onEnter: () => triggerDdos(true),
     onExit: () => triggerDdos(false),
   },
   {
-    sectionId: 'layer-2',
-    title: 'Layer 2 — Hardware Infrastructure',
-    caption: 'A Proxmox hypervisor running a decoupled fleet of VMs across NVMe + SATA storage.',
-    durationMs: 6000,
-  },
-  {
     sectionId: 'layer-3',
-    title: 'Layer 3 — Logical Orchestration',
-    caption: 'Declarative GitOps reconciliation with Terraform and Ansible.',
+    title: 'Lifecycle 03 — Run: Compute Fleet',
+    caption: 'The Terraform-declared fleet in operation — node consoles, K3s autoscaling, GitOps sync.',
     durationMs: 6000,
-  },
-  {
-    sectionId: 'layer-dr',
-    title: 'Layer 3.5 — Disaster Recovery',
-    caption: 'A live Veeam failover drill — sub-5s RTO, zero data loss, 3-2-1 strategy.',
-    durationMs: 9500,
-    onEnter: () => triggerDr(1),
-    onExit: () => triggerDr(0),
   },
   {
     sectionId: 'layer-4',
-    title: 'Layer 4 — Distributed Workloads',
+    title: 'Lifecycle 03 — Run: Workloads',
     caption: 'Containerised services plus native Plex 4K HW transcode on Intel QuickSync.',
     durationMs: 7500,
     onEnter: () => triggerTranscode(true),
     onExit: () => triggerTranscode(false),
   },
   {
+    sectionId: 'layer-dr',
+    title: 'Lifecycle 04 — Protect',
+    caption: 'A live Veeam failover drill — sub-5s RTO, zero data loss, 3-2-1 strategy.',
+    durationMs: 9500,
+    onEnter: () => triggerDr(1),
+    onExit: () => triggerDr(0),
+  },
+  {
     sectionId: 'knowledge-base',
-    title: 'Layer 5 — Knowledge & Projects',
+    title: 'Lifecycle 05 — Learn: Knowledge & Projects',
     caption: 'Deep-dive guides and open-source tools — the story behind the stack.',
     durationMs: 6000,
   },

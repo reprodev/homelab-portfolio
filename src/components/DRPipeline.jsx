@@ -51,7 +51,7 @@ const DRPipeline = () => {
     timersRef.current.push(setTimeout(() => {
       setDrillStep(3);
       triggerDr(3);
-      setLogs(prev => [...prev, "[4.2s] [STORAGE] Decompressing LZ4 block storage (482GB restored)...", "[4.8s] [TERRAFORM] Spin up hot-standby VM template [SUCCESS].", "[5.2s] [ANSIBLE] Re-binding network bridges and storage shares..."]);
+      setLogs(prev => [...prev, "[4.2s] [STORAGE] Decompressing LZ4 block storage (482GB restored)...", "[4.8s] [TERRAFORM] apply -target=proxmox_virtual_environment_vm.zuluserver: standby from golden image 9001 [SUCCESS].", "[5.2s] [ANSIBLE] Re-binding network bridges and storage shares..."]);
     }, 4500));
 
     // Restored
@@ -113,7 +113,7 @@ const DRPipeline = () => {
   return (
     <section className="mb-24">
       <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-10 gap-2 border-b border-white/5 pb-4">
-        <h3 className="text-3xl font-extralight tracking-tight text-white m-0">Layer 3.5: Disaster Recovery & Continuity</h3>
+        <h3 className="text-3xl font-extralight tracking-tight text-white m-0">Lifecycle 04: Disaster Recovery & Continuity</h3>
         <span className="text-sm font-mono text-slate-400">
           Core Skills: <strong className="text-emerald-400 font-normal">Veeam VBR, Immutable Repositories, RPO/RTO Optimization</strong>
         </span>

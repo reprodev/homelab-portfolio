@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring, useTransform } from 'framer-motion';
 import Hero from './components/Hero.jsx';
+import AutomationLayer from './components/AutomationLayer.jsx';
 import NetworkLayer from './components/NetworkLayer.jsx';
 import HardwareLayer from './components/HardwareLayer.jsx';
 import LogicalLayer from './components/LogicalLayer.jsx';
@@ -14,10 +15,20 @@ import LayerHUD from './components/LayerHUD.jsx';
 import GuidedTour from './components/GuidedTour.jsx';
 import { LayoutGrid, Network } from 'lucide-react';
 import { useSimEvent, SIM_EVENTS } from './lib/simBus.js';
+import { lockScroll, unlockScroll } from './lib/scrollLock.js';
 import Reveal from './components/Reveal.jsx';
 
 const SplashHub = React.lazy(() => import('./components/SplashHub.jsx'));
 const Topology3D = React.lazy(() => import('./components/Topology3D.jsx'));
+
+// Cockpit labels for the canonical simBus DR step vocabulary (0 idle → 4 restored).
+const DR_STEP_LABELS = [
+  '6/6 HOSTS ONLINE',
+  'OUTAGE DETECTED (STEP 1/4)',
+  'RECONCILING (STEP 2/4)',
+  'VERIFYING (STEP 3/4)',
+  '6/6 HOSTS RESTORED',
+];
 
 // Cockpit stat that springs toward each new telemetry value instead of
 // snapping — the count-up sells the "live instrument" feel.
@@ -51,6 +62,9 @@ function App() {
   const [ambientTheme, setAmbientTheme] = useState('default');
   const [ddosActive, setDdosActive] = useState(false);
   const [drActive, setDrActive] = useState(false);
+  const [drStep, setDrStep] = useState(0);
+  const [tfActive, setTfActive] = useState(false);
+  const [tfResource, setTfResource] = useState(0);
   const [vitals, setVitals] = useState({ watts: 92, temp: 42.7 });
 
   const { scrollYProgress } = useScroll();
@@ -71,17 +85,15 @@ function App() {
     }
   }, []);
 
-  // Prevent background scrolling while splash is active, and reset scroll to top on dismissal
+  // Prevent background scrolling while splash is active (counter-based lock —
+  // the workload drawer shares body.overflow), reset scroll to top on dismissal.
   useEffect(() => {
     if (showSplash) {
-      document.body.style.overflow = 'hidden';
-    } else if (showSplash === false) {
-      document.body.style.overflow = '';
-      window.scrollTo(0, 0);
+      lockScroll();
+      return () => unlockScroll();
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
+    if (showSplash === false) window.scrollTo(0, 0);
+    return undefined;
   }, [showSplash]);
 
   // Global simulation bus: drive the cockpit HUD + ambient orb theme from events
@@ -92,8 +104,18 @@ function App() {
   });
   useSimEvent(SIM_EVENTS.dr, ({ step }) => {
     const active = step > 0 && step < 4;
+    setDrStep(step);
     setDrActive(active);
     setAmbientTheme(active ? 'dr' : 'default');
+  });
+  // Terraform sim (contract: docs/iac-layer-spec.md §b). 'plan'/'apply' are
+  // active phases; 'apply' with a resource count feeds the cockpit (k/3) tile.
+  useSimEvent(SIM_EVENTS.terraform, ({ phase, resource }) => {
+    const active = phase === 'plan' || phase === 'apply';
+    setTfActive(active);
+    if (phase === 'apply' && resource) setTfResource(resource);
+    else if (!active) setTfResource(0);
+    setAmbientTheme(active ? 'terraform' : 'default');
   });
 
   // Cockpit telemetry jitter — a real interval (paused when the tab is hidden)
@@ -107,13 +129,15 @@ function App() {
           ? { watts: Math.floor(184 + Math.random() * 8), temp: +(58.2 + Math.random() * 1.5).toFixed(1) }
           : drActive
             ? { watts: Math.floor(118 + Math.random() * 5), temp: +(48.1 + Math.random() * 0.8).toFixed(1) }
-            : { watts: Math.floor(91 + Math.random() * 4), temp: +(42.5 + Math.random() * 0.4).toFixed(1) }
+            : tfActive
+              ? { watts: Math.floor(126 + Math.random() * 4), temp: +(45.0 + Math.random() * 0.6).toFixed(1) }
+              : { watts: Math.floor(91 + Math.random() * 4), temp: +(42.5 + Math.random() * 0.4).toFixed(1) }
       );
     };
     roll();
     const interval = setInterval(roll, 2000);
     return () => clearInterval(interval);
-  }, [ddosActive, drActive]);
+  }, [ddosActive, drActive, tfActive]);
 
   // Avoid FOUC (flash of unstyled content) or dashboard flicker
   if (showSplash === null) return (
@@ -137,6 +161,18 @@ function App() {
           orb1: 'bg-amber-600/35 shadow-[0_0_150px_rgba(217,119,6,0.35)]',
           orb2: 'bg-yellow-500/30 shadow-[0_0_180px_rgba(234,179,8,0.3)]',
           orb3: 'bg-orange-600/25 shadow-[0_0_120px_rgba(234,88,12,0.2)]'
+        };
+      case 'terraform':
+        return {
+          orb1: 'bg-violet-600/35 shadow-[0_0_150px_rgba(124,58,237,0.35)]',
+          orb2: 'bg-violet-500/30 shadow-[0_0_180px_rgba(139,92,246,0.3)]',
+          orb3: 'bg-purple-700/25 shadow-[0_0_120px_rgba(126,34,206,0.2)]'
+        };
+      case 'layer-code':
+        return {
+          orb1: 'bg-violet-600/25 shadow-[0_0_150px_rgba(124,58,237,0.2)]',
+          orb2: 'bg-violet-500/20 shadow-[0_0_180px_rgba(139,92,246,0.15)]',
+          orb3: 'bg-purple-700/15 shadow-[0_0_120px_rgba(126,34,206,0.1)]'
         };
       case 'layer-1':
         return {
@@ -249,12 +285,13 @@ function App() {
                   {/* Sonar sweep style border indicator */}
                   <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-azure/50 to-transparent" />
                   
-                  {/* Node Status Indicator */}
+                  {/* Node Status Indicator — DR owns this tile during a drill;
+                      terraform provisioning shows only while drStep === 0 */}
                   <div className="flex flex-col gap-1.5 items-start text-left pl-3 border-l border-white/10 md:border-l-0">
                     <span className="text-slate-400 font-extrabold uppercase text-[8px] tracking-wider leading-none">Cluster Node Status</span>
-                    <span className={`text-[11px] font-black italic flex items-center gap-1.5 ${drActive ? 'text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] animate-pulse' : 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]'}`}>
-                      <span className={`w-2 h-2 rounded-full ${drActive ? 'bg-amber-400 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
-                      {drActive ? 'RECONCILING (1/6 OUTAGE)' : '6/6 HOSTS ONLINE'}
+                    <span className={`text-[11px] font-black italic flex items-center gap-1.5 ${drActive ? 'text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] animate-pulse' : tfActive && drStep === 0 ? 'text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.5)] animate-pulse' : 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]'}`}>
+                      <span className={`w-2 h-2 rounded-full ${drActive ? 'bg-amber-400 animate-ping' : tfActive && drStep === 0 ? 'bg-violet-400 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
+                      {tfActive && drStep === 0 ? `PROVISIONING (${tfResource}/3)` : DR_STEP_LABELS[drStep] || DR_STEP_LABELS[0]}
                     </span>
                   </div>
  
@@ -317,37 +354,46 @@ function App() {
                   </LazyInView>
                 </section>
 
-                <CollapsibleSection id="layer-1" layerId="Layer 1" title="Edge & Auth Ingress" defaultExpanded={true}>
-                  <div onMouseEnter={() => setAmbientTheme('layer-1')} onMouseLeave={() => setAmbientTheme('default')}>
-                    <NetworkLayer />
+                {/* Lifecycle order (Decision Record 2026-07-11): Code → Provision →
+                    Run → Protect → Learn. Section ids are legacy addresses — the
+                    lifecycle naming lives ONLY in eyebrows/titles (do not rename ids). */}
+                <CollapsibleSection id="layer-code" layerId="Lifecycle 01 · Code" title="Infrastructure as Code Pipeline" defaultExpanded={true}>
+                  <div onMouseEnter={() => setAmbientTheme('layer-code')} onMouseLeave={() => setAmbientTheme('default')}>
+                    <AutomationLayer />
                   </div>
                 </CollapsibleSection>
 
-                <CollapsibleSection id="layer-2" layerId="Layer 2" title="Hardware Infrastructure">
+                <CollapsibleSection id="layer-2" layerId="Lifecycle 02 · Provision" title="Bare-Metal & Hypervisor">
                   <div onMouseEnter={() => setAmbientTheme('layer-2')} onMouseLeave={() => setAmbientTheme('default')}>
                     <HardwareLayer />
                   </div>
                 </CollapsibleSection>
 
-                <CollapsibleSection id="layer-3" layerId="Layer 3" title="Logical Orchestration">
+                <CollapsibleSection id="layer-1" layerId="Lifecycle 03 · Run — Edge" title="Edge & Auth Ingress">
+                  <div onMouseEnter={() => setAmbientTheme('layer-1')} onMouseLeave={() => setAmbientTheme('default')}>
+                    <NetworkLayer />
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection id="layer-3" layerId="Lifecycle 03 · Run — Fleet" title="Compute Fleet & Orchestration">
                   <div onMouseEnter={() => setAmbientTheme('layer-3')} onMouseLeave={() => setAmbientTheme('default')}>
                     <LogicalLayer />
                   </div>
                 </CollapsibleSection>
 
-                <CollapsibleSection id="layer-dr" layerId="Layer 3.5" title="Disaster Recovery">
-                  <div onMouseEnter={() => setAmbientTheme('layer-dr')} onMouseLeave={() => setAmbientTheme('default')}>
-                    <DRPipeline />
-                  </div>
-                </CollapsibleSection>
-
-                <CollapsibleSection id="layer-4" layerId="Layer 4" title="Distributed Workloads">
+                <CollapsibleSection id="layer-4" layerId="Lifecycle 03 · Run — Workloads" title="Distributed Workloads">
                   <div onMouseEnter={() => setAmbientTheme('layer-4')} onMouseLeave={() => setAmbientTheme('default')}>
                     <WorkloadLayer />
                   </div>
                 </CollapsibleSection>
 
-                <CollapsibleSection id="layer-journey" layerId="Roadmap" title="Enterprise Modernization Journey">
+                <CollapsibleSection id="layer-dr" layerId="Lifecycle 04 · Protect" title="Disaster Recovery & Continuity">
+                  <div onMouseEnter={() => setAmbientTheme('layer-dr')} onMouseLeave={() => setAmbientTheme('default')}>
+                    <DRPipeline />
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection id="layer-journey" layerId="Lifecycle 05 · Learn" title="Enterprise Modernization Journey">
                   <div>
                     <JourneyLayer />
                   </div>

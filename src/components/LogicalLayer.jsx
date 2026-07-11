@@ -1,24 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from './Card';
-import Badge from './Badge';
-import RationaleSection from './RationaleSection';
-import { BookOpen, Cpu, ChevronDown, Activity, Terminal as TerminalIcon, Shield, Server } from 'lucide-react';
+import { ChevronDown, Activity, Terminal as TerminalIcon, Server } from 'lucide-react';
 import { UbuntuLogo, DietPiLogo, OMVLogo, RaspberryPiLogo } from './BrandLogos';
-import useTypewriter from '../hooks/useTypewriter';
 import { playSound } from '../lib/audio';
 
-const TerraformLogo = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M1.44 0v7.575l6.561 3.79V3.787L1.44 0zm7.222 4.168l6.562 3.787v7.575l-6.562-3.79V4.168zM1.44 8.425l6.561 3.79v7.575l-6.561-3.79V8.425zm7.222 4.168l6.562 3.787v7.575l-6.562-3.79v-7.572zm7.222-8.425v7.575l6.561 3.79V3.787L15.884 0z"/>
-  </svg>
-);
-
-const AnsibleLogo = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2.2c5.413 0 9.8 4.387 9.8 9.8 0 5.413-4.387 9.8-9.8 9.8-5.413 0-9.8-4.387-9.8-9.8 0-5.413 4.387-9.8 9.8-9.8zm-.01 2.923l-5.61 13.846h2.24l1.12-2.923h4.48l1.12 2.923h2.24L12.01 5.123h-.02zm.02 2.654l1.64 4.308h-3.28l1.64-4.308z"/>
-  </svg>
-);
+// (TerraformLogo/AnsibleLogo moved to BrandLogos.jsx with the IaC cards' V5.2
+// relocation to AutomationLayer — Lifecycle 01 · Code.)
 
 const KubernetesLogo = ({ className }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -356,71 +344,12 @@ const LogicalLayer = () => {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <Card title={
-          <div className="flex items-center gap-3">
-            <TerraformLogo className="w-5 h-5 text-[#7B42BC]" />
-            <span>Infrastructure as Code</span>
-          </div>
-        } glowColor="rgba(123, 66, 188, 0.1)">
-          <div className="flex flex-col gap-4">
-            <p className="text-xs text-slate-400 italic leading-relaxed">
-              Utilizing <strong>HashiCorp Terraform</strong> to provision immutable virtual machines and network bridges across the local hypervisor fleet.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Badge color="muted">PVE-Provider</Badge>
-              <Badge color="muted">Cloud-Init</Badge>
-              <Badge color="muted">HCL-Modules</Badge>
-            </div>
-          </div>
-        </Card>
-
-        <Card title={
-          <div className="flex items-center gap-3">
-            <AnsibleLogo className="w-5 h-5 text-[#EE0000]" />
-            <span>Configuration Management</span>
-          </div>
-        } glowColor="rgba(238, 0, 0, 0.1)">
-          <div className="flex flex-col gap-4">
-            <p className="text-xs text-slate-400 italic leading-relaxed">
-              <strong>RedHat Ansible</strong> handles the desired-state configuration of OS packages, user identities, and security hardening after initial provisioning.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Badge color="muted">Playbooks</Badge>
-              <Badge color="muted">Inventory HA</Badge>
-              <Badge color="muted">Vault Vars</Badge>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      <RationaleSection title="Rationale: Declarative State & GitOps" color="emerald" icon={TerminalIcon}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div>
-            <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Infrastructure as Code (IaC)
-            </h6>
-            <p className="text-slate-400 text-xs font-medium leading-relaxed italic border-l-2 border-white/5 pl-4 ml-1">
-              Treating infrastructure as "cattle, not pets" is central to this design. All nodes, whether virtual or physical, are provisioned via <strong>Terraform</strong> and configured via <strong>Ansible</strong>. This ensures that the entire environment is reproducible and version-controlled.
-            </p>
-          </div>
-          <div>
-            <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-azure" /> Strategic Decision
-            </h6>
-            <ul className="text-slate-400 text-xs space-y-3 list-none p-0">
-              <li className="flex items-start gap-3">
-                <span className="text-emerald-500 font-bold">◃</span>
-                <span><strong>Desired State:</strong> Systemd timers execute automated reconciliation to sync cluster state with Git repositories.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="text-emerald-500 font-bold">◃</span>
-                <span><strong>Automation Layer:</strong> Ansible handles the imperative host setup while Docker Compose manages the declarative workload stack.</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </RationaleSection>
+      {/* IaC stack cards + rationale moved to AutomationLayer (Lifecycle 01 ·
+          Code) in the V5.2 lifecycle restructure. */}
+      <p className="mt-6 text-[11px] text-slate-500 italic text-center font-mono">
+        This fleet is declared in the <strong className="text-violet-400 font-normal">IaC layer above</strong> —
+        run the plan → apply sim to watch it converge.
+      </p>
     </section>
   );
 };
@@ -660,7 +589,7 @@ const NodeDetailPanel = ({ node }) => {
     const steps = [
       "[GITOPS] Checking local checksum parameters against main repo...",
       node.id === 'zulu'
-        ? "proxmox_vm_qemu.zuluserver: Refreshing state... [id=102]\nNo infrastructure drifts detected. System remains at desired configuration."
+        ? "proxmox_virtual_environment_vm.zuluserver: Refreshing state... [id=102]\nNo infrastructure drifts detected. System remains at desired configuration."
         : "State verified. Active system matches Git configuration 100%.",
       "[GITOPS] Auto-reconciliation complete. Deployment is locked & secure.",
       " ",

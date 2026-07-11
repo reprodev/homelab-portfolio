@@ -17,6 +17,9 @@ import { playSound } from '../lib/audio';
     - ddos:      edges + edge/tunnel nodes go red, packets surge
     - dr:        restore flow reverses (workloads <- repo) in amber, core pulses
     - transcode: the workloads tier lights amberGold
+    - terraform: managed nodes tint violet during plan/apply; each per-resource
+                 broadcast flips its node to an emerald "applied" pulse
+                 (contract + node mapping: docs/iac-layer-spec.md §h)
 
   Heavy by nature, so it is lazy-loaded (React.lazy in App) and only mounts when
   scrolled into view. On mobile / prefers-reduced-motion it renders a static 2D
@@ -31,9 +34,14 @@ const C = {
   amberDark: '#d97706',
   emerald: '#10b981',
   red: '#ef4444',
+  violet: '#a855f7', // terraform sim accent (palette addition — DR 2026-07-11)
   white: '#e2e8f0',
   slate: '#64748b',
 };
+
+// terraform sim: resource k (apply order) → topology node id (spec §h)
+const TF_RESOURCE_NODES = { 1: 'tunB', 2: 'vm1', 3: 'vm3' };
+const TF_MANAGED = ['tunB', 'vm1', 'vm3'];
 
 // Node layout. id, position [x,y,z], label, sublabel, tier
 const NODES = {
@@ -152,7 +160,7 @@ function Node({ id, data, color, pulsing, isActive, onHover, onUnhover, onSelect
   );
 }
 
-function Scene({ mode, reducedMotion, hoveredNode, selectedNode, onHover, onUnhover, onSelect }) {
+function Scene({ mode, tfApplied, reducedMotion, hoveredNode, selectedNode, onHover, onUnhover, onSelect }) {
   const groupRef = useRef();
 
   // Gentle idle rotation (disabled on reduced motion).
@@ -161,11 +169,17 @@ function Scene({ mode, reducedMotion, hoveredNode, selectedNode, onHover, onUnho
     groupRef.current.rotation.y += delta * 0.08;
   });
 
+  // terraform mode helpers: a managed node counts as "applied" once its
+  // resource broadcast (1..tfApplied) has fired.
+  const tfNodeApplied = (id) =>
+    Object.entries(TF_RESOURCE_NODES).some(([k, nodeId]) => nodeId === id && Number(k) <= tfApplied);
+
   // Resolve per-edge color + packet behaviour from the active mode.
   const edgeColor = (from, to) => {
     if (mode === 'ddos' && (from === 'edge' || to === 'edge' || from === 'tunA' || from === 'tunB')) return C.red;
     if (mode === 'dr' && (from === 'core' || to === 'vm4' || from === 'vm4')) return C.amber;
     if (mode === 'transcode' && (to === 'vm1' || to === 'vm2')) return C.amber;
+    if (mode === 'terraform' && TF_MANAGED.includes(to)) return tfNodeApplied(to) ? C.emerald : C.violet;
     return NODES[to].tier === 'work' || NODES[to].tier === 'dr' ? C.emerald : C.azure;
   };
 
@@ -173,6 +187,9 @@ function Scene({ mode, reducedMotion, hoveredNode, selectedNode, onHover, onUnho
     if (mode === 'ddos' && (id === 'edge' || id === 'tunA' || id === 'tunB')) return C.red;
     if (mode === 'dr' && (id === 'core' || id === 'vm4')) return C.amber;
     if (mode === 'transcode' && (id === 'vm1' || id === 'vm2')) return C.amber;
+    if (mode === 'terraform' && (id === 'core' || TF_MANAGED.includes(id))) {
+      return tfNodeApplied(id) ? C.emerald : C.violet;
+    }
     return NODES[id].color;
   };
 
@@ -180,6 +197,8 @@ function Scene({ mode, reducedMotion, hoveredNode, selectedNode, onHover, onUnho
     if (mode === 'ddos') return id === 'edge';
     if (mode === 'dr') return id === 'core' || id === 'vm4';
     if (mode === 'transcode') return id === 'vm1';
+    // terraform: the control plane hums + the most recently applied node pops
+    if (mode === 'terraform') return id === 'core' || id === TF_RESOURCE_NODES[tfApplied];
     return id === 'core';
   };
 
@@ -250,6 +269,7 @@ function TopologyFallback({ mode }) {
   const accent =
     mode === 'ddos' ? 'border-red-500/40 text-red-300 bg-red-500/5'
     : mode === 'dr' ? 'border-amber-500/40 text-amber-300 bg-amber-500/5'
+    : mode === 'terraform' ? 'border-violet-500/40 text-violet-300 bg-violet-500/5'
     : 'border-azure/30 text-azure-light bg-azure/5';
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-6 py-10 px-4">
@@ -289,22 +309,30 @@ export default function Topology3D() {
   // Pause the WebGL frameloop entirely once the scene scrolls out of view —
   // otherwise the rAF loop renders forever in the background.
   const [viewRef, inView] = useInViewPause('200px');
-  const [mode, setMode] = useState('default'); // default | ddos | dr | transcode
+  const [mode, setMode] = useState('default'); // default | ddos | dr | transcode | terraform
+  const [tfApplied, setTfApplied] = useState(0); // resources converged so far (0..3)
   const [hoveredNode, setHoveredNode] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null); // click-pinned inspector
 
   useSimEvent(SIM_EVENTS.ddos, ({ active }) => setMode((m) => (active ? 'ddos' : m === 'ddos' ? 'default' : m)));
   useSimEvent(SIM_EVENTS.dr, ({ step }) => setMode((m) => (step > 0 && step < 4 ? 'dr' : m === 'dr' ? 'default' : m)));
   useSimEvent(SIM_EVENTS.transcode, ({ active }) => setMode((m) => (active ? 'transcode' : m === 'transcode' ? 'default' : m)));
+  useSimEvent(SIM_EVENTS.terraform, ({ phase, resource }) => {
+    const active = phase === 'plan' || phase === 'apply';
+    setMode((m) => (active ? 'terraform' : m === 'terraform' ? 'default' : m));
+    if (phase === 'apply' && resource) setTfApplied(resource);
+    else if (!active) setTfApplied(0);
+  });
 
   const useFlat = isMobile || reducedMotion;
 
   const statusLabel =
     mode === 'ddos' ? 'EDGE UNDER ATTACK' :
     mode === 'dr' ? 'FAILOVER IN PROGRESS' :
-    mode === 'transcode' ? 'GPU TRANSCODE ACTIVE' : 'ALL SYSTEMS NOMINAL';
+    mode === 'transcode' ? 'GPU TRANSCODE ACTIVE' :
+    mode === 'terraform' ? 'IaC APPLY IN PROGRESS' : 'ALL SYSTEMS NOMINAL';
   const statusColor =
-    mode === 'ddos' ? 'text-red-400' : mode === 'dr' ? 'text-amber-400' : mode === 'transcode' ? 'text-amber-400' : 'text-emerald-400';
+    mode === 'ddos' ? 'text-red-400' : mode === 'dr' ? 'text-amber-400' : mode === 'transcode' ? 'text-amber-400' : mode === 'terraform' ? 'text-violet-400' : 'text-emerald-400';
 
   return (
     <div ref={viewRef} className="relative w-full h-[460px] md:h-[560px] rounded-[2rem] border border-white/10 bg-black/40 overflow-hidden shadow-2xl crt-screen">
@@ -352,6 +380,7 @@ export default function Topology3D() {
           <Suspense fallback={null}>
             <Scene
               mode={mode}
+              tfApplied={tfApplied}
               reducedMotion={reducedMotion}
               hoveredNode={hoveredNode}
               selectedNode={selectedNode}

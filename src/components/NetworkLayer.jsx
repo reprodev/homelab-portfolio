@@ -125,7 +125,7 @@ const NetworkLayer = () => {
   return (
     <section ref={viewRef} className="mb-16">
       <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-6 gap-2 border-b border-white/5 pb-4 text-center md:text-left">
-        <h3 className="text-3xl font-extralight tracking-tight text-white m-0 italic">Layer 1: The Edge & Ingress</h3>
+        <h3 className="text-3xl font-extralight tracking-tight text-white m-0 italic">Lifecycle 03: The Edge & Ingress</h3>
         <span className="text-sm font-mono text-slate-400">
           Core Skills: <strong className="text-emerald-400 font-normal uppercase tracking-tighter">Zero Trust, Dual-Tunnel HA, DNS Redundancy</strong>
         </span>

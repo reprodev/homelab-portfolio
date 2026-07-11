@@ -81,6 +81,11 @@ const JourneyLayer = () => {
           title: "CV Rebranding & Interview Drills (Handoff Draft)",
           desc: "Reframing homelab assets as a high-fidelity automated hybrid-cloud infrastructure sandbox, utilizing standard-compliant STAR storytelling frameworks.",
           evidence: "Detailed technical interview runbooks focusing on DevSecOps, IaC, and S3 DR protocols."
+        },
+        {
+          title: "Packer Golden-Image Pipeline",
+          desc: "Baking the ubuntu-2404-golden Proxmox template (cloud-init + qemu-guest-agent preinstalled) in CI, so Terraform provisions clone from a versioned, reproducible image instead of hand-built templates.",
+          evidence: "Template VMID 9001 wired into Terraform clone blocks — build automation in progress."
         }
       ]
     },
