@@ -1,9 +1,28 @@
-import React, { useRef } from 'react';
-import { Terminal, HardDrive, ExternalLink, Cpu, Code, Zap, Archive, Github, ChevronLeft, ChevronRight, Monitor, Network, Database, Music } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import {
+  Terminal, HardDrive, ExternalLink, Cpu, Code, Zap, Archive, Github,
+  ChevronLeft, ChevronRight, Monitor, Network, Database, Music,
+  Cloud, Layers, MessageSquare, Server,
+} from 'lucide-react';
 import Card from './Card';
 import Reveal from './Reveal.jsx';
+import {
+  KNOWLEDGE, PROJECTS, FACETS, matchesFacet, facetCount, isRecent,
+} from '../data/knowledge';
 
-const TutorialCard = ({ title, desc, icon: Icon, link, tags, time, type = "Guide", glowColor, image }) => (
+// Content lives in src/data/knowledge.js (JSX-free); icons resolve here.
+const ICONS = {
+  cloud: Cloud, layers: Layers, message: MessageSquare, archive: Archive,
+  server: Server, database: Database, harddrive: HardDrive, network: Network,
+  cpu: Cpu, terminal: Terminal, code: Code, zap: Zap, github: Github,
+  monitor: Monitor, music: Music,
+};
+
+// `tags` defaults to [] so a new entry authored without one cannot crash the card
+// (it is dereferenced via .includes and .map below, and via .some in matchesFacet).
+const TutorialCard = ({ title, desc, iconKey, link, tags = [], time, type = "Guide", glowColor, image, parts, isNew }) => {
+  const Icon = ICONS[iconKey] || Terminal;
+  return (
   <div className="snap-center shrink-0 w-[85vw] md:w-auto h-full p-1">
     <Card 
       glowColor={glowColor}
@@ -19,32 +38,50 @@ const TutorialCard = ({ title, desc, icon: Icon, link, tags, time, type = "Guide
           <ExternalLink size={16} className="text-white/50" />
         </div>
         
-        <div className="mb-6 relative">
+        <div className="mb-6 relative flex items-start justify-between">
           <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-white border border-white/5 shadow-inner transition-all duration-500 group-hover/link:scale-110 group-hover/link:bg-white/5 relative z-10">
             <Icon size={28} strokeWidth={1.5} />
           </div>
+          {/* Part count gives series cards their own visual weight — one card
+              here stands for up to nine posts. */}
+          {parts > 1 && (
+            <span className="relative z-10 px-2 py-1 rounded-lg border border-azure/30 bg-azure/5 text-azure-light font-mono text-[9px] font-black uppercase tracking-wider">
+              {parts} parts
+            </span>
+          )}
           {tags.includes("Featured") && (
              <div className="absolute top-0 left-0 w-20 h-20 bg-azure/10 rounded-full blur-xl -translate-x-4 -translate-y-4" />
           )}
         </div>
-        
+
         <div className="flex-1">
           <div className="flex flex-wrap gap-2 mb-4">
+            {/* "New" is derived from the post date, not authored — see
+                isRecent() in src/data/knowledge.js. */}
+            {isNew && (
+              <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded-md text-[9px] font-black uppercase tracking-widest text-emerald-400">
+                New
+              </span>
+            )}
             {tags.map(tag => (
               <span key={tag} className="px-2 py-0.5 bg-white/5 border border-white/5 rounded-md text-[9px] font-black uppercase tracking-widest text-slate-400">
                 {tag}
               </span>
             ))}
           </div>
-          
+
           <h4 className="text-lg font-bold text-white mb-3 tracking-tight leading-tight">{title}</h4>
           <p className="text-sm text-slate-500 leading-relaxed mb-6">{desc}</p>
-          
+
           {image && (
             <div className="mt-4 rounded-xl overflow-hidden border border-white/10 group-hover/link:border-azure/30 transition-all shadow-2xl bg-black relative aspect-video flex items-center justify-center p-2">
-              <img 
-                src={image} 
-                alt={`${title} Preview`} 
+              <img
+                src={image}
+                alt={`${title} Preview`}
+                loading="lazy"
+                /* Every image here is a third-party CDN URL; hide the element
+                   rather than render a broken-image glyph if one goes away. */
+                onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
                 className="w-full h-full object-contain opacity-80 group-hover/link:opacity-100 transition-opacity duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
@@ -53,13 +90,16 @@ const TutorialCard = ({ title, desc, icon: Icon, link, tags, time, type = "Guide
         </div>
 
         <div className="mt-8 flex items-center justify-between pt-4 border-t border-white/5">
-          <span className="text-[10px] uppercase font-black tracking-widest text-slate-500">{type === "Project" ? "View Project" : "Read Guide"}</span>
+          <span className="text-[10px] uppercase font-black tracking-widest text-slate-500">
+            {type === "Project" ? "View Project" : parts > 1 ? "Read Series" : "Read Guide"}
+          </span>
           <span className="text-[10px] font-mono text-slate-600">{time}</span>
         </div>
       </a>
     </Card>
   </div>
-);
+  );
+};
 
 const CarouselHeader = ({ title, subtitle, badgeText, badgeColor, onScroll, showArrows }) => (
   <div className="px-4 md:px-0 mb-8">
@@ -70,19 +110,23 @@ const CarouselHeader = ({ title, subtitle, badgeText, badgeColor, onScroll, show
       </div>
       
       <div className="flex items-center gap-6 self-end md:self-auto">
+        {/* Arrows only where they can do anything: the row is a horizontally
+            scrollable flex container on mobile, but a CSS grid from `md` up —
+            scrollBy had nothing to act on there, so they were dead controls on
+            the primary viewport (fixed V5.4). */}
         {showArrows && (
-          <div className="flex items-center gap-2">
-            <button 
+          <div className="flex md:hidden items-center gap-2">
+            <button
               onClick={() => onScroll('left')}
               className="p-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all active:scale-90"
-              aria-label="Scroll Left"
+              aria-label="Scroll left"
             >
               <ChevronLeft size={16} className="text-slate-400" />
             </button>
-            <button 
+            <button
               onClick={() => onScroll('right')}
               className="p-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all active:scale-90"
-              aria-label="Scroll Right"
+              aria-label="Scroll right"
             >
               <ChevronRight size={16} className="text-slate-400" />
             </button>
@@ -101,152 +145,7 @@ const CarouselHeader = ({ title, subtitle, badgeText, badgeColor, onScroll, show
 const KnowledgeLayer = () => {
   const guidesRef = useRef(null);
   const projectsRef = useRef(null);
-
-  const guides = [
-    {
-      title: "Decoupling Docker Configs: AppData to NFS",
-      desc: "Migrating Docker AppData configs to an OpenMediaVault NFS share while keeping SQLite-backed containers local to avoid database corruption.",
-      icon: Database,
-      link: "https://reprodev.com/decoupling-docker-configs-moving-appdata-to-nfs-without-breaking-sqlite/",
-      tags: ["Docker", "NFS", "New"],
-      time: "Jul 2026",
-      glowColor: "rgba(16, 185, 129, 0.2)"
-    },
-    {
-      title: "From USB to NFS: 10TB Storage Migration",
-      desc: "Moving a 10TB USB storage drive out of a Proxmox VM onto an NFS share without breaking any dependent services.",
-      icon: HardDrive,
-      link: "https://reprodev.com/from-usb-to-nfs-moving-a-10tb-usb-storage-drive-out-of-a-proxmox-vm-without-breaking-anything/",
-      tags: ["Proxmox", "Storage", "New"],
-      time: "Jun 2026",
-      glowColor: "rgba(168, 85, 247, 0.2)"
-    },
-    {
-      title: "Tailscale: Simple Remote Access",
-      desc: "Standing up a Tailscale mesh VPN for secure remote homelab access, without exposing services or wrestling with router configs.",
-      icon: Network,
-      link: "https://reprodev.com/tailscale-simple-remote-access-for-your-homelab-without-the-headache/",
-      tags: ["Networking", "Zero Trust", "New"],
-      time: "Mar 2026",
-      glowColor: "rgba(96, 165, 250, 0.2)"
-    },
-    {
-      title: "Docker Masterclass: Implementation Series",
-      desc: "Complete lifecycle management covering Portainer, Nginx Proxy Manager, Pi-Hole, and Automated Watchtower updates.",
-      icon: Terminal,
-      link: "https://reprodev.com/tag/docker/",
-      tags: ["Docker", "Linux", "Self-hosting"],
-      time: "Tag Archive",
-      glowColor: "rgba(16, 185, 129, 0.2)"
-    },
-    {
-      title: "The Install Guides Archive",
-      desc: "A centralized repository of detailed installation and configuration walk-throughs for homelab services.",
-      icon: Archive,
-      link: "https://reprodev.com/tag/install-guides/",
-      tags: ["Guides", "Software", "Config"],
-      time: "Tag Archive",
-      glowColor: "rgba(16, 185, 129, 0.2)"
-    },
-    {
-      title: "The Proxmox vs ESXi Hypervisor Debate",
-      desc: "Critical analysis of VMware's legacy vs Proxmox VE's growing dominance in the modern homelab environment.",
-      icon: HardDrive,
-      link: "https://reprodev.com/is-the-reign-of-esxi-as-the-hypervisor-of-choice-for-learning-at-home-virtually-over/",
-      tags: ["Virtualization", "Proxmox", "PVE"],
-      time: "20 min read",
-      glowColor: "rgba(168, 85, 247, 0.2)"
-    },
-    {
-      title: "Raspberry Pi 4 Model B Baseline Setup",
-      desc: "Physical hardening and OS provisioning for the primary ARM control head (pibuster4) in the physical cluster.",
-      icon: Cpu,
-      link: "https://reprodev.com/set-up-raspberry-pi/",
-      tags: ["Hardware", "ARM", "Provisioning"],
-      time: "20 min read",
-      glowColor: "rgba(251, 191, 36, 0.2)"
-    }
-  ];
-
-  const projects = [
-    {
-      title: "Capo2Keys",
-      desc: "A Flask app, deployed as a Docker container, that converts guitar chord charts to piano-compatible keys — preserving lyrics and structure, exporting to PDF/TXT.",
-      icon: Music,
-      link: "https://github.com/reprodev/Capo2Keys",
-      tags: ["Flask", "Docker", "New"],
-      time: "Feb 2026",
-      type: "Project",
-      glowColor: "rgba(236, 72, 153, 0.25)",
-      image: "https://reprodev.com/content/images/size/w2000/2026/02/Ghost-Blog-Featured-Image12.png"
-    },
-    {
-      title: "Service Desk Sim",
-      desc: "A dystopian corporate simulation of enterprise IT support chaos, exploring operational psychology and procedural logic.",
-      icon: Monitor,
-      link: "https://store.steampowered.com/app/4851960/Service_Desk_Sim/",
-      tags: ["Steam", "Godot", "Featured"],
-      time: "Wishlist Now",
-      type: "Project",
-      glowColor: "rgba(139, 92, 246, 0.3)",
-      image: "https://servicedesksim.com/ServiceDeskSimLogoV1.webp"
-    },
-    {
-      title: "LGTV Firmware Utility",
-      desc: "Massively successful open-source utility for LG TV webOS firmware management. High community impact.",
-      icon: Zap,
-      link: "https://github.com/reprodev/LGTV-Firmware-Downgrade",
-      tags: ["webOS", "Utility", "1,040+ Forks"],
-      time: "139+ Stars",
-      type: "Project",
-      glowColor: "rgba(96, 165, 250, 0.2)",
-      image: "https://opengraph.githubassets.com/2f21bd7725001ff4c03111e652c625ba0798387b79034a75e32d68d42d5d616f/reprodev/LGTV-Firmware-Downgrade"
-    },
-    {
-      title: "PowerCSR: GUI Tool",
-      desc: "A custom PowerShell-based GUI to simplify and automate Certificate Signing Requests and Private Key generation.",
-      icon: Terminal,
-      link: "https://dev.to/reprodev/simplify-your-openssl-csr-requests-with-powercsr-gui-tool-148h",
-      tags: ["PowerShell", "Security"],
-      time: "dev.to / Starred",
-      type: "Project",
-      glowColor: "rgba(96, 165, 250, 0.2)",
-      image: "https://media2.dev.to/dynamic/image/width=1000,height=500,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fv4m15j90v57p4j8p6m2g.png"
-    },
-    {
-      title: "Exchange-Toolbox V2",
-      desc: "Advanced menu-driven PowerShell GUI for enterprise-level Exchange administration and automation tasks.",
-      icon: Archive,
-      link: "https://github.com/reprodev/Exchange-ToolboxV2",
-      tags: ["PowerShell", "Enterprise"],
-      time: "GitHub Repo",
-      type: "Project",
-      glowColor: "rgba(16, 185, 129, 0.2)",
-      image: "https://opengraph.githubassets.com/791c5e933405f6e80668f9a94f0685e8271705e4659f518804595e840656a81b/reprodev/Exchange-ToolboxV2"
-    },
-    {
-      title: "GIPHY Linker Utility",
-      desc: "Developer automation tool for embedding GIPHY links into articles, specifically optimized for Dev.to / Hashnode.",
-      icon: Code,
-      link: "https://github.com/reprodev/GIPHY-Linker",
-      tags: ["PowerShell", "Automation"],
-      time: "reprodev.com",
-      type: "Project",
-      glowColor: "rgba(168, 85, 247, 0.2)",
-      image: "https://opengraph.githubassets.com/791c5e933405f6e80668f9a94f0685e8271705e4659f518804595e840656a81b/reprodev/GIPHY-Linker"
-    },
-    {
-      title: "GitHub Hub: reprodev",
-      desc: "Explore 40+ repositories covering PowerShell automation, infrastructure-as-code, and custom developer tools.",
-      icon: Github,
-      link: "https://github.com/reprodev",
-      tags: ["Open Source", "Portfolio"],
-      time: "40+ Repos",
-      type: "Project",
-      glowColor: "rgba(251, 191, 36, 0.2)",
-      image: "https://avatars.githubusercontent.com/u/8764255?v=4"
-    }
-  ];
+  const [facetId, setFacetId] = useState('all');
 
   const scrollContainer = (ref, direction) => {
     if (ref.current) {
@@ -255,47 +154,81 @@ const KnowledgeLayer = () => {
     }
   };
 
+  const activeFacet = FACETS.find((f) => f.id === facetId) || FACETS[0];
+  const visible = KNOWLEDGE.filter((item) => matchesFacet(item, activeFacet));
+
   return (
     <section id="knowledge-base" className="mb-24 scroll-mt-24">
-      {/* Guides Row */}
-      <CarouselHeader 
-        title="Layer 5: Knowledge Base & Library" 
-        subtitle="Implementation Guides from reprodev.com" 
-        badgeText="Technical Guides" 
+      {/* Knowledge Row — series + individual guides, filterable */}
+      <CarouselHeader
+        title="Lifecycle 05: Knowledge Base & Library"
+        subtitle="Series, guides and field notes from reprodev.com"
+        badgeText={`${KNOWLEDGE.length} Collections`}
         badgeColor="emerald"
         showArrows={true}
         onScroll={(dir) => scrollContainer(guidesRef, dir)}
       />
 
-      <div 
+      {/* Facet filter — replaces the arrows as the desktop control. */}
+      <div className="px-4 md:px-0 mb-8 flex flex-wrap gap-2" role="group" aria-label="Filter knowledge base by topic">
+        {FACETS.map((facet) => {
+          const count = facet.tags ? facetCount(facet) : KNOWLEDGE.length;
+          if (count === 0) return null; // never render a filter that yields nothing
+          const active = facet.id === activeFacet.id;
+          return (
+            <button
+              key={facet.id}
+              onClick={() => setFacetId(facet.id)}
+              aria-pressed={active}
+              className={`min-h-[44px] px-3.5 py-2 rounded-xl border font-mono text-[10px] font-black uppercase tracking-wider transition-colors ${
+                active
+                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                  : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              {facet.label}
+              <span className="ml-1.5 opacity-50">{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div
         ref={guidesRef}
-        className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-20 overflow-x-auto md:overflow-x-visible px-4 md:px-0 snap-x snap-mandatory scrollbar-hide pb-8 md:pb-0"
+        /* 5 columns only at 2xl: at 1440 that left ~250px cards, too narrow for
+           the series descriptions. 10 items divide cleanly into 5 at 2xl. */
+        className="flex md:grid md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-4 mb-20 overflow-x-auto md:overflow-x-visible px-4 md:px-0 snap-x snap-mandatory scrollbar-hide pb-8 md:pb-0"
       >
-        {guides.map((guide, idx) => (
-          <Reveal key={`guide-${idx}`} delay={idx * 0.08} className="snap-center shrink-0 md:shrink h-full">
-            <TutorialCard {...guide} />
+        {visible.map((item, idx) => (
+          /* Keyed by id, not index, so filtering swaps cards rather than mutating
+             the ones already mounted. Reveal (not a bare motion.div) keeps the
+             viewport gating every other row uses — with up to 10 cards the lower
+             rows would otherwise finish animating while still off-screen, and the
+             Projects row directly below still uses Reveal. */
+          <Reveal key={item.id} delay={idx * 0.04} className="snap-center shrink-0 md:shrink h-full">
+            <TutorialCard {...item} isNew={isRecent(item)} />
           </Reveal>
         ))}
         <div className="md:hidden shrink-0 w-8" />
       </div>
 
       {/* Projects Row */}
-      <CarouselHeader 
-        title="Developer Portfolio & Tools" 
-        subtitle="Custom Development & PowerShell Automation" 
-        badgeText="Top 5 Projects" 
+      <CarouselHeader
+        title="Developer Portfolio & Tools"
+        subtitle="Custom Development & PowerShell Automation"
+        badgeText={`${PROJECTS.length} Projects`}
         badgeColor="azure"
         showArrows={true}
         onScroll={(dir) => scrollContainer(projectsRef, dir)}
       />
 
-      <div 
+      <div
         ref={projectsRef}
-        className="flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 overflow-x-auto md:overflow-x-visible px-4 md:px-0 snap-x snap-mandatory scrollbar-hide pb-8 md:pb-0"
+        className="flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-x-auto md:overflow-x-visible px-4 md:px-0 snap-x snap-mandatory scrollbar-hide pb-8 md:pb-0"
       >
-        {projects.map((project, idx) => (
-          <Reveal key={`project-${idx}`} delay={idx * 0.08} className="snap-center shrink-0 md:shrink h-full">
-            <TutorialCard {...project} />
+        {PROJECTS.map((project, idx) => (
+          <Reveal key={project.id} delay={idx * 0.08} className="snap-center shrink-0 md:shrink h-full">
+            <TutorialCard {...project} type="Project" isNew={isRecent(project)} />
           </Reveal>
         ))}
         <div className="md:hidden shrink-0 w-8" />

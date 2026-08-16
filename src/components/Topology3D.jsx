@@ -6,6 +6,7 @@ import { useSimEvent, usePrefersReducedMotion, SIM_EVENTS } from '../lib/simBus'
 import useIsMobile from '../hooks/useIsMobile';
 import useInViewPause from '../hooks/useInViewPause';
 import { playSound } from '../lib/audio';
+import { fleetById } from '../data/fleet';
 
 /*
   Topology3D — interactive WebGL centerpiece.
@@ -53,6 +54,13 @@ const NODES = {
   vm2:    { pos: [-1.1, -3.4, 0],label: 'Docker Pool',     sub: 'Microservices',     tier: 'work', color: C.emerald },
   vm3:    { pos: [1.1, -3.4, 0], label: 'OMV NAS',         sub: 'Storage',           tier: 'work', color: C.emerald },
   vm4:    { pos: [3.4, -3, 0],   label: 'Veeam Repo',      sub: 'Knightbox • DR',    tier: 'dr',   color: C.emerald },
+  // Deliberately edge-less: the out-of-band monitor sits outside the dependency
+  // chain so it survives anything below it failing. The visual detachment is the
+  // point — same honesty device as the unmanaged pibuster4 node in TerraformSim.
+  // Kept inside the |x| <= 3.4 envelope every other node respects: at x=-5.2 the
+  // node and its nowrap <Html> label clipped the container's left edge on narrow
+  // desktop widths, and the idle rotation swung it furthest of all.
+  mon:    { pos: [-3.4, 1.9, 0],  label: 'Monitor Node',   sub: 'Out-of-Band',       tier: 'edge', color: C.azure },
 };
 
 // Directed edges [from, to]
@@ -62,16 +70,29 @@ const EDGES = [
   ['core', 'vm1'], ['core', 'vm2'], ['core', 'vm3'], ['core', 'vm4'],
 ];
 
-// Inspector chip copy per node (click-to-inspect)
+/*
+  Inspector chip copy per node (click-to-inspect).
+
+  Nodes that correspond to a fleet host derive their text from src/data/fleet.js
+  rather than restating it — these strings had already drifted once (the OMV entry
+  said "6TB passthrough" and silently omitted the 10TB volume). Layout stays local
+  per the topology-anchoring rule; only the copy comes from the data module.
+*/
+const fromFleet = (id, fallback) => {
+  const n = fleetById(id);
+  return n ? `${n.details.os} · ${n.details.disk || n.details.ram}` : fallback;
+};
+
 const NODE_DETAILS = {
   edge: 'WAF + Zero Trust ingress via dual Argo tunnels',
   tunA: 'Raspberry Pi 4 · cloudflared primary tunnel',
   tunB: 'DietPi node · cloudflared failover tunnel',
   core: 'Bare-metal hypervisor · VM + LXC fleet',
-  vm1:  'Proxmox VM 102 · Plex media host',
+  mon:  'Independent watchdog · uptime probes + alert relay, off the critical path',
+  vm1:  fromFleet('zulu', 'Ubuntu VM · Docker + Plex host'),
   vm2:  'Self-hosted Docker microservices pool',
-  vm3:  'OpenMediaVault · 6TB passthrough storage',
-  vm4:  'Veeam immutable backup repository',
+  vm3:  fromFleet('nas', 'OpenMediaVault · passthrough + external storage'),
+  vm4:  fromFleet('knightbox', 'Veeam backup repository'),
 };
 
 const v = (p) => new THREE.Vector3(p[0], p[1], p[2]);
@@ -298,6 +319,14 @@ function TopologyFallback({ mode }) {
             <div className="text-[11px] font-black italic text-white">{n}</div>
           </div>
         ))}
+      </div>
+      {/* Content parity with the 3D scene's detached monitor node — shown apart
+          from the chain above rather than beneath an arrow, for the same reason. */}
+      <div className="pt-2 border-t border-white/5 w-48 flex justify-center">
+        <div className={`${tierBox} border-azure/20 text-azure-light bg-azure/5 w-40 mt-4`}>
+          <div className="text-[11px] font-black italic text-white">Monitor Node</div>
+          <div className="text-[8px] uppercase tracking-widest opacity-70">Out-of-Band</div>
+        </div>
       </div>
     </div>
   );

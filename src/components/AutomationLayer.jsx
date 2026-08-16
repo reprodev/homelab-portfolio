@@ -21,7 +21,7 @@ import { useSimEvent, SIM_EVENTS, usePrefersReducedMotion } from '../lib/simBus'
 // Pipeline strip stages. x = center on the 400-wide SVG canvas.
 const PIPELINE_STAGES = [
   { id: 'git', label: 'Git Push', sub: 'homelab-infra', x: 35 },
-  { id: 'ci', label: 'CI Validate', sub: 'fmt · tflint', x: 117 },
+  { id: 'ci', label: 'CI Validate', sub: 'gitleaks · checkov · trivy', x: 117 },
   { id: 'packer', label: 'Packer Image', sub: 'ubuntu-2404-golden', x: 199 },
   { id: 'terraform', label: 'Terraform', sub: 'plan · apply', x: 281 },
   { id: 'ansible', label: 'Ansible', sub: 'converge', x: 363 },
@@ -91,13 +91,35 @@ const PipelineStrip = () => {
   );
 };
 
+/*
+  IaC coverage (V5.3).
+
+  Previously a binary codified/manual split, which undersold the real picture:
+  the fleet IS all managed as code, just not all by the same tool. Terraform
+  provisions what a hypervisor API can create; bare metal physically cannot be
+  `terraform apply`-ed, so it is configuration-managed by Ansible instead;
+  container workloads reconcile themselves from Git. Naming the mechanism is both
+  more accurate and a better answer than "codified: true".
+*/
 const COVERAGE = [
-  { label: 'ZuluServer', codified: true },
-  { label: 'OMV NAS', codified: true },
-  { label: 'ha01–ha03', codified: true },
-  { label: 'pibuster4', codified: false },
-  { label: 'Proxmox host', codified: false },
+  { label: 'ZuluServer', via: 'Terraform' },
+  { label: 'OMV NAS', via: 'Terraform' },
+  { label: 'ha01–ha03', via: 'Terraform' },
+  // No "LXC / Gateway" chip: it was added in V5.3 alongside a Semaphore LXC and an
+  // OPNsense gateway that turned out not to be deployed (the Terraform environment
+  // is literally named `opnsense-sandbox`). Those were removed from VIRTUAL_NODES
+  // in V5.4 but the chip was missed. Declared ≠ running — see fleet.js.
+  { label: 'Proxmox host', via: 'Ansible' },
+  { label: 'pibuster4', via: 'Ansible' },
+  { label: 'Workloads', via: 'GitOps' },
 ];
+
+// Chip styling per mechanism — whole class strings so Tailwind's scanner sees them.
+const COVERAGE_STYLE = {
+  Terraform: 'bg-violet-500/10 border-violet-500/30 text-violet-300',
+  Ansible: 'bg-red-500/10 border-red-500/30 text-red-300',
+  GitOps: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300',
+};
 
 const AutomationLayer = () => (
   <section className="mb-24">
@@ -218,18 +240,14 @@ const AutomationLayer = () => (
           {COVERAGE.map((item) => (
             <span
               key={item.label}
-              className={`px-2.5 py-1 rounded-lg border font-mono text-[9px] font-bold transition-colors
-                ${item.codified
-                  ? 'bg-violet-500/10 border-violet-500/30 text-violet-300'
-                  : 'bg-transparent border-dashed border-white/15 text-slate-500'
-                }`}
+              className={`px-2.5 py-1 rounded-lg border font-mono text-[9px] font-bold transition-colors ${COVERAGE_STYLE[item.via]}`}
             >
-              {item.codified ? 'Codified' : 'Manual by choice'} · {item.label}
+              {item.via} · {item.label}
             </span>
           ))}
         </div>
         <span className="text-[9px] text-slate-500 italic sm:ml-auto shrink-0">
-          Core fleet codified; the metal underneath is still hands-on — deliberately.
+          Fully codified — but by the right tool for each layer, not one tool everywhere.
         </span>
       </div>
     </Reveal>
@@ -262,7 +280,7 @@ const AutomationLayer = () => (
             </li>
             <li className="flex items-start gap-3">
               <span className="text-emerald-500 font-bold">◃</span>
-              <span><strong>Honest Coverage:</strong> The bare-metal ARM head (pibuster4) and the hypervisor itself stay hands-on by choice — codified core, hands-on edge.</span>
+              <span><strong>Honest Coverage:</strong> Terraform stops where the hypervisor API stops — you cannot <em>apply</em> a Raspberry Pi. The bare-metal head and the host itself are codified by Ansible instead. Right tool per layer beats one tool everywhere.</span>
             </li>
           </ul>
         </div>

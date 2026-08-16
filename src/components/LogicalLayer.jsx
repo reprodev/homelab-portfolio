@@ -2,8 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from './Card';
 import { ChevronDown, Activity, Terminal as TerminalIcon, Server } from 'lucide-react';
-import { UbuntuLogo, DietPiLogo, OMVLogo, RaspberryPiLogo } from './BrandLogos';
+import { UbuntuLogo, DietPiLogo, OMVLogo, RaspberryPiLogo, WindowsLogo } from './BrandLogos';
 import { playSound } from '../lib/audio';
+import { FLEET } from '../data/fleet';
+
+// Host facts live in src/data/fleet.js; this map is the presentation half —
+// data modules stay JSX-free so they can be imported anywhere.
+const FLEET_ICONS = {
+  raspberrypi: <RaspberryPiLogo className="w-5 h-5 text-rose-500" />,
+  ubuntu: <UbuntuLogo className="w-5 h-5 text-orange-400" />,
+  dietpi: <DietPiLogo className="w-5 h-5 text-[#91C300]" />,
+  omv: <OMVLogo className="w-5 h-5 text-[#4D80B3]" />,
+  windows: <WindowsLogo className="w-5 h-5 text-[#00A4EF]" />,
+};
 
 // (TerraformLogo/AnsibleLogo moved to BrandLogos.jsx with the IaC cards' V5.2
 // relocation to AutomationLayer — Lifecycle 01 · Code.)
@@ -165,7 +176,7 @@ const K3sAutoscalerSandbox = () => {
         {/* Pods Grid Stack */}
         <div className="flex flex-col justify-center gap-1.5 z-10 relative mr-2 w-[110px]">
           <AnimatePresence>
-            {pods.map((pod, i) => (
+            {pods.map((pod) => (
               <motion.div
                 key={pod.id}
                 initial={{ opacity: 0, x: 15, scale: 0.85 }}
@@ -226,82 +237,13 @@ const K3sAutoscalerSandbox = () => {
 const LogicalLayer = () => {
   const [expandedNode, setExpandedNode] = useState(null);
 
-  const fleetData = [
-    { 
-      id: 'pi4',
-      icon: <RaspberryPiLogo className="w-5 h-5 text-rose-500" />, 
-      name: "pibuster4", 
-      tag: "Bare-metal", 
-      sub: "Control Head / Ingress", 
-      percent: 45, 
-      color: "emerald",
-      details: {
-        os: "Debian 12 (PiOS)",
-        cpu: "4-Core ARM Cortex-A72",
-        ram: "4GB LPDDR4",
-        disk: "500GB USB 3.0 SSD",
-        net: "Eth0 (Physical)",
-        services: ["Cloudflared HA", "Ansible GitOps", "Uptime Kuma", "Dozzle Main"],
-        guideUrl: "https://reprodev.com/set-up-raspberry-pi/"
-      }
-    },
-    { 
-      id: 'zulu',
-      icon: <UbuntuLogo className="w-5 h-5 text-orange-400" />, 
-      name: "ZuluServer", 
-      tag: "Ubuntu VM", 
-      sub: "Data Core / Observability", 
-      percent: 85, 
-      color: "amber",
-      details: {
-        os: "Ubuntu 24.04 LTS (HWE)",
-        cpu: "Proxmox VM (2-vCPU)",
-        ram: "8GB Allocated",
-        disk: "180GB (local-lvm)",
-        net: "vBridge (Internal)",
-        services: ["Plex Media Server", "Prometheus / Grafana", "Nginx Proxy Mgr", "Terraform Repo"],
-        guideUrl: "https://reprodev.com/tag/install-guides/"
-      }
-    },
-    { 
-      id: 'ha',
-      icon: <DietPiLogo className="w-5 h-5 text-[#91C300]" />, 
-      name: "DietPi HA Fleet", 
-      tag: "Micro VMs", 
-      sub: "Distributed Services", 
-      percent: 30, 
-      color: "azure",
-      details: {
-        os: "DietPi (Optimized Debian)",
-        cpu: "1-vCPU per Instance",
-        ram: "2GB / 8GB Disk each",
-        net: "HA Overlay (Mesh)",
-        services: ["CF Tunnel (ha01)", "Vaultwarden (ha02)", "Guac / Pi-hole (ha03)"]
-      }
-    },
-    { 
-      id: 'nas',
-      icon: <OMVLogo className="w-5 h-5 text-[#4D80B3]" />, 
-      name: "OMV NAS VM", 
-      tag: "Debian VM", 
-      sub: "Disk Passthrough", 
-      percent: 70, 
-      color: "emerald",
-      details: {
-        os: "OpenMediaVault (Debian)",
-        cpu: "IOThread-Optimized",
-        ram: "8GB Allocated",
-        disk: "6TB (Physical Passthrough)",
-        net: "Storage VLAN (Fixed)",
-        services: ["SMB / CIFS Shares", "NFS Exports", "Disk Quotas", "Smartmontools"]
-      }
-    }
-  ];
+  // Facts from src/data/fleet.js; icons resolved here (see FLEET_ICONS above).
+  const fleetData = FLEET.map((node) => ({ ...node, icon: FLEET_ICONS[node.iconKey] }));
 
   return (
     <section className="mb-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card title="Compute Fleet (Proxmox + ARM)" className="lg:col-span-2" glowColor="rgba(251, 191, 36, 0.1)">
+        <Card title="Compute Fleet (Proxmox · ARM · Windows)" className="lg:col-span-2" glowColor="rgba(251, 191, 36, 0.1)">
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {fleetData.map(node => (
@@ -354,7 +296,7 @@ const LogicalLayer = () => {
   );
 };
 
-const NodeRing = ({ icon, name, tag, sub, percent, color, isExpanded, onClick }) => {
+const NodeRing = ({ icon, name, tag, sub, percent, color, isExpanded, onClick, ephemeral }) => {
   const glowBg = color === 'emerald' ? 'bg-emerald-500' : color === 'azure' ? 'bg-azure' : 'bg-amber-500';
 
   return (
@@ -379,7 +321,11 @@ const NodeRing = ({ icon, name, tag, sub, percent, color, isExpanded, onClick })
           <h4 className="text-sm font-black text-white italic uppercase tracking-tight">{name}</h4>
           <motion.span 
             animate={isExpanded ? { scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" } : { scale: 1 }}
-            className={`text-[8px] font-black px-1.5 py-0.5 border rounded uppercase tracking-tighter ${isExpanded ? 'border-white/20 text-white' : 'border-white/5 text-slate-500'}`}
+            className={`text-[8px] font-black px-1.5 py-0.5 border rounded uppercase tracking-tighter ${
+              ephemeral
+                ? 'border-dashed border-azure/40 text-azure-light/80'
+                : isExpanded ? 'border-white/20 text-white' : 'border-white/5 text-slate-500'
+            }`}
           >
             {tag}
           </motion.span>
@@ -451,13 +397,55 @@ const NodeDetailPanel = ({ node }) => {
         ];
       case 'nas':
         return [
-          "[SYSTEM] Initializing OpenMediaVault Storage Node...",
-          "[STORAGE] Passthrough Disk check: 6TB WD Red (sdb)... ONLINE",
-          "[STORAGE] Mount local storage pools: LVM RAID-5... OK",
-          "[SERVICES] Samba/NFS daemon permissions verified... OK",
+          "[SYSTEM] Initializing OpenMediaVault Storage Node (Debian 13)...",
+          "[STORAGE] Passthrough disk check: 6TB WD Blue (ext4)... ONLINE",
+          "[STORAGE]    └─ 4.5T used / 940G free",
+          "[STORAGE] External array: 10TB USB3 volume (NTFS)... ONLINE",
+          "[STORAGE]    └─ 8.3T used / 826G free",
+          "[SERVICES] Exporting over NFSv4 (pseudo-root) + SMB... OK",
+          "[SERVICES] Time Machine target registered... OK",
           "[MONITOR] smartctl diagnostic test running... HEALTH_OK",
-          "[NET] Direct storage VLAN link speed: 10Gbps full-duplex",
+          "[NET] virtio bridge — guest-to-guest, no physical NIC in path",
           "omv-nas:~# _"
+        ];
+      case 'monitor':
+        return [
+          "[SYSTEM] Initializing out-of-band Monitor Node...",
+          "[SYSTEM] Low-power ARM watchdog — isolated from the data core.",
+          "[PROBE] Blackbox exporter synthetic checks:",
+          "   ▸ Edge ingress reachability............... [ 200 OK ]",
+          "   ▸ Hypervisor API endpoint................. [ 200 OK ]",
+          "   ▸ DNS resolution (primary + secondary).... [ 200 OK ]",
+          "[ALERT] Relay armed. Escalation path verified end-to-end.",
+          "monitor-node:~# _"
+        ];
+      case 'hybridlab':
+        // Deliberately not a boot sequence: this environment is spun up on demand
+        // and is normally off. Showing a live-looking console would contradict the
+        // "On-Demand" framing everywhere else on the node.
+        return [
+          "[SYSTEM] Querying hybrid lab environment state...",
+          "[STATE] Environment: OFFLINE (on-demand, provisioned when studying)",
+          " ",
+          "[INFO] A spin-up provisions, unattended:",
+          "   ▸ Multi-DC Active Directory forest (2 domain controllers)",
+          "   ▸ Entra Connect sync to the cloud tenant",
+          "   ▸ Azure Arc onboarding for hybrid management",
+          "   ▸ Failover cluster with a cloud witness",
+          " ",
+          "[NOTE] Torn down after each study session — the build is codified,",
+          "[NOTE] so the environment itself is disposable.",
+          "hybrid-lab:~# _"
+        ];
+      case 'knightbox':
+        return [
+          "[SYSTEM] Initializing Knightbox backup & compute host...",
+          "[VEEAM] Backup & Replication service....... [ RUNNING ]",
+          "[VEEAM] Protected workloads: 7 active jobs",
+          "[VEEAM] Last successful restore point verified... OK",
+          "[GPU] NVENC encode sessions available: 2/2",
+          "[GPU] Distributed transcode worker registered... READY",
+          "knightbox:~# _"
         ];
       default:
         return ["Connecting to remote shell...", "Connection established.", "_"];
@@ -465,8 +453,16 @@ const NodeDetailPanel = ({ node }) => {
   };
 
   // Single source of truth for each node's shell prompt hostname
-  const PROMPT_NAMES = { pi4: 'pibuster4', zulu: 'zuluserver', ha: 'dietpi-cluster' };
-  const getPromptName = (id) => PROMPT_NAMES[id] || 'omv-nas';
+  const PROMPT_NAMES = {
+    pi4: 'pibuster4',
+    zulu: 'zuluserver',
+    ha: 'dietpi-cluster',
+    nas: 'omv-nas',
+    monitor: 'monitor-node',
+    knightbox: 'knightbox',
+    hybridlab: 'hybrid-lab',
+  };
+  const getPromptName = (id) => PROMPT_NAMES[id] || 'node';
 
   // In-flight command timers (Ansible/GitOps streams) — cleared on node switch /
   // unmount so a running command never bleeds logs into the next node's shell.
@@ -484,17 +480,33 @@ const NodeDetailPanel = ({ node }) => {
     setGitopsStage(0);
     setActiveTab('terminal');
     const initialLogs = getDefaultLogs(node.id);
-    let index = 0;
-    
-    // Add lines progressively
+
+    /*
+      Stream lines progressively, deriving the next line from the length of the
+      log itself rather than a mutable closure counter.
+
+      The previous version tracked `let index` alongside `setLogs(prev => ...)`
+      and special-cased the final prompt line. That was not idempotent: if the
+      updater ran more than once for a tick, `index` and the actual log length
+      drifted apart. The observable result was that EVERY node silently dropped
+      one line near the top of its boot sequence (ZuluServer lost its
+      "Virtual Disk: mounting..." line, pibuster4 its "Initializing..." line) and
+      printed its shell prompt twice at the bottom. Keying off `prev.length`
+      makes each tick self-correcting — a repeated invocation appends the same
+      line it would have appended anyway, and cannot skip or duplicate one.
+    */
     const interval = setInterval(() => {
-      if (index < initialLogs.length - 1) {
-        setLogs(prev => [...prev, initialLogs[index]]);
-        index++;
-      } else {
-        setLogs(prev => [...prev, initialLogs[initialLogs.length - 1]]); // Append prompt line
-        clearInterval(interval);
-      }
+      setLogs((prev) => {
+        if (prev.length >= initialLogs.length) {
+          // Self-terminating on completion, NOT on a wall-clock estimate: ticks
+          // can run well behind the 80ms period under render load, and a timed
+          // stop truncated the sequence partway through. clearInterval is
+          // idempotent, so a repeated updater invocation is harmless.
+          clearInterval(interval);
+          return prev;
+        }
+        return [...prev, initialLogs[prev.length]];
+      });
     }, 80);
 
     return () => {
@@ -561,7 +573,7 @@ const NodeDetailPanel = ({ node }) => {
 
     setLogs(prev => prev.slice(0, -1).concat([
       `$ git pull origin main`,
-      "From github.com:reprodev/homelab-infra",
+      "From gitlab.com:homelab/homelab-infra",
       " * branch            main       -> FETCH_HEAD",
       "Already up to date.",
       " ",
@@ -646,6 +658,14 @@ const NodeDetailPanel = ({ node }) => {
                   <span className="text-white font-mono">{node.details.disk}</span>
                 </li>
               )}
+              {/* `net` was authored for every fleet node but never rendered
+                  (V5.3) — dead data. Surfaced here alongside the other specs. */}
+              {node.details.net && (
+                <li className="flex justify-between text-[11px] border-b border-white/5 pb-2">
+                  <span className="text-slate-500 font-medium italic tracking-tight">Network Path</span>
+                  <span className="text-white font-mono">{node.details.net}</span>
+                </li>
+              )}
               <li className="flex justify-between text-[11px]">
                 <span className="text-white/40 font-black uppercase tracking-widest text-[9px]">Status</span>
                 <span className={`${gitopsStage === 4 ? 'text-emerald-400' : gitopsStage > 0 ? 'text-amber-400 animate-pulse' : 'text-emerald-400/80'} font-mono flex items-center gap-2 transition-colors`}>
@@ -665,6 +685,21 @@ const NodeDetailPanel = ({ node }) => {
                 </span>
               ))}
             </div>
+
+            {/* `guideUrl` was authored on two nodes but never rendered (V5.4) —
+                these are write-ups of how the node was actually built. */}
+            {node.details.guideUrl && (
+              <a
+                href={node.details.guideUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => playSound('click')}
+                className="inline-flex items-center gap-1.5 mt-1 text-[9px] font-mono font-bold uppercase tracking-wider text-azure-light/80 hover:text-azure-light border-b border-azure/20 hover:border-azure/60 transition-colors"
+              >
+                Read the build guide
+                <span aria-hidden="true">↗</span>
+              </a>
+            )}
           </div>
         </div>
 

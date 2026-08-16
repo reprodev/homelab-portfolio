@@ -39,10 +39,25 @@ const CollapsibleSection = ({ children, id, layerId, title, defaultExpanded = fa
           : 'bg-transparent my-0'
       }`}
     >
-      {/* Persistent Header */}
+      {/* Persistent Header.
+          Kept as a div rather than a <button> because it contains an <h3>, which
+          is invalid button content. Given the explicit button semantics instead —
+          before V5.4 these seven section headers were mouse-only. */}
       <div
         onClick={toggle}
-        className="flex items-center justify-between group cursor-pointer select-none py-2 hover:opacity-90 transition-all"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault(); // Space would otherwise scroll the page
+            toggle();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        /* Only reference the region while it exists — AnimatePresence unmounts it
+           when collapsed, so an unconditional aria-controls is a dangling IDREF. */
+        aria-controls={isExpanded ? `${id}-content` : undefined}
+        className="flex items-center justify-between group cursor-pointer select-none py-2 hover:opacity-90 transition-all rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-azure/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
       >
         <div className="flex flex-col">
           {layerId && (
@@ -75,6 +90,7 @@ const CollapsibleSection = ({ children, id, layerId, title, defaultExpanded = fa
       <AnimatePresence initial={false}>
         {isExpanded && (
           <motion.div
+            id={`${id}-content`}
             initial={{ height: 0, opacity: 0, marginTop: 0 }}
             animate={{ height: "auto", opacity: 1, marginTop: 32 }}
             exit={{ height: 0, opacity: 0, marginTop: 0 }}

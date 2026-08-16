@@ -12,10 +12,24 @@
   }
 }
 
-/* Texture Overlay */
+/* Texture Overlay — site-wide. Rect opacity is a pinned showstopper value
+   (<= 0.008); do not raise it. */
 .noise-overlay {
   @apply fixed inset-0 pointer-events-none z-[50];
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.008'/%3E%3C/svg%3E");
+}
+
+/* Decorative grain for the splash backdrop.
+
+   Separate from .noise-overlay on purpose: this one renders the noise at full
+   strength and lets the *element's* opacity dial it down, which is how the
+   splash was always meant to work. Previously SplashHub pulled this texture from
+   `https://grainy-gradients.vercel.app/noise.svg` — a third-party URL that now
+   returns 404, so the grain silently rendered nothing while every visit still
+   fired a failing cross-origin request. Self-contained now: no network, no
+   dependency on someone else's domain staying alive (or staying theirs). */
+.grain-texture {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grainFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grainFilter)'/%3E%3C/svg%3E");
 }
 
 /* Custom Gradient Text */

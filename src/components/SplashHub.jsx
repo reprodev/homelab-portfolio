@@ -183,14 +183,30 @@ const ParticleCanvas = ({ isMobile }) => {
 const PortalCard = ({ card, index, isMobile, hoveredId, setHoveredId, handleAction }) => {
   const cardRef = useRef(null);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const rafRef = useRef(null);
 
+  /*
+    Throttled to one update per frame. Un-throttled this fires a state update per
+    mousemove (60-120/s) on an element that is also framer-motion `layout`-animated,
+    so every event forced a re-render plus a layout re-measure — on the splash, the
+    most performance-sensitive screen on the site. Still gated on isMobile: never
+    track pointer coordinates on touch (invariant §4).
+  */
   const handleMouseMove = (e) => {
     if (isMobile || !cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    setCoords({ x, y });
+    if (rafRef.current) return; // a frame is already pending
+    const { clientX, clientY } = e;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!cardRef.current) return;
+      const rect = cardRef.current.getBoundingClientRect();
+      setCoords({ x: clientX - rect.left, y: clientY - rect.top });
+    });
   };
+
+  useEffect(() => () => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+  }, []);
 
   return (
     <motion.div
@@ -210,6 +226,10 @@ const PortalCard = ({ card, index, isMobile, hoveredId, setHoveredId, handleActi
           playSound('hover');
         }
       }}
+      /* handleMouseMove existed but was never wired up, so `coords` never left
+         (0,0) and the spotlight gradient below was frozen in the corner. The
+         handler self-gates on isMobile, per the touch-coordinate rule. */
+      onMouseMove={handleMouseMove}
       onMouseLeave={() => {
         if (!isMobile) setHoveredId(null);
       }}
@@ -432,7 +452,7 @@ const SplashHub = ({ onDismiss }) => {
         />
         
         {/* Grain Overlay (V1.5.0 Refinement) */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none grain-texture" />
 
         {/* Mouse-Reactive Particle Canvas Constellation (skipped on reduced motion) */}
         {(stage === 'intro' || stage === 'selection') && !reducedMotion && (

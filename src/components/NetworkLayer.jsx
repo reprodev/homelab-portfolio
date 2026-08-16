@@ -18,6 +18,7 @@ const NetworkLayer = () => {
   const [logs, setLogs] = useState([]);
   const logsContainerRef = useRef(null);
   const ddosRef = useRef(false); // tracks last broadcast state to log clean transitions
+  const seededRef = useRef(false); // initial log fill happens once, not per ddos toggle
 
   // Standard live request logs generator
   const getStandardLog = () => {
@@ -37,7 +38,7 @@ const NetworkLayer = () => {
     const attackTypes = [
       'WAF rule: PORT SCAN MITIGATED',
       'WAF rule: SQL INJECTION DETECTED',
-      'IP Banned in CrowdSec Repository',
+      'Geo-IP rule: NON-UK ORIGIN REJECTED',
       'TCP Flood Filter Blocked Packet'
     ];
     const randomIP = maliciousIPs[Math.floor(Math.random() * maliciousIPs.length)];
@@ -45,12 +46,22 @@ const NetworkLayer = () => {
     return `[BLOCKED] ${randomIP} - ${randomAttack}`;
   };
 
-  // Dynamic log scrolling interval (paused while the section is off-screen)
+  /*
+    Dynamic log scrolling interval (paused while the section is off-screen).
+
+    The initial fill is seeded ONCE, not on every run of this effect. `ddosActive`
+    is a dependency (it changes the cadence), so re-seeding here wiped the
+    `[WAF-ALERT] CRITICAL DDoS ATTEMPT DETECTED` lines that the bus handler appends
+    in the same commit — the console showed normal `[200 OK]` traffic for a tick
+    instead of the alert. It also erased the whole log history whenever the section
+    scrolled out of view and back.
+  */
   useEffect(() => {
     if (!inView) return undefined;
-    // Fill console with some initial logs
-    const initialLogs = Array.from({ length: 5 }, () => getStandardLog());
-    setLogs(initialLogs);
+    if (!seededRef.current) {
+      seededRef.current = true;
+      setLogs(Array.from({ length: 5 }, () => getStandardLog()));
+    }
 
     const interval = setInterval(() => {
       if (ddosActive) {
@@ -102,14 +113,14 @@ const NetworkLayer = () => {
     if (ddosActive) return; // Block VPN activation during active attack
     if (vpnActive) {
       setVpnActive(false);
-      setLogs(prev => [...prev, "[TAILSCALE] VPN Tunnel disconnected gracefully from 'kn-admin-device.local'.", " "]);
+      setLogs(prev => [...prev, "[TAILSCALE] VPN Tunnel disconnected gracefully from 'admin-laptop.local'.", " "]);
     } else {
       setVpnActive(true);
       setLogs(prev => [
         ...prev, 
         " ",
         "[TAILSCALE] VPN Handshake complete... SSH access authorized.",
-        "[TAILSCALE] Connected virtual interface: ha02 -> kn-admin-device.local",
+        "[TAILSCALE] Connected virtual interface: ha02 -> admin-laptop.local",
         " "
       ]);
     }
@@ -169,6 +180,7 @@ const NetworkLayer = () => {
               onClick={resetAll}
               className="p-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 active:scale-95 text-slate-400 hover:text-white transition-all shadow-sm"
               title="Reset Simulator"
+              aria-label="Reset network simulator"
             >
               <RefreshCw size={12} />
             </button>

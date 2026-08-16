@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useRef, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from './Card';
 import Badge from './Badge';
@@ -6,36 +6,56 @@ import ComputeCard from './ComputeCard';
 import RationaleSection from './RationaleSection';
 import { BookOpen, HardDrive, Network } from 'lucide-react';
 import { ProxmoxLogo, UbuntuLogo, DietPiLogo, OMVLogo } from './BrandLogos';
+import { HOST_VITALS, VIRTUAL_NODES } from '../data/fleet';
+import { STORAGE } from '../data/storage';
 
 const HypervisorTopology3D = lazy(() => import('./HypervisorTopology3D'));
+
+// Node facts come from src/data/fleet.js; icons are resolved here so the data
+// module stays JSX-free.
+const NODE_ICONS = {
+  ubuntu: <UbuntuLogo className="w-4 h-4 text-orange-400" />,
+  dietpi: <DietPiLogo className="w-4 h-4 text-[#91C300]" />,
+  omv: <OMVLogo className="w-4 h-4 text-[#4D80B3]" />,
+};
 
 const HardwareLayer = () => {
   const [scanningIndex, setScanningIndex] = React.useState(-1);
   const [scanStatusMessage, setScanStatusMessage] = React.useState('');
   const [view3D, setView3D] = useState(false);
 
+  // Invariant §3.1: timers started by a user action are tracked and cleared on
+  // unmount. The sonar scan previously leaked both its interval and its trailing
+  // timeout if the section unmounted mid-scan.
+  const scanTimersRef = useRef([]);
+  const clearScanTimers = () => {
+    scanTimersRef.current.forEach(clearInterval); // also clears timeouts
+    scanTimersRef.current = [];
+  };
+  useEffect(() => clearScanTimers, []);
+
   const startSonarScan = () => {
     if (scanningIndex !== -1) return;
-    
-    const nodes = ["ZuluServer", "OMV NAS", "ha01 (CF)", "ha02 (Vault)", "ha03 (Guac)", "Templates"];
+
     let index = 0;
     setScanningIndex(0);
-    setScanStatusMessage(`Pinging ${nodes[0]}...`);
-    
+    setScanStatusMessage(`Pinging ${VIRTUAL_NODES[0].name}...`);
+
     const interval = setInterval(() => {
       index += 1;
-      if (index < nodes.length) {
+      if (index < VIRTUAL_NODES.length) {
         setScanningIndex(index);
-        setScanStatusMessage(`Pinging ${nodes[index]}...`);
+        setScanStatusMessage(`Pinging ${VIRTUAL_NODES[index].name}...`);
       } else {
         clearInterval(interval);
         setScanningIndex(-1);
         setScanStatusMessage("All nodes online (100% telemetry synced)");
-        setTimeout(() => {
+        scanTimersRef.current.push(setTimeout(() => {
           setScanStatusMessage('');
-        }, 3000);
+        }, 3000));
       }
     }, 600);
+    scanTimersRef.current.push(interval);
   };
 
   return (
@@ -117,16 +137,24 @@ const HardwareLayer = () => {
                   <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-6 border-b border-white/5 pb-2 italic">Host Vitals</h4>
                   <ul className="space-y-4">
                     <li className="flex justify-between items-center border-b border-white/5 pb-4">
-                      <span className="text-sm text-slate-300 font-medium tracking-tight italic">Logical CPU Threads</span>
-                      <Badge color="muted">6 Threads</Badge>
+                      <span className="text-sm text-slate-300 font-medium tracking-tight italic">Processor</span>
+                      <Badge color="muted">{HOST_VITALS.cpu}</Badge>
                     </li>
                     <li className="flex justify-between items-center border-b border-white/5 pb-4">
                       <span className="text-sm text-slate-300 font-medium tracking-tight italic">Memory Pool (RAM)</span>
-                      <Badge color="muted">64 GB DDR4</Badge>
+                      <Badge color="muted">{HOST_VITALS.ram}</Badge>
+                    </li>
+                    <li className="flex justify-between items-center border-b border-white/5 pb-4">
+                      <span className="text-sm text-slate-300 font-medium tracking-tight italic">Storage Controller</span>
+                      <Badge color="azure">{HOST_VITALS.controller}</Badge>
+                    </li>
+                    <li className="flex justify-between items-center border-b border-white/5 pb-4">
+                      <span className="text-sm text-slate-300 font-medium tracking-tight italic">Hypervisor</span>
+                      <Badge color="amber">{HOST_VITALS.platform}</Badge>
                     </li>
                     <li className="flex justify-between items-center pt-2">
-                      <span className="text-sm text-slate-300 font-medium tracking-tight italic">Storage Controller</span>
-                      <Badge color="azure">VirtIO SCSI</Badge>
+                      <span className="text-sm text-slate-300 font-medium tracking-tight italic">Running Guests</span>
+                      <Badge color="success">{HOST_VITALS.guests}</Badge>
                     </li>
                   </ul>
                 </div>
@@ -152,21 +180,14 @@ const HardwareLayer = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      { name: "ZuluServer", sub: "Plex Media (Host) • Ubuntu", managed: "Terraform", color: "emerald", icon: <UbuntuLogo className="w-4 h-4 text-orange-400" /> },
-                      { name: "OMV NAS", sub: "80GB Disk + Passthrough", managed: "Terraform", color: "azure", icon: <OMVLogo className="w-4 h-4 text-[#4D80B3]" /> },
-                      { name: "ha01 (CF)", sub: "8GB Disk • DietPi", color: "emerald", icon: <DietPiLogo className="w-4 h-4 text-[#91C300]" /> },
-                      { name: "ha02 (Vault)", sub: "8GB Disk • DietPi", color: "emerald", icon: <DietPiLogo className="w-4 h-4 text-[#91C300]" /> },
-                      { name: "ha03 (Guac)", sub: "8GB Disk • DietPi", color: "emerald", icon: <DietPiLogo className="w-4 h-4 text-[#91C300]" /> },
-                      { name: "Templates", sub: "Cloud-Init Testing", color: "amber" }
-                    ].map((vm, idx) => (
-                      <ComputeCard 
-                        key={vm.name} 
-                        name={vm.name} 
-                        sub={vm.sub} 
-                        managedBy={vm.managed} 
+                    {VIRTUAL_NODES.map((vm, idx) => (
+                      <ComputeCard
+                        key={vm.name}
+                        name={vm.name}
+                        sub={vm.sub}
+                        managedBy={vm.managed}
                         glowColor={vm.color}
-                        icon={vm.icon}
+                        icon={NODE_ICONS[vm.iconKey]}
                         isScanning={scanningIndex === idx}
                       />
                     ))}
@@ -178,22 +199,31 @@ const HardwareLayer = () => {
             {/* Proxmox Storage */}
             <Card title="Storage Array Logic" glowColor="rgba(59, 130, 246, 0.1)">
               <ul className="space-y-4">
-                <li className="flex justify-between items-center border-b border-white/5 pb-4">
-                  <span className="text-sm text-slate-300 italic tracking-tight">nvme0n1 (LVM Cache)</span>
-                  <Badge color="azure">1 TB NVMe</Badge>
-                </li>
-                <li className="flex justify-between items-center border-b border-white/5 pb-4">
-                  <span className="text-sm text-slate-300 italic tracking-tight">sda & sdc (High Cap)</span>
-                  <Badge color="success">2 TB SATA</Badge>
-                </li>
-                <li className="flex justify-between items-center border-b border-white/5 pb-4">
-                  <span className="text-sm text-slate-300 italic tracking-tight">sdb (Physical Pass)</span>
-                  <Badge color="amber">6 TB WD Red</Badge>
-                </li>
-                <li className="flex justify-between items-center pt-2">
-                  <span className="text-sm text-slate-500 italic tracking-tight opacity-50">Spare Channel (Optane)</span>
-                  <Badge color="muted">14 GB</Badge>
-                </li>
+                {STORAGE.map((disk, idx) => (
+                  <li
+                    key={disk.id}
+                    className={`flex justify-between items-center ${
+                      idx === STORAGE.length - 1 ? 'pt-2' : 'border-b border-white/5 pb-4'
+                    }`}
+                  >
+                    <span
+                      className={`text-sm italic tracking-tight flex items-center gap-2 ${
+                        disk.idle ? 'text-slate-500 opacity-50' : 'text-slate-300'
+                      }`}
+                    >
+                      {disk.label}
+                      {/* External volumes reach the NAS over USB rather than the
+                          hypervisor's storage controller — marked so the list
+                          doesn't imply they're all attached the same way. */}
+                      {disk.external && (
+                        <span className="px-1.5 py-0.5 rounded border border-azure/30 text-azure-light font-mono text-[8px] font-black uppercase tracking-wider not-italic">
+                          USB3
+                        </span>
+                      )}
+                    </span>
+                    <Badge color={disk.badge}>{disk.capacity}</Badge>
+                  </li>
+                ))}
               </ul>
             </Card>
           </motion.div>
@@ -221,7 +251,7 @@ const HardwareLayer = () => {
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-amber-500 font-bold">◃</span>
-                <span><strong>Storage Logic:</strong> LVM-based virtual disks provide high-IOPS performance for heavy database workloads.</span>
+                <span><strong>Storage Logic:</strong> Guest disks live on an NVMe-backed LVM datastore for high-IOPS workloads, while bulk media sits on passthrough and external volumes the hypervisor never has to arbitrate.</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-amber-500 font-bold">◃</span>

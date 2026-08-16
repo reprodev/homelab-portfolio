@@ -113,6 +113,54 @@ const LayerHUD = () => {
     setUiSoundsEnabled(clickActive);
   }, [clickActive]);
 
+  /*
+    Tear the hum engine down on unmount.
+
+    Without this, the oscillators and the white-noise source keep running on the
+    SHARED AudioContext after LayerHUD goes away: enabling the hum and then using
+    the portal-return button (App remounts the splash) left it audible with no
+    control to stop it, and coming back built a *second* 50Hz + 95Hz + noise stack
+    that the volume slider no longer reached. Every round trip added another layer
+    — exactly the node accumulation the single-context rule exists to prevent.
+
+    Ramp to silence first (invariant §2: never hard-stop, it clicks), then stop on
+    the audio clock. Scheduled stops are honoured after this component is gone, so
+    fading out does not depend on React still being here.
+    NEVER close() the context — it is shared site-wide.
+  */
+  useEffect(() => () => {
+    const ctx = audioCtxRef.current;
+    if (!ctx) return;
+    const FADE = 0.15; // invariant §2 minimum
+    try {
+      const hum = humGainNodeRef.current;
+      if (hum) {
+        hum.gain.cancelScheduledValues(ctx.currentTime);
+        hum.gain.setValueAtTime(hum.gain.value, ctx.currentTime);
+        hum.gain.linearRampToValueAtTime(0, ctx.currentTime + FADE);
+      }
+      oscillatorsRef.current.forEach((osc) => {
+        try { osc.stop(ctx.currentTime + FADE + 0.05); } catch { /* already stopped */ }
+      });
+      if (noiseSourceRef.current) {
+        try { noiseSourceRef.current.stop(ctx.currentTime + FADE + 0.05); } catch { /* already stopped */ }
+      }
+      // Release the two nodes that outlive the sources, once the fade has run.
+      setTimeout(() => {
+        try { humGainNodeRef.current?.disconnect(); } catch { /* noop */ }
+        try { clickGainNodeRef.current?.disconnect(); } catch { /* noop */ }
+      }, (FADE + 0.1) * 1000);
+    } catch (e) {
+      console.warn('Hum engine teardown failed: ', e);
+    }
+    oscillatorsRef.current = [];
+    noiseSourceRef.current = null;
+    humGainNodeRef.current = null;
+    clickGainNodeRef.current = null;
+    // Cleared last so a remount rebuilds a fresh stack rather than reusing dead nodes.
+    audioCtxRef.current = null;
+  }, []);
+
   // Sync ambient parameters with state updates to prevent pops
   useEffect(() => {
     if (!audioCtxRef.current) return;
@@ -128,8 +176,16 @@ const LayerHUD = () => {
   // Order mirrors the lifecycle layout in App.jsx <main> (Code → Provision →
   // Run → Protect → Learn). Ids are legacy addresses — never rename them here
   // without the matching App.jsx/tourScript sweep (see Decision Record 2026-07-11).
+  /*
+    `collapsible: false` marks the two targets that are plain <section>s in App.jsx
+    rather than CollapsibleSections. Firing the accordion event for them made every
+    real layer take the "close everything else" branch — so glancing at the 3D map
+    collapsed and unmounted whatever the user had open, destroying an in-progress
+    sim or container inspector. If one of these ever becomes collapsible, flip the
+    flag here too.
+  */
   const sections = [
-    { id: 'topology', icon: <Network size={18} />, label: '3D Topology' },
+    { id: 'topology', icon: <Network size={18} />, label: '3D Topology', collapsible: false },
     { id: 'layer-code', icon: <GitBranch size={18} />, label: 'Code / IaC' },
     { id: 'layer-2', icon: <Database size={18} />, label: 'Hardware' },
     { id: 'layer-1', icon: <Shield size={18} />, label: 'Edge & Ingress' },
@@ -137,8 +193,9 @@ const LayerHUD = () => {
     { id: 'layer-4', icon: <LayoutGrid size={18} />, label: 'Workloads' },
     { id: 'layer-dr', icon: <Repeat size={18} />, label: 'Disaster Recovery' },
     { id: 'layer-journey', icon: <Map size={18} />, label: 'Roadmap' },
-    { id: 'knowledge-base', icon: <BookOpen size={18} />, label: 'Knowledge' },
+    { id: 'knowledge-base', icon: <BookOpen size={18} />, label: 'Knowledge', collapsible: false },
   ];
+  const isCollapsible = (id) => sections.find((s) => s.id === id)?.collapsible !== false;
 
   // Scroll-to-top visibility — passive listener, no layout reads
   useEffect(() => {
@@ -174,7 +231,8 @@ const LayerHUD = () => {
   }, []);
 
   const scrollToSection = (id) => {
-    triggerExpand(id);
+    // Only drive the accordion for targets that actually are one.
+    if (isCollapsible(id)) triggerExpand(id);
     setTimeout(() => {
       const element = document.getElementById(id);
       if (element) {

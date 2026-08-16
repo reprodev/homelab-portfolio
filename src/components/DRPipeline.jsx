@@ -282,7 +282,10 @@ const DRPipeline = () => {
                   <span>{drillStep === 1 ? "OFFLINE" : drillStep === 2 || drillStep === 3 ? "REBUILDING" : "ONLINE"}</span>
                 </div>
                 <Badge color="amber" className="justify-center text-[10px] py-1.5 opacity-80 uppercase tracking-widest font-black italic">HA Cluster</Badge>
-                <Badge color="success" className="justify-center text-[10px] py-1.5 opacity-80 uppercase tracking-widest font-black italic">K3s Payloads</Badge>
+                {/* Was "K3s Payloads" — implied K3s runs production workloads that
+                    are DR-protected. It's a rebuildable sandbox (see fleet.js), so
+                    this now names what the drill actually restores. */}
+                <Badge color="success" className="justify-center text-[10px] py-1.5 opacity-80 uppercase tracking-widest font-black italic">Docker Stack</Badge>
               </div>
             </div>
 

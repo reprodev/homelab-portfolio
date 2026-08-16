@@ -53,7 +53,7 @@ const PLAN_SCRIPT = [
   { t: 5180, text: '    }' },
   { t: 5600, text: 'Plan: 1 to add, 2 to change, 0 to destroy.', summary: true },
   { t: 5900, text: '── pibuster4 (bare-metal ARM head) stays outside Terraform on purpose:' },
-  { t: 6020, text: '── codified core, hands-on edge. Honest IaC > total IaC.' },
+  { t: 6020, text: '── no hypervisor API to call. Ansible codifies it instead.' },
 ];
 const AUTO_APPLY_DELAY = 1200; // tour auto-chain gap after the last plan line
 
@@ -134,6 +134,14 @@ const TerraformSim = () => {
 
   const runApplyTimeline = () => {
     if (runningRef.current || phaseRef.current !== 'planned') return;
+    /*
+      finishPlan() enables Apply at the summary line (t:5600), but the two dim
+      footnote lines are still scheduled at t:5900 and t:6020. Clicking Apply
+      inside that ~420ms window used to drop "── pibuster4 stays outside
+      Terraform…" into the middle of the apply stream. Drop anything still pending
+      from the plan before starting.
+    */
+    clearSimTimers();
     runningRef.current = true;
     setPhase('applying');
 
@@ -471,12 +479,13 @@ const TerraformSim = () => {
           );
         })}
 
-        {/* pibuster4 honesty node — never lights */}
+        {/* pibuster4 honesty node — never lights. Outside *this* graph because
+            Terraform can't provision bare metal, not because it's unmanaged. */}
         <div className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-center z-10" style={{ left: '86.25%', top: `${(PIBUSTER_Y / 240) * 100}%` }}>
           <div className="px-2.5 py-1.5 rounded-xl border border-dashed border-white/15 bg-transparent font-mono text-[8px] font-bold uppercase tracking-wider text-slate-600">
             pibuster4
           </div>
-          <span className="text-[6px] text-slate-600 font-mono leading-none">unmanaged · by choice</span>
+          <span className="text-[6px] text-slate-600 font-mono leading-none">ansible-managed</span>
         </div>
       </div>
     </div>

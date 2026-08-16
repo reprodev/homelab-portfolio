@@ -6,6 +6,7 @@ import { usePrefersReducedMotion } from '../lib/simBus';
 import useIsMobile from '../hooks/useIsMobile';
 import useInViewPause from '../hooks/useInViewPause';
 import { HardDrive, Server, Cpu, Database } from 'lucide-react';
+import { storageById } from '../data/storage';
 
 /*
   HypervisorTopology3D — Interactive WebGL centerpiece for the Hardware Layer.
@@ -27,6 +28,20 @@ const C = {
   neonCyan: '#00ffff'
 };
 
+/*
+  Pull a disk's short label/sub out of the shared storage data.
+  Guarded because this runs at MODULE scope: an id renamed in storage.js (exactly
+  the "swap a disk here and both views follow" workflow that file invites) would
+  otherwise throw during module evaluation, reject this React.lazy chunk, and take
+  the entire Hardware 3D view down with no error pointing at the cause.
+  Degrading to a visibly wrong label beats a dead section.
+*/
+const diskText = (id) => {
+  const d = storageById(id);
+  if (!d) return { label: id, sub: 'unknown volume' };
+  return { label: d.short, sub: d.sub };
+};
+
 const NODES = {
   core: { pos: [0, 0.4, 0], label: 'Proxmox VE', sub: 'Hypervisor Core', type: 'core', color: C.amber },
   // Compute VMs
@@ -36,10 +51,12 @@ const NODES = {
   vm4: { pos: [3.3, 0.3, 0.8], label: 'ha02 (Vault)', sub: 'Vault Cluster', type: 'vm', color: C.emerald, storage: ['st2'] },
   vm5: { pos: [2.5, -1.2, 0.8], label: 'ha03 (Guac)', sub: 'Remote Access', type: 'vm', color: C.emerald, storage: ['st2'] },
   vm6: { pos: [0, 2.8, 0.5], label: 'Templates', sub: 'Cloud-Init VM', type: 'vm', color: C.amber, storage: ['st1'] },
-  // Storage arrays
-  st1: { pos: [-2.6, -3.2, -0.6], label: 'nvme0n1 LVM', sub: '1 TB NVMe Cache', type: 'storage', color: C.azure },
-  st2: { pos: [0, -3.5, -0.6], label: 'sda & sdc', sub: '2 TB SATA Array', type: 'storage', color: C.emerald },
-  st3: { pos: [2.6, -3.2, -0.6], label: 'sdb WD Red', sub: '6 TB WD Red HDD', type: 'storage', color: C.amber }
+  // Storage arrays. Positions are hand-tuned and stay here (topology anchoring is
+  // a hard rule); the disk *text* comes from src/data/storage.js so a disk swap
+  // can't leave this scene disagreeing with the HardwareLayer list.
+  st1: { pos: [-2.6, -3.2, -0.6], ...diskText('nvme'), type: 'storage', color: C.azure },
+  st2: { pos: [0, -3.5, -0.6], ...diskText('sata'), type: 'storage', color: C.emerald },
+  st3: { pos: [2.6, -3.2, -0.6], ...diskText('wdblue'), type: 'storage', color: C.amber }
 };
 
 const CORE_LINKS = [
@@ -47,14 +64,16 @@ const CORE_LINKS = [
   ['core', 'vm4'], ['core', 'vm5'], ['core', 'vm6']
 ];
 
+// nvme0n1 (st1) is the primary VM datastore, not a cache tier — the old
+// "LVM Cache" labels here survived the V5.3 correction in src/data/storage.js.
 const STORAGE_LINKS = [
-  { from: 'vm1', to: 'st1', label: 'LVM Cache Pass' },
+  { from: 'vm1', to: 'st1', label: 'VM Datastore' },
   { from: 'vm1', to: 'st2', label: 'Transcode Data' },
   { from: 'vm2', to: 'st3', label: 'Physical SATA Pass' },
   { from: 'vm3', to: 'st2', label: 'SATA Storage' },
   { from: 'vm4', to: 'st2', label: 'SATA Storage' },
   { from: 'vm5', to: 'st2', label: 'SATA Storage' },
-  { from: 'vm6', to: 'st1', label: 'LVM Temp Storage' }
+  { from: 'vm6', to: 'st1', label: 'Template Store' }
 ];
 
 const v = (p) => new THREE.Vector3(p[0], p[1], p[2]);
@@ -260,7 +279,7 @@ function HypervisorScene({ hoveredNode, onHover, onUnhover, reducedMotion }) {
 
 // Mobile/Fallback static grid of connections
 function HypervisorFallback({ hoveredNode, setHoveredNode }) {
-  const getCardStyle = (id, data) => {
+  const getCardStyle = (id, _data) => {
     const isActive = hoveredNode === id || 
       (NODES[hoveredNode]?.storage?.includes(id)) || 
       (NODES[id]?.storage?.includes(hoveredNode));

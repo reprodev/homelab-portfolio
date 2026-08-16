@@ -9,9 +9,15 @@ import {
   ShieldAlert, Volume2, VolumeX, RefreshCw
 } from 'lucide-react';
 import { DockerLogo, PlexLogo } from './BrandLogos';
-import { triggerTranscode, triggerDr, useSimEvent, SIM_EVENTS } from '../lib/simBus';
+import { triggerTranscode, triggerDr, useSimEvent, SIM_EVENTS, usePrefersReducedMotion } from '../lib/simBus';
 import { playSound, getAudioContext } from '../lib/audio';
 import { lockScroll, unlockScroll } from '../lib/scrollLock';
+// Sparkline's off-screen pause hook. This import was missing, which threw
+// "useInViewPause is not defined" and unmounted the whole workload section the
+// moment it was expanded — see docs/playbooks/04-known-deviations.md.
+import useInViewPause from '../hooks/useInViewPause';
+import { OBSERVABILITY_GROUPS, ALERT_PATH, OUT_OF_BAND_NOTE } from '../data/observability';
+import { EDGE_SECURITY, SECURITY_HEADLINE, SECURITY_ROADMAP } from '../data/security';
 
 // High-fidelity Docker daemon container telemetry profiles
 const CONTAINER_DATA = {
@@ -55,7 +61,7 @@ const CONTAINER_DATA = {
       "[WARNING] User registration is disabled (SIGNUPS_ALLOWED=false).",
       "[INFO] Vaultwarden admin panel disabled for security.",
       "[OK] Active web vault session established from <SECURED_IP>.",
-      "[INFO] Synchronization complete for device 'Pixel_4a_5G'.",
+      "[INFO] Synchronization complete for device 'mobile-client-01'.",
       "[OK] DB vacuum successful. DB size: 24.5 MB."
     ]
   },
@@ -239,6 +245,8 @@ const CHAOS_INCIDENTS = {
 };
 
 // Auditory alert siren synthesizer engine (Web Audio API)
+// Envelope time for the siren, both directions. 0.15s is the invariant minimum.
+const SIREN_FADE = 0.15;
 let sirenInterval = null;
 let osc1 = null;
 let osc2 = null;
@@ -260,8 +268,10 @@ const startSiren = () => {
     osc1.frequency.setValueAtTime(480, ctx.currentTime);
     osc2.frequency.setValueAtTime(490, ctx.currentTime);
 
-    // Extremely subtle volume (polite UX guidelines)
-    gainNode.gain.setValueAtTime(0.005, ctx.currentTime);
+    // Extremely subtle volume (polite UX guidelines). Ramped in over the 0.15s
+    // invariant minimum rather than hard-set — a hard set clicks (invariant §2).
+    gainNode.gain.setValueAtTime(0, ctx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.005, ctx.currentTime + SIREN_FADE);
 
     osc1.connect(gainNode);
     osc2.connect(gainNode);
@@ -284,11 +294,31 @@ const startSiren = () => {
 const stopSiren = () => {
   if (sirenInterval) clearInterval(sirenInterval);
   try {
+    // Fade out before stopping — cutting two running oscillators at full
+    // amplitude pops audibly (invariant §2: ramps >= 0.15s, never hard stops).
+    // Stops are scheduled on the audio clock so the fade completes even though
+    // the caller returns immediately.
+    const ctx = getAudioContext();
+    const stopAt = ctx ? ctx.currentTime + SIREN_FADE + 0.02 : 0;
+    if (gainNode && ctx) {
+      gainNode.gain.cancelScheduledValues(ctx.currentTime);
+      gainNode.gain.setValueAtTime(gainNode.gain.value, ctx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + SIREN_FADE);
+    }
     // Disconnect our nodes only — the shared context stays alive for the site.
-    if (osc1) { osc1.stop(); osc1.disconnect(); }
-    if (osc2) { osc2.stop(); osc2.disconnect(); }
-    if (gainNode) { gainNode.disconnect(); }
-  } catch (e) {}
+    const dyingOsc1 = osc1;
+    const dyingOsc2 = osc2;
+    const dyingGain = gainNode;
+    if (dyingOsc1) dyingOsc1.stop(stopAt);
+    if (dyingOsc2) dyingOsc2.stop(stopAt);
+    setTimeout(() => {
+      try {
+        dyingOsc1?.disconnect();
+        dyingOsc2?.disconnect();
+        dyingGain?.disconnect();
+      } catch { /* already torn down */ }
+    }, (SIREN_FADE + 0.05) * 1000);
+  } catch (e) { /* audio is best-effort, never load-bearing */ }
   sirenInterval = null;
   osc1 = null;
   osc2 = null;
@@ -309,8 +339,23 @@ const SREChaosIncidentDeck = ({ ddosActive, drStep }) => {
     }
   }, [chaosLogs]);
 
+  /*
+    Invariant §3.1: timers started by a user action are tracked and cleared on
+    unmount. Before V5.5 the incident interval and its trailing reset timeout were
+    untracked, so collapsing the Workloads section mid-incident left them running
+    against an unmounted component — still broadcasting triggerDr(2/3/4) on the
+    global bus, which drove the cockpit HUD and the 3D topology with no visible
+    source, then snapped back seconds later.
+  */
+  const chaosTimersRef = useRef([]);
+  const clearChaosTimers = () => {
+    chaosTimersRef.current.forEach(clearInterval); // also clears timeouts
+    chaosTimersRef.current = [];
+  };
+
   useEffect(() => {
     return () => {
+      clearChaosTimers();
       stopSiren();
     };
   }, []);
@@ -328,36 +373,36 @@ const SREChaosIncidentDeck = ({ ddosActive, drStep }) => {
     const incident = CHAOS_INCIDENTS[type];
     let step = 0;
 
-    // Direct synchronous updates on the global simulation bus to orchestrate page-wide panic
+    /*
+      Kick the page-wide reaction off, then let DRPipeline own the DR timeline.
+
+      Per the bus contract (docs + DRPipeline): step 1 = start request, step 0 =
+      reset request, steps 2-4 are DRPipeline's own progress broadcasts. This deck
+      used to emit 2/3/4 on its own cadence as well — duplicating DRPipeline's
+      near-identically-timed broadcasts — and then fire step 0 at ~11s, which
+      DRPipeline obeyed as a reset. If the DR section was also open, a completed
+      drill was silently blanked (logs and analytics gone) without the user
+      touching Reset. Emitting only the start request removes the race entirely
+      and keeps the cockpit/orbs/topology reacting exactly as before, because
+      DRPipeline broadcasts every stage itself.
+    */
     if (type === 'vm') {
-      triggerDr(1); // Catastrophic outage state
+      triggerDr(1); // catastrophic outage — DRPipeline drives stages 2-4 from here
     }
 
     const timer = setInterval(() => {
       if (step < incident.logs.length) {
         setChaosLogs(prev => [...prev, incident.logs[step]]);
-        
-        // Sync incremental self-healing steps with Veeam DR bar dynamically
-        if (type === 'vm') {
-          if (step === 2) triggerDr(2); // Recovering
-          if (step === 5) triggerDr(3); // Verifying
-          if (step === 7) triggerDr(4); // Restored successfully
-        }
-        
         step += 1;
       } else {
         clearInterval(timer);
         stopSiren();
-        
-        // Soft timeout to reset the cluster visual status back to NOMINAL
-        setTimeout(() => {
-          setActiveIncident(null);
-          if (type === 'vm') {
-            triggerDr(0); // Reset DR drill state
-          }
-        }, 3000);
+        // Close out this deck's own incident state. The DR state is DRPipeline's
+        // to reset — leaving it at "restored" matches a manual drill's resting state.
+        chaosTimersRef.current.push(setTimeout(() => setActiveIncident(null), 3000));
       }
     }, 900);
+    chaosTimersRef.current.push(timer);
   };
 
   return (
@@ -380,6 +425,8 @@ const SREChaosIncidentDeck = ({ ddosActive, drStep }) => {
               : 'bg-white/5 border-white/10 text-slate-500 hover:text-white'
           }`}
           title={soundEnabled ? "Disable Siren Sound" : "Enable Siren Sound"}
+          aria-label={soundEnabled ? "Disable incident siren sound" : "Enable incident siren sound"}
+          aria-pressed={soundEnabled}
         >
           {soundEnabled ? <Volume2 size={13} className="animate-pulse" /> : <VolumeX size={13} />}
         </button>
@@ -758,6 +805,149 @@ const Sparkline = ({ type, ddosActive, drStep }) => {
   );
 };
 
+// Chip styling per observability group. Kept as whole class strings so Tailwind's
+// scanner sees them (it cannot resolve interpolated class fragments).
+const OBS_CHIP = {
+  emerald: 'bg-emerald-500/5 border-emerald-500/20 text-emerald-300',
+  amber: 'bg-amberGold/5 border-amberGold/20 text-amberGold',
+  azure: 'bg-azure/5 border-azure/20 text-azure-light',
+  muted: 'bg-white/5 border-white/10 text-slate-400',
+};
+
+/*
+  AlertPathTrace — the observability layer's interactive piece.
+
+  Rides the existing DDoS sim rather than introducing a new bus event (invariant
+  §1): when an attack fires, the alert visibly walks scrape → rule eval →
+  Alertmanager → Telegram, which is the real escalation path. Stages light on the
+  ms offsets pinned in src/data/observability.js.
+
+  Motion triad (invariant §3): timers tracked in a ref and cleared on every
+  transition + unmount; reduced motion skips the sequence and shows the delivered
+  state statically, so the information survives without the animation.
+*/
+const AlertPathTrace = ({ active }) => {
+  const reducedMotion = usePrefersReducedMotion();
+  const [lit, setLit] = useState(-1);
+  const [testing, setTesting] = useState(false);
+  // Two independent timer roles, deliberately NOT sharing a ref: the stage
+  // sequence is cleared and restarted on every transition, whereas the test
+  // auto-reset must outlive that. Sharing one ref meant the effect's cleanup
+  // wiped the reset timer and the trace stuck on "Firing" forever.
+  const stageTimersRef = useRef([]);
+  const resetTimerRef = useRef(null);
+
+  const clearStageTimers = () => {
+    stageTimersRef.current.forEach(clearTimeout);
+    stageTimersRef.current = [];
+  };
+  const clearResetTimer = () => {
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    resetTimerRef.current = null;
+  };
+
+  // The DDoS sim that drives this lives in the Network layer, so on its own the
+  // path would rarely be seen firing. A local test trigger keeps the section
+  // self-demonstrating — and firing a test alert to prove an escalation path
+  // actually reaches you is a real operational habit, not just a demo affordance.
+  const firing = active || testing;
+
+  useEffect(() => {
+    clearStageTimers();
+    if (!firing) {
+      setLit(-1);
+      return undefined;
+    }
+    if (reducedMotion) {
+      // Static end-state: the path is the content, so it must still read.
+      setLit(ALERT_PATH.length - 1);
+      return undefined;
+    }
+    setLit(-1);
+    ALERT_PATH.forEach((stage, i) => {
+      stageTimersRef.current.push(setTimeout(() => setLit(i), stage.t));
+    });
+    return clearStageTimers;
+  }, [firing, reducedMotion]);
+
+  // Belt-and-braces: clear both roles if we unmount mid-sequence.
+  useEffect(() => () => { clearStageTimers(); clearResetTimer(); }, []);
+
+  const runTest = () => {
+    if (firing) return;
+    playSound('click');
+    setTesting(true);
+    // Hold the delivered state briefly, then fall back to idle. Under reduced
+    // motion the stages light instantly, so the hold is all the user sees.
+    const hold = reducedMotion ? 1800 : ALERT_PATH[ALERT_PATH.length - 1].t + 1800;
+    clearResetTimer();
+    resetTimerRef.current = setTimeout(() => setTesting(false), hold);
+  };
+
+  return (
+    <div className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl">
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <div className="flex items-center gap-2">
+          <Activity size={14} className={firing ? 'text-red-400' : 'text-slate-500'} />
+          <span className="text-xs font-black uppercase tracking-widest text-white">Alert Path</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className={`text-[8px] font-mono uppercase tracking-widest ${
+              firing ? 'text-red-400' : 'text-slate-600'
+            }`}
+          >
+            {firing ? 'Firing' : 'Idle'}
+          </span>
+          <button
+            onClick={runTest}
+            disabled={firing}
+            aria-label="Send a test alert through the escalation path"
+            className={`min-h-[44px] sm:min-h-0 px-2 py-1 rounded-lg border font-mono text-[8px] font-black uppercase tracking-wider transition-colors ${
+              firing
+                ? 'border-white/5 text-slate-600 cursor-not-allowed'
+                : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
+            }`}
+          >
+            Test
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-1">
+        {ALERT_PATH.map((stage, i) => {
+          const on = lit >= i;
+          return (
+            <React.Fragment key={stage.id}>
+              <div className="flex flex-col items-center text-center flex-1 min-w-0">
+                <div
+                  className={`w-full px-1 py-1.5 rounded-lg border font-mono text-[7px] font-black uppercase tracking-wider transition-all duration-300 truncate ${
+                    on
+                      ? 'bg-red-500/15 border-red-400/60 text-red-300 shadow-[0_0_10px_rgba(248,113,113,0.25)]'
+                      : 'bg-slate-900/60 border-white/10 text-slate-500'
+                  }`}
+                >
+                  {stage.label}
+                </div>
+                <span className="text-[5.5px] text-slate-600 font-mono leading-none mt-1 truncate w-full">
+                  {stage.sub}
+                </span>
+              </div>
+              {i < ALERT_PATH.length - 1 && (
+                <div
+                  className={`h-px w-2 shrink-0 mb-3 transition-colors duration-300 ${
+                    lit > i ? 'bg-red-400/60' : 'bg-white/10'
+                  }`}
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const WorkloadLayer = () => {
   const [isTranscoding, setIsTranscoding] = React.useState(false);
   const [transcodeSpeed, setTranscodeSpeed] = React.useState(4.2);
@@ -952,7 +1142,7 @@ const WorkloadLayer = () => {
              )}
 
               <p className="text-[11px] text-slate-500 italic mt-4 leading-relaxed px-2 text-left">
-                Strategically deployed as a native host-OS application to ensure direct access to <strong>Intel QuickSync GPU</strong> instructions for 4K HW transcoding, bypassing containerized driver overhead.
+                Runs as a native host-OS application for direct access to <strong>Intel QuickSync GPU</strong> instructions during 4K hardware transcoding, avoiding containerized driver overhead. Pragmatic rather than ideological — containerising it is a tracked roadmap item, not a settled decision.
               </p>
           </Card>
         </div>
@@ -1004,18 +1194,50 @@ const WorkloadLayer = () => {
                     </div>
                   </div>
                 </div>
+
+                <p className="relative z-20 text-[8px] font-mono text-slate-500 leading-relaxed m-0 pt-1">
+                  Simulated for this page — the live equivalents are Prometheus-scraped
+                  and rendered in Grafana against 30 days of retained metrics.
+                </p>
               </div>
 
-              <div className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl">
-                <div className="flex items-center gap-2 mb-3">
+              {/* The real stack, grouped by function. Deliberately no port numbers
+                  or host addresses — everything in src/ is publicly readable. */}
+              <div className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl space-y-4">
+                <div className="flex items-center gap-2">
                   <Activity size={14} className="text-emerald-400" />
-                  <span className="text-xs font-black uppercase tracking-widest text-white">Full-Stack Metrics</span>
+                  <span className="text-xs font-black uppercase tracking-widest text-white">Monitoring Stack</span>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Badge color="emerald">Prometheus</Badge>
-                  <Badge color="azure">Grafana</Badge>
-                  <Badge color="muted">Netdata</Badge>
+                {OBSERVABILITY_GROUPS.map((group) => (
+                  <div key={group.id}>
+                    <div className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">
+                      {group.label}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {group.items.map((item) => (
+                        <span
+                          key={item.name}
+                          className={`px-2 py-1 rounded-lg border text-[9px] font-mono inline-flex items-baseline gap-1.5 ${OBS_CHIP[group.color]}`}
+                        >
+                          <span className="font-black">{item.name}</span>
+                          <span className="opacity-50 text-[8px]">{item.detail}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <AlertPathTrace active={ddosActive} />
+
+              {/* The design decision worth stating out loud. */}
+              <div className="p-4 bg-azure/[0.04] border border-azure/20 rounded-2xl">
+                <div className="text-[10px] font-black uppercase tracking-widest text-azure-light mb-2">
+                  {OUT_OF_BAND_NOTE.title}
                 </div>
+                <p className="text-[10px] text-slate-300 leading-relaxed m-0">
+                  {OUT_OF_BAND_NOTE.body}
+                </p>
               </div>
 
               <div className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl">
@@ -1023,14 +1245,46 @@ const WorkloadLayer = () => {
                   <Shield size={14} className="text-slate-400" />
                   <span className="text-xs font-black uppercase tracking-widest text-white">Edge Security</span>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Badge color="muted">Authelia</Badge>
-                  <Badge color="amber">CrowdSec</Badge>
+
+                {/* The strongest honest claim this section can make. */}
+                <div className="flex items-baseline gap-3 mb-3 pb-3 border-b border-white/5">
+                  <span className="text-2xl font-black italic text-emerald-400 leading-none">
+                    {SECURITY_HEADLINE.stat}
+                  </span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                    {SECURITY_HEADLINE.label}
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400 leading-relaxed m-0 mb-3">
+                  {SECURITY_HEADLINE.body}
+                </p>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {EDGE_SECURITY.map((item) => (
+                    <span
+                      key={item.name}
+                      className={`px-2 py-1 rounded-lg border text-[9px] font-mono inline-flex items-baseline gap-1.5 ${OBS_CHIP.muted}`}
+                    >
+                      <span className="font-black">{item.name}</span>
+                      <span className="opacity-50 text-[8px]">{item.detail}</span>
+                    </span>
+                  ))}
                 </div>
               </div>
 
               <div className="mt-8 pt-6 border-t border-white/5">
                  <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-4 italic">Future Roadmap</h4>
+                 <div className="flex flex-wrap gap-1.5 mb-3">
+                   {SECURITY_ROADMAP.map((item) => (
+                     <span
+                       key={item.name}
+                       className="px-2 py-1 rounded-lg border border-dashed border-white/15 bg-transparent text-[9px] font-mono inline-flex items-baseline gap-1.5 text-slate-500"
+                     >
+                       <span className="font-black">{item.name}</span>
+                       <span className="opacity-60 text-[8px]">{item.detail}</span>
+                     </span>
+                   ))}
+                 </div>
                  <Badge color="azure" className="w-full justify-center py-2 opacity-50">K3s Migration Phase 2</Badge>
               </div>
             </div>
