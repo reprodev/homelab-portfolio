@@ -15,6 +15,15 @@ import { resetSims, triggerExpand, usePrefersReducedMotion } from '../lib/simBus
   Entry points: a persistent "Play Tour" pill (bottom-left) and any element that
   dispatches the `homelab-tour-start` window event (e.g. the Hero CTA).
 */
+
+/*
+  Gap between opening a section and dispatching its sim. Collapsed
+  CollapsibleSections unmount their children, so a sim fired in the same tick as
+  `triggerExpand` has no listener to receive it. One commit is enough in
+  principle; 150ms matches LayerHUD's existing 120ms delay with margin and stays
+  far inside every step's dwell time (shortest is 6000ms).
+*/
+const SIM_DISPATCH_DELAY = 150;
 const GuidedTour = () => {
   const reducedMotion = usePrefersReducedMotion();
   const [active, setActive] = useState(false);
@@ -24,6 +33,9 @@ const GuidedTour = () => {
   const timerRef = useRef(null);
   const remainingRef = useRef(0);
   const stepStartRef = useRef(0);
+  // Separate from timerRef: this one defers a step's sim until the section it
+  // targets has actually mounted (see the enter effect below).
+  const enterTimerRef = useRef(null);
 
   const clearTimer = () => {
     if (timerRef.current) {
@@ -32,8 +44,16 @@ const GuidedTour = () => {
     }
   };
 
+  const clearEnterTimer = () => {
+    if (enterTimerRef.current) {
+      clearTimeout(enterTimerRef.current);
+      enterTimerRef.current = null;
+    }
+  };
+
   const finish = useCallback(() => {
     clearTimer();
+    clearEnterTimer(); // a pending sim must not fire into a tour that just ended
     // run the current step's cleanup if we bailed mid-sim
     const step = TOUR_STEPS[stepIndex];
     if (step && step.onExit) step.onExit();
@@ -79,17 +99,36 @@ const GuidedTour = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [active, finish]);
 
-  // ENTER a step: scroll, open, fire its sim, reset the dwell timer.
-  // (Defined before the timer effect so its cleanup order keeps remaining full.)
+  /*
+    ENTER a step: scroll, open, then fire its sim.
+    (Defined before the timer effect so its cleanup order keeps remaining full.)
+
+    The sim dispatch MUST be deferred. `triggerExpand` only queues
+    `setIsExpanded(true)` inside CollapsibleSection, and that component renders its
+    children only while expanded — so a sim fired on the next synchronous line goes
+    out before the target section mounts, and no listener is subscribed to receive
+    it. The event lands nowhere and the tour narrates a simulation that never runs.
+    This was measured: `homelab-terraform {phase:'plan'}` fired while TerraformSim
+    produced no output at all. LayerHUD.scrollToSection already delays for the same
+    reason. Tracked in a ref so exiting mid-step can't fire a sim into a dead tour.
+  */
   useEffect(() => {
-    if (!active) return;
+    if (!active) return undefined;
     const step = TOUR_STEPS[stepIndex];
-    if (!step) return;
+    if (!step) return undefined;
     remainingRef.current = step.durationMs;
     const el = document.getElementById(step.sectionId);
     if (el) el.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
     triggerExpand(step.sectionId);
-    if (step.onEnter) step.onEnter();
+
+    clearEnterTimer();
+    if (step.onEnter) {
+      enterTimerRef.current = setTimeout(() => {
+        enterTimerRef.current = null;
+        step.onEnter();
+      }, SIM_DISPATCH_DELAY);
+    }
+    return clearEnterTimer;
   }, [active, stepIndex, reducedMotion]);
 
   // Dwell timer: schedule advancement; on pause/unmount bank the remaining time.

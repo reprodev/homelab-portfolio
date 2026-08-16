@@ -4,7 +4,8 @@ import Badge from './Badge';
 
 const ComputeCard = ({ name, sub, status = "active", managedBy, glowColor = "emerald", icon, isScanning }) => {
   const accentColor = glowColor === 'emerald' ? 'text-emerald-400' : glowColor === 'azure' ? 'text-azure' : 'text-amber-400';
-  const borderColor = glowColor === 'emerald' ? 'border-emerald-500/10' : glowColor === 'azure' ? 'border-azure/10' : 'border-amber-500/10';
+  // (A per-colour `borderColor` was computed here but never applied to the card;
+  // removed rather than switched on, since doing so would restyle every node card.)
 
   return (
     <motion.div 

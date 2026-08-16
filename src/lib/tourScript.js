@@ -43,7 +43,7 @@ export const TOUR_STEPS = [
   {
     sectionId: 'layer-3',
     title: 'Lifecycle 03 — Run: Compute Fleet',
-    caption: 'The Terraform-declared fleet in operation — node consoles, K3s autoscaling, GitOps sync.',
+    caption: 'The Terraform-declared fleet in operation — node consoles, GitOps sync, and a K3s autoscaling sandbox.',
     durationMs: 6000,
   },
   {

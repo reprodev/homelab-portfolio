@@ -85,7 +85,7 @@ const CaseStudyPost = ({ onBack }) => {
 
       {/* Main Content */}
       <div className="px-6 space-y-32">
-        {sections.map((section, index) => (
+        {sections.map((section) => (
           <motion.section 
             key={section.id}
             initial={{ y: 50, opacity: 0 }}
@@ -107,9 +107,14 @@ const CaseStudyPost = ({ onBack }) => {
               </p>
 
               <div className="relative rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl bg-black">
-                <img 
-                  src={section.image} 
+                {/* These are large screenshots (~2.7MB across the five). Lazy +
+                    async so opening the case study fetches them as you scroll
+                    rather than all at once on mount. */}
+                <img
+                  src={section.image}
                   alt={section.caption}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-auto opacity-90 group-hover:opacity-100 transition-opacity duration-1000"
                 />
                 <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent">

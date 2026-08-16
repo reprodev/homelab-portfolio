@@ -18,9 +18,9 @@ const JourneyLayer = () => {
       icon: Server,
       achievements: [
         {
-          title: "Declarative GitOps Bootstrap (ArgoCD)",
-          desc: "Deployed ArgoCD in-cluster to manage standard workload states from GitLab repositories, replacing push-based scripting with self-healing, pull-based reconciliation loops.",
-          evidence: "SSH deploy key authentication, passwordless repository access, automated drift correction."
+          title: "Pull-Based GitOps Reconciliation (systemd)",
+          desc: "Every fleet node runs a systemd timer that git-pulls its own workload repository and re-applies its Docker Compose state on a fixed interval — replacing push-based scripting with self-healing, pull-based reconciliation and no central control plane to keep alive.",
+          evidence: "Per-node GitOps repositories, SSH deploy key authentication, passwordless pull, automated drift correction."
         },
         {
           title: "Lightweight Observability Stack (Prometheus + Grafana)",
@@ -29,8 +29,8 @@ const JourneyLayer = () => {
         },
         {
           title: "Vulnerability Scanning & Supply Chain SecOps",
-          desc: "Built automated container building pipelines with multi-stage Dockerfiles (reducing image sizes by 70%) and hardwired pre-push Trivy scanning stages.",
-          evidence: "Zero High/Critical CVE target threshold enforced on build pipelines."
+          desc: "Hardwired a three-tool security gate into GitLab CI: gitleaks for committed secrets, checkov for IaC misconfiguration, and Trivy for image and config CVEs — the Trivy stage fails the build outright on HIGH or CRITICAL findings.",
+          evidence: "gitleaks · checkov · trivy running on every merge request; zero High/Critical CVE threshold enforced as a hard gate, not a warning."
         }
       ]
     },
@@ -44,18 +44,18 @@ const JourneyLayer = () => {
       achievements: [
         {
           title: "Production AWS Multi-AZ Networking",
-          desc: "Declaratively built a Multi-AZ VPC utilizing modularized HashiCorp Terraform state configs in eu-west-2, distributed across symmetric Availability Zones.",
-          evidence: "Zero idle-cost design excluding NAT Gateways, relying on isolated private boundaries."
+          desc: "Declaratively built a Multi-AZ VPC using modularized HashiCorp Terraform in eu-west-2, distributed across symmetric Availability Zones with isolated public and private subnet boundaries.",
+          evidence: "Deliberately NAT-Gateway-free — the single largest idle cost in a typical VPC — keeping the whole network at £0/mo when nothing is running."
         },
         {
           title: "Secure S3 Backend State Locking",
-          desc: "Bootstrapped remote state storage using S3 with AES256 server-side encryption and DynamoDB locking tables to allow secure, concurrent team runs.",
-          evidence: "VPC remote state files linked dynamically to workload task specifications."
+          desc: "Bootstrapped remote Terraform state in S3 with AES256 server-side encryption and native S3 state locking, so concurrent runs cannot corrupt state without paying for a separate lock table.",
+          evidence: "Versioned state bucket, encrypted at rest, VPC outputs consumed downstream by workload configurations."
         },
         {
-          title: "Serverless Compute & Offsite Backups",
-          desc: "Migrated Flask status containers to AWS ECS Fargate, scaling tasks to minimal bounds (0.25 vCPU / 512MB RAM) at exactly $0.00/mo idle operating costs.",
-          evidence: "Automated daily Vaultwarden backups pushed to S3 with restricted-scope IAM policies."
+          title: "Serverless Compute — Cost-First Sizing",
+          desc: "Migrated a Flask status container to AWS ECS Fargate at minimal bounds (0.25 vCPU / 512MB RAM), running a single task in a public subnet to avoid NAT charges entirely.",
+          evidence: "A cost exercise as much as an engineering one: the design target was demonstrable multi-AZ IaC competence at effectively zero idle spend, not production-scale resilience."
         }
       ]
     },
@@ -84,19 +84,24 @@ const JourneyLayer = () => {
         },
         {
           title: "Packer Golden-Image Pipeline",
-          desc: "Baking the ubuntu-2404-golden Proxmox template (cloud-init + qemu-guest-agent preinstalled) in CI, so Terraform provisions clone from a versioned, reproducible image instead of hand-built templates.",
-          evidence: "Template VMID 9001 wired into Terraform clone blocks — build automation in progress."
+          desc: "Baking Ubuntu 24.04 and Windows Server 2025 Proxmox templates (cloud-init + guest agent preinstalled) via Packer on a self-hosted CI runner, so Terraform clones from a versioned, reproducible image instead of a hand-built template.",
+          evidence: "packer validate gates every merge request; the real build runs on a scheduled or manually-triggered pipeline rather than on every commit — image builds are slow and deliberately not on the hot path."
         }
       ]
     },
     {
       month: 4,
-      title: "Future Roadmap: AWS Infrastructure Migration",
-      subtitle: "Offsite S3 / Glacier replication & cloud burst compute",
+      title: "Future Roadmap: Orchestration & Cloud Migration",
+      subtitle: "K3s GitOps foundation, offsite S3 / Glacier replication & cloud burst compute",
       status: "PLANNED",
       color: "purple",
       icon: Cpu,
       achievements: [
+        {
+          title: "K3s GitOps Foundation (ArgoCD)",
+          desc: "Promoting the K3s cluster from rebuildable sandbox to a real workload target: ArgoCD App-of-Apps managing state from Git, plus MetalLB, NGINX Ingress and cert-manager underneath it.",
+          evidence: "Honest status: the cluster provisions from Terraform and tears down cleanly, but no production workload has moved onto it yet. This track has not started."
+        },
         {
           title: "Veeam S3 & Glacier Deep Archive Target",
           desc: "Transitioning cold offsite copy jobs from Dropbox directly to encrypted AWS S3 buckets. Bootstrapping bucket lifecycle rules to auto-transition historic backups to Glacier Deep Archive, securing 99.999999999% durability at less than $0.00099/GB.",
