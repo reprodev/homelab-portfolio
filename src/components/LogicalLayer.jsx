@@ -5,6 +5,8 @@ import { ChevronDown, Activity, Terminal as TerminalIcon, Server } from 'lucide-
 import { UbuntuLogo, DietPiLogo, OMVLogo, RaspberryPiLogo, WindowsLogo } from './BrandLogos';
 import { playSound } from '../lib/audio';
 import { FLEET } from '../data/fleet';
+import TerminalPanel from './TerminalPanel.jsx';
+import { lastLine } from '../lib/logs';
 
 // Host facts live in src/data/fleet.js; this map is the presentation half —
 // data modules stay JSX-free so they can be imported anywhere.
@@ -85,12 +87,12 @@ const K3sAutoscalerSandbox = () => {
   };
 
   return (
-    <div className="flex flex-col h-full justify-between gap-4 font-mono text-[10px]">
+    <div className="flex flex-col h-full justify-between gap-4 font-mono text-meta">
       {/* Metrics Row */}
       <div className="grid grid-cols-2 gap-2 border-b border-white/5 pb-3">
         <div className="bg-black/40 border border-white/5 rounded-lg p-2 flex flex-col justify-between">
-          <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold">HPA Status</span>
-          <span className={`text-[10px] font-black tracking-tight mt-1 flex items-center gap-1.5 ${
+          <span className="text-label text-slate-400 uppercase tracking-wider font-bold">HPA Status</span>
+          <span className={`text-meta font-black tracking-tight mt-1 flex items-center gap-1.5 ${
             scalingStage === 1 ? 'text-red-400 animate-pulse' : scalingStage === 2 ? 'text-amber-400 animate-pulse' : 'text-emerald-400'
           }`}>
             <span className={`w-1.5 h-1.5 rounded-full ${
@@ -100,11 +102,11 @@ const K3sAutoscalerSandbox = () => {
           </span>
         </div>
         <div className="bg-black/40 border border-white/5 rounded-lg p-2 flex flex-col justify-between">
-          <span className="text-[8px] text-slate-500 uppercase tracking-wider font-bold">Avg Pod CPU</span>
-          <span className={`text-[10px] font-black mt-1 font-mono ${
+          <span className="text-label text-slate-400 uppercase tracking-wider font-bold">Avg Pod CPU</span>
+          <span className={`text-meta font-black mt-1 font-mono ${
             scalingStage === 1 ? 'text-red-400 font-extrabold' : scalingStage === 2 ? 'text-amber-400' : 'text-white'
           }`}>
-            {hpaMetrics.load}% <span className="text-[8px] text-slate-500 font-medium">/ 80% HPA</span>
+            {hpaMetrics.load}% <span className="text-label text-slate-400 font-medium">/ 80% HPA</span>
           </span>
         </div>
       </div>
@@ -169,8 +171,8 @@ const K3sAutoscalerSandbox = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M3 12h18M12 3l4 4M12 3L8 7M12 21l4-4M12 21l-4-4" />
             </svg>
           </div>
-          <span className="text-[7px] font-black uppercase text-slate-500 tracking-wider">Haproxy LB</span>
-          <span className="text-[5.5px] font-mono leading-none text-slate-600">Port 80</span>
+          <span className="text-micro font-black uppercase text-slate-400 tracking-wider">Haproxy LB</span>
+          <span className="hidden sm:block text-micro font-mono leading-none text-slate-500">Port 80</span>
         </div>
 
         {/* Pods Grid Stack */}
@@ -183,7 +185,7 @@ const K3sAutoscalerSandbox = () => {
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 15, scale: 0.85 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                className={`px-2 py-1 bg-black/60 border rounded-lg flex items-center justify-between text-[7px] ${
+                className={`px-2 py-1 bg-black/60 border rounded-lg flex items-center justify-between text-micro ${
                   pod.status === 'Overload' 
                     ? 'border-red-500/40 text-red-300 shadow-[0_0_8px_rgba(239,68,68,0.15)]' 
                     : pod.status === 'Pending' 
@@ -204,9 +206,9 @@ const K3sAutoscalerSandbox = () => {
                   </div>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="font-mono font-black tracking-tight text-[7px]">{pod.cpu}%</span>
-                  <span className={`text-[5px] font-black uppercase tracking-tighter ${
-                    pod.status === 'Overload' ? 'text-red-400' : pod.status === 'Pending' ? 'text-amber-400' : 'text-slate-500'
+                  <span className="font-mono font-black tracking-tight text-micro">{pod.cpu}%</span>
+                  <span className={`text-micro font-black uppercase tracking-tighter ${
+                    pod.status === 'Overload' ? 'text-red-400' : pod.status === 'Pending' ? 'text-amber-400' : 'text-slate-400'
                   }`}>
                     {pod.status}
                   </span>
@@ -221,7 +223,7 @@ const K3sAutoscalerSandbox = () => {
       <div className="flex items-center gap-2">
         <button
           onClick={toggleTraffic}
-          className={`flex-1 py-1.5 rounded-lg border text-[8px] font-mono font-black uppercase tracking-wider transition-all duration-300 ${
+          className={`flex-1 py-1.5 rounded-lg border text-label font-mono font-black uppercase tracking-wider transition-all duration-300 ${
             trafficActive
               ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20'
               : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:border-white/20 active:scale-95'
@@ -288,7 +290,7 @@ const LogicalLayer = () => {
 
       {/* IaC stack cards + rationale moved to AutomationLayer (Lifecycle 01 ·
           Code) in the V5.2 lifecycle restructure. */}
-      <p className="mt-6 text-[11px] text-slate-500 italic text-center font-mono">
+      <p className="mt-6 text-meta-lg text-slate-400 italic text-center font-mono">
         This fleet is declared in the <strong className="text-violet-400 font-normal">IaC layer above</strong> —
         run the plan → apply sim to watch it converge.
       </p>
@@ -321,16 +323,16 @@ const NodeRing = ({ icon, name, tag, sub, percent, color, isExpanded, onClick, e
           <h4 className="text-sm font-black text-white italic uppercase tracking-tight">{name}</h4>
           <motion.span 
             animate={isExpanded ? { scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" } : { scale: 1 }}
-            className={`text-[8px] font-black px-1.5 py-0.5 border rounded uppercase tracking-tighter ${
+            className={`text-label font-black px-1.5 py-0.5 border rounded uppercase tracking-tighter ${
               ephemeral
                 ? 'border-dashed border-azure/40 text-azure-light/80'
-                : isExpanded ? 'border-white/20 text-white' : 'border-white/5 text-slate-500'
+                : isExpanded ? 'border-white/20 text-white' : 'border-white/5 text-slate-400'
             }`}
           >
             {tag}
           </motion.span>
         </div>
-        <div className="text-[10px] text-slate-500 font-medium mb-2 truncate">{sub}</div>
+        <div className="text-meta text-slate-400 font-medium mb-2 truncate">{sub}</div>
         
         <div className="flex items-center gap-2">
           <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
@@ -638,36 +640,36 @@ const NodeDetailPanel = ({ node }) => {
         {/* Specs and Services Panel - 5 Columns */}
         <div className="lg:col-span-5 space-y-6 flex flex-col justify-between">
           <div className="space-y-4">
-            <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Telemetry / Vitals</h5>
+            <h5 className="text-meta font-black uppercase tracking-[0.3em] text-white/55">Telemetry / Vitals</h5>
             <ul className="space-y-2">
-              <li className="flex justify-between text-[11px] border-b border-white/5 pb-2">
-                <span className="text-slate-500 font-medium italic tracking-tight">OS Distribution</span>
+              <li className="flex justify-between text-meta-lg border-b border-white/5 pb-2">
+                <span className="text-slate-400 font-medium italic tracking-tight">OS Distribution</span>
                 <span className="text-white font-mono">{node.details.os}</span>
               </li>
-              <li className="flex justify-between text-[11px] border-b border-white/5 pb-2">
-                <span className="text-slate-500 font-medium italic tracking-tight">Logic Threads</span>
+              <li className="flex justify-between text-meta-lg border-b border-white/5 pb-2">
+                <span className="text-slate-400 font-medium italic tracking-tight">Logic Threads</span>
                 <span className="text-white font-mono">{node.details.cpu}</span>
               </li>
-              <li className="flex justify-between text-[11px] border-b border-white/5 pb-2">
-                <span className="text-slate-500 font-medium italic tracking-tight">Addressable RAM</span>
+              <li className="flex justify-between text-meta-lg border-b border-white/5 pb-2">
+                <span className="text-slate-400 font-medium italic tracking-tight">Addressable RAM</span>
                 <span className="text-white font-mono">{node.details.ram}</span>
               </li>
               {node.details.disk && (
-                <li className="flex justify-between text-[11px] border-b border-white/5 pb-2">
-                  <span className="text-slate-500 font-medium italic tracking-tight">Storage Disk</span>
+                <li className="flex justify-between text-meta-lg border-b border-white/5 pb-2">
+                  <span className="text-slate-400 font-medium italic tracking-tight">Storage Disk</span>
                   <span className="text-white font-mono">{node.details.disk}</span>
                 </li>
               )}
               {/* `net` was authored for every fleet node but never rendered
                   (V5.3) — dead data. Surfaced here alongside the other specs. */}
               {node.details.net && (
-                <li className="flex justify-between text-[11px] border-b border-white/5 pb-2">
-                  <span className="text-slate-500 font-medium italic tracking-tight">Network Path</span>
+                <li className="flex justify-between text-meta-lg border-b border-white/5 pb-2">
+                  <span className="text-slate-400 font-medium italic tracking-tight">Network Path</span>
                   <span className="text-white font-mono">{node.details.net}</span>
                 </li>
               )}
-              <li className="flex justify-between text-[11px]">
-                <span className="text-white/40 font-black uppercase tracking-widest text-[9px]">Status</span>
+              <li className="flex justify-between text-meta-lg">
+                <span className="text-white/55 font-black uppercase tracking-widest text-tag">Status</span>
                 <span className={`${gitopsStage === 4 ? 'text-emerald-400' : gitopsStage > 0 ? 'text-amber-400 animate-pulse' : 'text-emerald-400/80'} font-mono flex items-center gap-2 transition-colors`}>
                   <div className={`w-1.5 h-1.5 rounded-full ${gitopsStage === 4 ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]' : gitopsStage > 0 ? 'bg-amber-500 animate-ping' : 'bg-emerald-500/80'}`} />
                   {gitopsStage === 4 ? 'RECONCILED' : gitopsStage > 0 ? 'SYNCING...' : 'RECONCILED'}
@@ -677,10 +679,10 @@ const NodeDetailPanel = ({ node }) => {
           </div>
 
           <div className="space-y-3">
-            <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Critical Services</h5>
+            <h5 className="text-meta font-black uppercase tracking-[0.3em] text-white/55">Critical Services</h5>
             <div className="flex flex-wrap gap-2">
               {node.details.services.map((service, i) => (
-                <span key={i} className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-[9px] text-slate-300 font-mono font-medium shadow-sm hover:border-emerald-500/50 transition-colors">
+                <span key={i} className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-tag text-slate-300 font-mono font-medium shadow-sm hover:border-emerald-500/50 transition-colors">
                   {service}
                 </span>
               ))}
@@ -694,7 +696,7 @@ const NodeDetailPanel = ({ node }) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => playSound('click')}
-                className="inline-flex items-center gap-1.5 mt-1 text-[9px] font-mono font-bold uppercase tracking-wider text-azure-light/80 hover:text-azure-light border-b border-azure/20 hover:border-azure/60 transition-colors"
+                className="inline-flex items-center gap-1.5 mt-1 text-tag font-mono font-bold uppercase tracking-wider text-azure-light/80 hover:text-azure-light border-b border-azure/20 hover:border-azure/60 transition-colors"
               >
                 Read the build guide
                 <span aria-hidden="true">↗</span>
@@ -704,11 +706,11 @@ const NodeDetailPanel = ({ node }) => {
         </div>
 
         {/* Cyberpunk Interactive Terminal / Pipeline Cockpit - 7 Columns */}
-        <div className="lg:col-span-7 flex flex-col h-[280px] bg-[#020202] border border-white/10 rounded-2xl overflow-hidden relative shadow-2xl group/term focus-within:border-emerald-500/30 transition-all duration-300 crt-screen">
+        <div className="lg:col-span-7 flex flex-col md:h-[280px] bg-[#020202] border border-white/10 rounded-2xl overflow-hidden relative shadow-2xl group/term focus-within:border-emerald-500/30 transition-all duration-300 crt-screen">
           
           {/* Title Bar with Tabs */}
           <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/[0.02] relative z-20">
-            <div className="flex gap-2 font-mono text-[9px] uppercase tracking-wider">
+            <div className="flex gap-2 font-mono text-tag uppercase tracking-wider">
               <button 
                 onClick={() => {
                   setActiveTab('terminal');
@@ -731,7 +733,7 @@ const NodeDetailPanel = ({ node }) => {
               </button>
             </div>
             <div className="flex gap-1.5 items-center">
-              <span className="text-[8px] font-mono text-slate-500 uppercase tracking-tighter hidden sm:inline">
+              <span className="text-label font-mono text-slate-400 uppercase tracking-tighter hidden sm:inline">
                 {node.name}
               </span>
               <div className="w-1.5 h-1.5 rounded-full bg-red-500/40" />
@@ -742,7 +744,7 @@ const NodeDetailPanel = ({ node }) => {
 
           {/* Tab Contents: GitOps Visual Pipeline */}
           {activeTab === 'gitops' ? (
-            <div className="flex-1 p-4 flex flex-col justify-between font-mono text-[10px] text-slate-300 relative z-20 overflow-hidden select-none">
+            <div className="flex-1 p-4 flex flex-col justify-between font-mono text-meta text-slate-300 relative z-20 overflow-hidden select-none">
               
               {/* SVG Topology Container */}
               <div className="relative w-full h-[140px] border border-white/5 bg-slate-950/40 rounded-2xl overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] flex items-center justify-center">
@@ -856,8 +858,8 @@ const NodeDetailPanel = ({ node }) => {
                       <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
                     </svg>
                   </div>
-                  <span className="text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider text-slate-500">GitHub Repo</span>
-                  <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">Webhook</span>
+                  <span className="text-micro font-black uppercase tracking-wider text-slate-400">GitHub Repo</span>
+                  <span className="hidden sm:block text-micro text-slate-500 font-mono leading-none">Webhook</span>
                 </div>
 
                 {/* GitLab CI/CD Build Node */}
@@ -876,8 +878,8 @@ const NodeDetailPanel = ({ node }) => {
                       <path d="M23.953 13.072l-1.077-3.311-.005-.015-1.921-5.91a.916.916 0 0 0-1.742-.012l-1.91 5.875H6.702l-1.91-5.875a.915.915 0 0 0-1.741.012L1.13 9.746l-.005.015-1.077 3.311a1.267 1.267 0 0 0 .461 1.417l10.957 7.962a.915.915 0 0 0 1.076 0l10.957-7.962a1.267 1.267 0 0 0 .461-1.417z"/>
                     </svg>
                   </div>
-                  <span className="text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider text-slate-500">GitLab CI</span>
-                  <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">Trivy Scan</span>
+                  <span className="text-micro font-black uppercase tracking-wider text-slate-400">GitLab CI</span>
+                  <span className="hidden sm:block text-micro text-slate-500 font-mono leading-none">Trivy Scan</span>
                 </div>
 
                 {/* AWS ECR Repository Node */}
@@ -901,8 +903,8 @@ const NodeDetailPanel = ({ node }) => {
                       <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>
                     </svg>
                   </div>
-                  <span className="text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider text-slate-500">AWS ECR</span>
-                  <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">Registry</span>
+                  <span className="text-micro font-black uppercase tracking-wider text-slate-400">AWS ECR</span>
+                  <span className="hidden sm:block text-micro text-slate-500 font-mono leading-none">Registry</span>
                 </div>
 
                 {/* ECS Fargate / K3s Target Node */}
@@ -927,10 +929,10 @@ const NodeDetailPanel = ({ node }) => {
                       ) : node.icon ? node.icon : <Server size={14} />}
                     </div>
                   </div>
-                  <span className="text-[6.5px] sm:text-[7px] font-black uppercase tracking-wider text-slate-500">
+                  <span className="text-micro font-black uppercase tracking-wider text-slate-400">
                     {node.id === 'zulu' ? 'ECS Fargate' : node.name}
                   </span>
-                  <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">
+                  <span className="hidden sm:block text-micro text-slate-500 font-mono leading-none">
                     {node.id === 'zulu' ? 'Serverless' : node.tag}
                   </span>
                 </div>
@@ -938,7 +940,7 @@ const NodeDetailPanel = ({ node }) => {
               </div>
 
               {/* Sub-text and Status information container */}
-              <div className={`p-3 bg-black/60 border rounded-xl text-center text-[9px] font-mono leading-relaxed mt-2 transition-all duration-500
+              <div className={`p-3 bg-black/60 border rounded-xl text-center text-tag font-mono leading-relaxed mt-2 transition-all duration-500
                 ${gitopsStage === 4 
                   ? 'border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.1)] text-slate-300' 
                   : gitopsStage > 0 
@@ -972,7 +974,7 @@ const NodeDetailPanel = ({ node }) => {
                     <span className="text-emerald-400 font-black flex items-center gap-1.5">
                       ✔ STATE RECONCILIATION SUCCESSFUL • DEPLOYMENT HEALTHY
                     </span>
-                    <span className="text-[8px] text-slate-500">
+                    <span className="text-label text-slate-400">
                       Target: <strong className="text-slate-300 font-mono">{node.id === 'zulu' ? 'ECS Fargate Service' : node.name}</strong> • Local Drift: <strong className="text-emerald-400 font-mono">0.00%</strong>
                     </span>
                   </div>
@@ -981,8 +983,16 @@ const NodeDetailPanel = ({ node }) => {
 
             </div>
           ) : (
-            /* Terminal Logs View */
-            <div className="flex-1 p-4 font-mono text-[10px] leading-relaxed overflow-y-auto no-scrollbar scroll-smooth text-emerald-400/90 space-y-1 crt-text relative z-20">
+            /* Terminal Logs View — compact result card on phones; the
+               quick-action controls below stay visible */
+            <TerminalPanel
+              title={`${node.name} console`}
+              line={lastLine(logs)}
+              tone={activeCommand ? 'busy' : 'ok'}
+              live={activeCommand !== null}
+              className="p-2"
+            >
+            <div className="flex-1 max-h-[240px] md:max-h-none p-4 font-mono text-meta leading-relaxed overflow-y-auto no-scrollbar scroll-smooth text-emerald-400/90 space-y-1 crt-text relative z-20">
               {logs.map((log, index) => {
                 const isCommand = log.startsWith('$');
                 const isPrompt = log.includes(':~# _');
@@ -1004,6 +1014,7 @@ const NodeDetailPanel = ({ node }) => {
               })}
               <div ref={terminalEndRef} />
             </div>
+            </TerminalPanel>
           )}
 
           {/* Quick-Action Controls */}
@@ -1014,7 +1025,7 @@ const NodeDetailPanel = ({ node }) => {
                 playSound('click');
               }}
               disabled={activeCommand !== null}
-              className={`flex-1 py-1.5 rounded-lg border text-[9px] font-mono font-black uppercase tracking-wider transition-all 
+              className={`flex-1 py-1.5 rounded-lg border text-tag font-mono font-black uppercase tracking-wider transition-all 
                 ${activeCommand === 'ansible' 
                   ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
                   : activeCommand !== null 
@@ -1030,7 +1041,7 @@ const NodeDetailPanel = ({ node }) => {
                 playSound('click');
               }}
               disabled={activeCommand !== null}
-              className={`flex-1 py-1.5 rounded-lg border text-[9px] font-mono font-black uppercase tracking-wider transition-all 
+              className={`flex-1 py-1.5 rounded-lg border text-tag font-mono font-black uppercase tracking-wider transition-all 
                 ${activeCommand === 'gitops' 
                   ? 'bg-azure/10 border-azure/30 text-azure' 
                   : activeCommand !== null 
@@ -1046,7 +1057,7 @@ const NodeDetailPanel = ({ node }) => {
                 playSound('click');
               }}
               disabled={activeCommand !== null}
-              className={`px-3 py-1.5 rounded-lg border text-[9px] font-mono font-black uppercase tracking-wider transition-all 
+              className={`px-3 py-1.5 rounded-lg border text-tag font-mono font-black uppercase tracking-wider transition-all 
                 ${activeCommand !== null 
                   ? 'border-white/5 text-slate-600 cursor-not-allowed'
                   : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:border-white/20 active:scale-95'

@@ -138,6 +138,20 @@ export const GUIDES = [
 
 // --- Projects --------------------------------------------------------------
 export const PROJECTS = [
+  // Links to the product site rather than the repo (it links through to the
+  // AGPL source). Screenshot is the demo-mode fleet view from the public repo.
+  {
+    id: 'cvedeck',
+    title: 'CveDeck',
+    desc: 'Agentless CVE scanning for Linux fleets over SSH — nothing installed on the hosts. Findings are ranked by what is actually being exploited (CISA KEV → FIRST EPSS → CVSS), not just by severity score.',
+    iconKey: 'shield',
+    link: 'https://cvedeck.com',
+    tags: ['Security', 'Python', 'React', 'AGPL-3.0'],
+    time: 'Sep 2026',
+    date: '2026-09',
+    glowColor: 'rgba(239, 68, 68, 0.25)',
+    image: 'https://raw.githubusercontent.com/reprodev/cvedeck/main/docs/assets/fleet-dark.webp',
+  },
   {
     id: 'capo2keys',
     title: 'Capo2Keys',

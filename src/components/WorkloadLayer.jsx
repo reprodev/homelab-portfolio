@@ -16,6 +16,8 @@ import { lockScroll, unlockScroll } from '../lib/scrollLock';
 // "useInViewPause is not defined" and unmounted the whole workload section the
 // moment it was expanded — see docs/playbooks/04-known-deviations.md.
 import useInViewPause from '../hooks/useInViewPause';
+import TerminalPanel from './TerminalPanel.jsx';
+import { lastLine } from '../lib/logs';
 import { OBSERVABILITY_GROUPS, ALERT_PATH, OUT_OF_BAND_NOTE } from '../data/observability';
 import { EDGE_SECURITY, SECURITY_HEADLINE, SECURITY_ROADMAP } from '../data/security';
 
@@ -412,7 +414,7 @@ const SREChaosIncidentDeck = ({ ddosActive, drStep }) => {
           <ShieldAlert size={16} className={activeIncident ? "text-red-500 animate-bounce" : "text-slate-400"} />
           <div className="flex flex-col text-left">
             <span className="leading-tight">Chaos Incident Cockpit</span>
-            <span className="text-[9px] uppercase tracking-[0.25em] text-red-500/70 font-black mt-1">SRE Self-Healing Engine</span>
+            <span className="text-tag uppercase tracking-[0.25em] text-red-500/70 font-black mt-1">SRE Self-Healing Engine</span>
           </div>
         </div>
         
@@ -422,7 +424,7 @@ const SREChaosIncidentDeck = ({ ddosActive, drStep }) => {
           className={`p-1.5 rounded-xl border transition-all duration-300 relative z-30 ${
             soundEnabled 
               ? 'bg-red-500/10 border-red-500/30 text-red-400' 
-              : 'bg-white/5 border-white/10 text-slate-500 hover:text-white'
+              : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
           }`}
           title={soundEnabled ? "Disable Siren Sound" : "Enable Siren Sound"}
           aria-label={soundEnabled ? "Disable incident siren sound" : "Enable incident siren sound"}
@@ -445,7 +447,7 @@ const SREChaosIncidentDeck = ({ ddosActive, drStep }) => {
               key={btn.id}
               onClick={() => triggerChaos(btn.type)}
               disabled={!!activeIncident || ddosActive || drStep > 0}
-              className={`py-2 rounded-lg font-mono text-[9px] font-black uppercase transition-all duration-300 border text-center flex flex-col items-center justify-center relative z-20 ${
+              className={`py-2 rounded-lg font-mono text-tag font-black uppercase transition-all duration-300 border text-center flex flex-col items-center justify-center relative z-20 ${
                 activeIncident === btn.type
                   ? 'bg-red-500 text-black border-red-400 shadow-[0_0_12px_rgba(239,68,68,0.4)] animate-pulse'
                   : activeIncident || ddosActive || drStep > 0
@@ -458,9 +460,15 @@ const SREChaosIncidentDeck = ({ ddosActive, drStep }) => {
           ))}
         </div>
 
-        {/* Real-time CRT Self-Healing Logging console */}
-        <div className="p-3.5 bg-black/60 border border-white/5 rounded-xl h-[120px] overflow-y-auto no-scrollbar scroll-smooth flex flex-col font-mono text-[9px] leading-relaxed text-left relative crt-screen">
-          <div className="absolute top-1.5 right-2 text-[7px] font-black text-slate-600 uppercase tracking-widest select-none">
+        {/* Real-time CRT Self-Healing Logging console — compact result card on phones */}
+        <TerminalPanel
+          title={activeIncident ? `${CHAOS_INCIDENTS[activeIncident].title} active` : 'SRE self-healing log'}
+          line={lastLine(chaosLogs)}
+          tone={activeIncident ? 'alert' : 'ok'}
+          live={!!activeIncident}
+        >
+        <div className="p-3.5 bg-black/60 border border-white/5 rounded-xl h-[120px] overflow-y-auto no-scrollbar scroll-smooth flex flex-col font-mono text-tag leading-relaxed text-left relative crt-screen">
+          <div className="absolute top-1.5 right-2 text-micro font-black text-slate-600 uppercase tracking-widest select-none">
             {activeIncident ? `${CHAOS_INCIDENTS[activeIncident].title} Active` : "sre monitoring active"}
           </div>
           <div className="space-y-1 crt-text relative z-20">
@@ -481,6 +489,7 @@ const SREChaosIncidentDeck = ({ ddosActive, drStep }) => {
             <div ref={logEndRef} />
           </div>
         </div>
+        </TerminalPanel>
       </div>
     </Card>
   );
@@ -597,7 +606,7 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
           </div>
           <div className="text-left">
             <h4 className="text-[17px] font-black text-white italic uppercase tracking-tight">{data.name}</h4>
-            <p className="text-[8px] text-slate-500 uppercase tracking-widest leading-none mt-1">Docker Daemon Profiler // Active</p>
+            <p className="text-label text-slate-400 uppercase tracking-widest leading-none mt-1">Docker Daemon Profiler // Active</p>
           </div>
         </div>
         <button 
@@ -611,7 +620,7 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
       {/* Resource Meters */}
       <div className="p-5 border-b border-white/5 bg-slate-900/30 grid grid-cols-2 gap-4 text-left">
         <div className="p-3.5 bg-black/40 border border-white/5 rounded-xl space-y-1">
-          <div className="flex justify-between text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">
+          <div className="flex justify-between text-label font-extrabold text-slate-400 uppercase tracking-wider">
             <span className="flex items-center gap-1"><Zap size={8} /> CPU Load</span>
             <span className="text-[#39ff14]">{cpuLoad}%</span>
           </div>
@@ -620,7 +629,7 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
           </div>
         </div>
         <div className="p-3.5 bg-black/40 border border-white/5 rounded-xl space-y-1">
-          <div className="flex justify-between text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">
+          <div className="flex justify-between text-label font-extrabold text-slate-400 uppercase tracking-wider">
             <span className="flex items-center gap-1"><Boxes size={8} /> Allocated RAM</span>
             <span className="text-azure-light">{ramLoad} MB</span>
           </div>
@@ -631,7 +640,7 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-white/5 bg-black/20 text-[9px] font-black uppercase tracking-widest">
+      <div className="flex border-b border-white/5 bg-black/20 text-tag font-black uppercase tracking-widest">
         <button
           onClick={() => { playSound('click'); setActiveTab('logs'); }}
           className={`flex-1 py-3 text-center border-r border-white/5 transition-all flex items-center justify-center gap-2 ${
@@ -662,8 +671,8 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
               className="h-full flex flex-col justify-between"
             >
               {/* Terminal View */}
-              <div className="w-full bg-slate-950/90 border border-white/5 rounded-2xl p-4 flex-1 overflow-y-auto max-h-[360px] text-left text-[10px] font-mono leading-relaxed space-y-1.5 select-text no-scrollbar relative">
-                <div className="absolute top-2 right-3 text-[7px] text-slate-500 uppercase tracking-widest select-none">stdout stream</div>
+              <div className="w-full bg-slate-950/90 border border-white/5 rounded-2xl p-4 flex-1 overflow-y-auto max-h-[360px] text-left text-meta font-mono leading-relaxed space-y-1.5 select-text no-scrollbar relative">
+                <div className="absolute top-2 right-3 text-micro text-slate-400 uppercase tracking-widest select-none">stdout stream</div>
                 {visibleLogs.map((log, idx) => {
                   let logColor = 'text-amber-500/90';
                   if (log.includes('[OK]')) logColor = 'text-emerald-400 font-bold';
@@ -688,7 +697,7 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
               exit={{ opacity: 0 }}
               className="h-full text-left"
             >
-              <pre className="p-4 bg-slate-950/90 border border-white/5 rounded-2xl text-[9px] text-[#00f0ff] overflow-x-auto max-h-[360px] leading-normal select-text no-scrollbar">
+              <pre className="p-4 bg-slate-950/90 border border-white/5 rounded-2xl text-tag text-[#00f0ff] overflow-x-auto max-h-[360px] leading-normal select-text no-scrollbar">
                 <code>{JSON.stringify({
                   "Id": data.id,
                   "Created": data.created,
@@ -718,7 +727,7 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
         <button
           onClick={handleRestart}
           disabled={status === 'restarting'}
-          className={`flex items-center justify-center gap-2.5 py-3 rounded-xl font-mono text-[10px] font-black uppercase transition-all duration-300 border ${
+          className={`flex items-center justify-center gap-2.5 py-3 rounded-xl font-mono text-meta font-black uppercase transition-all duration-300 border ${
             status === 'restarting'
               ? 'bg-slate-800 text-slate-500 cursor-not-allowed border-white/5'
               : 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20'
@@ -730,7 +739,7 @@ const DockerProfilerDrawer = ({ containerKey, onClose }) => {
         <button
           onClick={handleStop}
           disabled={status === 'restarting'}
-          className={`flex items-center justify-center gap-2.5 py-3 rounded-xl font-mono text-[10px] font-black uppercase transition-all duration-300 border ${
+          className={`flex items-center justify-center gap-2.5 py-3 rounded-xl font-mono text-meta font-black uppercase transition-all duration-300 border ${
             status === 'restarting'
               ? 'bg-slate-800 text-slate-500 cursor-not-allowed border-white/5'
               : status === 'stopped'
@@ -888,12 +897,12 @@ const AlertPathTrace = ({ active }) => {
     <div className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl">
       <div className="flex items-center justify-between mb-3 gap-2">
         <div className="flex items-center gap-2">
-          <Activity size={14} className={firing ? 'text-red-400' : 'text-slate-500'} />
+          <Activity size={14} className={firing ? 'text-red-400' : 'text-slate-400'} />
           <span className="text-xs font-black uppercase tracking-widest text-white">Alert Path</span>
         </div>
         <div className="flex items-center gap-2">
           <span
-            className={`text-[8px] font-mono uppercase tracking-widest ${
+            className={`text-label font-mono uppercase tracking-widest ${
               firing ? 'text-red-400' : 'text-slate-600'
             }`}
           >
@@ -903,7 +912,7 @@ const AlertPathTrace = ({ active }) => {
             onClick={runTest}
             disabled={firing}
             aria-label="Send a test alert through the escalation path"
-            className={`min-h-[44px] sm:min-h-0 px-2 py-1 rounded-lg border font-mono text-[8px] font-black uppercase tracking-wider transition-colors ${
+            className={`min-h-[44px] sm:min-h-0 px-2 py-1 rounded-lg border font-mono text-label font-black uppercase tracking-wider transition-colors ${
               firing
                 ? 'border-white/5 text-slate-600 cursor-not-allowed'
                 : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
@@ -921,15 +930,15 @@ const AlertPathTrace = ({ active }) => {
             <React.Fragment key={stage.id}>
               <div className="flex flex-col items-center text-center flex-1 min-w-0">
                 <div
-                  className={`w-full px-1 py-1.5 rounded-lg border font-mono text-[7px] font-black uppercase tracking-wider transition-all duration-300 truncate ${
+                  className={`w-full px-1 py-1.5 rounded-lg border font-mono text-micro font-black uppercase tracking-wider transition-all duration-300 truncate ${
                     on
                       ? 'bg-red-500/15 border-red-400/60 text-red-300 shadow-[0_0_10px_rgba(248,113,113,0.25)]'
-                      : 'bg-slate-900/60 border-white/10 text-slate-500'
+                      : 'bg-slate-900/60 border-white/10 text-slate-400'
                   }`}
                 >
                   {stage.label}
                 </div>
-                <span className="text-[5.5px] text-slate-600 font-mono leading-none mt-1 truncate w-full">
+                <span className="hidden sm:block text-micro text-slate-500 font-mono leading-none mt-1 truncate w-full">
                   {stage.sub}
                 </span>
               </div>
@@ -1004,7 +1013,7 @@ const WorkloadLayer = () => {
                 <DockerLogo className="w-6 h-6 text-[#2496ED]" />
                 <div className="flex flex-col">
                   <span className="leading-tight">Docker Container Pool</span>
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-[#2496ED]/70 font-black mt-1">Declarative Workloads</span>
+                  <span className="text-meta uppercase tracking-[0.2em] text-[#2496ED]/70 font-black mt-1">Declarative Workloads</span>
                 </div>
               </div>
             }
@@ -1012,18 +1021,18 @@ const WorkloadLayer = () => {
           >
             {/* Control Bar Hint */}
             <div className="mt-2 text-left bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl flex items-center justify-between">
-              <span className="text-[9px] font-mono uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <span className="text-tag font-mono uppercase tracking-wider text-slate-400 flex items-center gap-2">
                 <Sliders size={10} className="text-[#2496ED]" />
                 Tactile Host Node Daemon Active
               </span>
-              <span className="text-[8px] font-mono text-emerald-400 uppercase tracking-widest animate-pulse font-black">
+              <span className="text-label font-mono text-emerald-400 uppercase tracking-widest animate-pulse font-black">
                 🖱️ Click container to inspect daemon
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-6">
               <div>
-                <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-6 border-b border-white/5 pb-2 italic">Productivity & Access</h4>
+                <h4 className="text-meta font-extrabold text-slate-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-2 italic">Productivity & Access</h4>
                 <div className="space-y-3">
                   <ServiceItem name="Nextcloud" tag="AIO - Data Hub" color="azure" onClick={() => setInspectContainer('nextcloud')} />
                   <ServiceItem name="Vaultwarden" tag="Bitwarden Core" color="emerald" onClick={() => setInspectContainer('vaultwarden')} />
@@ -1032,7 +1041,7 @@ const WorkloadLayer = () => {
                 </div>
               </div>
               <div>
-                <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-6 border-b border-white/5 pb-2 italic">Network Utilities</h4>
+                <h4 className="text-meta font-extrabold text-slate-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-2 italic">Network Utilities</h4>
                 <div className="space-y-3">
                   <ServiceItem name="Nginx Proxy Mgr." tag="Edge Certs" color="azure" onClick={() => setInspectContainer('nginx')} />
                   <ServiceItem name="Pi-hole" tag="Recursive DNS" color="emerald" onClick={() => setInspectContainer('pihole')} />
@@ -1052,7 +1061,7 @@ const WorkloadLayer = () => {
                 </div>
                 <div className="flex flex-col">
                   <span className="leading-tight">Performance Host Workloads</span>
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-[#EBA000]/70 font-black mt-1">Native GPU acceleration</span>
+                  <span className="text-meta uppercase tracking-[0.2em] text-[#EBA000]/70 font-black mt-1">Native GPU acceleration</span>
                 </div>
               </div>
             }
@@ -1065,13 +1074,13 @@ const WorkloadLayer = () => {
                   </div>
                   <div>
                     <h5 className="text-lg font-black text-white italic uppercase tracking-tight text-left">Plex Media Server</h5>
-                    <p className="text-[10px] text-slate-500 font-mono text-left">Running natively on ZuluServer (Ubuntu)</p>
+                    <p className="text-meta text-slate-400 font-mono text-left">Running natively on ZuluServer (Ubuntu)</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => triggerTranscode(!isTranscoding)}
-                    className={`px-3 py-1.5 rounded-lg font-mono text-[9px] font-black uppercase transition-all duration-300 relative z-20 ${
+                    className={`px-3 py-1.5 rounded-lg font-mono text-tag font-black uppercase transition-all duration-300 relative z-20 ${
                       isTranscoding 
                         ? 'bg-amber-500 text-black border border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.4)] animate-pulse' 
                         : 'bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10'
@@ -1088,36 +1097,36 @@ const WorkloadLayer = () => {
              
              {isTranscoding && (
                 <div className="mt-4 p-4 bg-black/60 border border-amber-500/20 rounded-2xl space-y-4 relative overflow-hidden crt-screen">
-                  <div className="flex justify-between items-center text-[8px] font-mono text-amberGold border-b border-white/5 pb-2 relative z-20 crt-text">
+                  <div className="flex justify-between items-center text-label font-mono text-amberGold border-b border-white/5 pb-2 relative z-20 crt-text">
                     <span>INTEL QUICK SYNC VIDEO (QSV) DECODE/ENCODE PIPELINE</span>
                     <span className="flex items-center gap-1.5 uppercase font-bold text-emerald-400">
                       <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" /> Hardware Active
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 items-center justify-between gap-4 font-mono text-[10px] py-2 relative z-20 text-slate-300">
+                  <div className="grid grid-cols-1 md:grid-cols-3 items-center justify-between gap-4 font-mono text-meta py-2 relative z-20 text-slate-300">
                     <div className="flex flex-col items-center justify-center p-3 bg-white/5 rounded-xl border border-white/5 relative">
-                      <span className="text-slate-500 font-extrabold uppercase text-[7px] tracking-wider mb-1">Source Stream</span>
-                      <span className="text-white font-black uppercase text-[10px] italic">4K HEVC HDR10</span>
-                      <span className="text-slate-400 text-[8px] mt-0.5">Bitrate: 68 Mbps</span>
+                      <span className="text-slate-400 font-extrabold uppercase text-micro tracking-wider mb-1">Source Stream</span>
+                      <span className="text-white font-black uppercase text-meta italic">4K HEVC HDR10</span>
+                      <span className="text-slate-400 text-label mt-0.5">Bitrate: 68 Mbps</span>
                     </div>
 
                     <div className="flex flex-col items-center justify-center p-3 bg-amber-500/5 rounded-xl border border-amber-500/20 relative group">
-                      <span className="text-amberGold font-extrabold uppercase text-[7px] tracking-wider mb-1 crt-text">GPU Transcoder</span>
-                      <span className="text-amber-400 font-black uppercase text-[10px] italic flex items-center gap-1">
+                      <span className="text-amberGold font-extrabold uppercase text-micro tracking-wider mb-1 crt-text">GPU Transcoder</span>
+                      <span className="text-amber-400 font-black uppercase text-meta italic flex items-center gap-1">
                         <Zap size={10} className="animate-bounce" /> QSV Engine
                       </span>
-                      <span className="text-slate-400 text-[8px] mt-0.5">Speed: {transcodeSpeed}x</span>
+                      <span className="text-slate-400 text-label mt-0.5">Speed: {transcodeSpeed}x</span>
                     </div>
 
                     <div className="flex flex-col items-center justify-center p-3 bg-white/5 rounded-xl border border-white/5">
-                      <span className="text-slate-500 font-extrabold uppercase text-[7px] tracking-wider mb-1">Destination</span>
-                      <span className="text-white font-black uppercase text-[10px] italic text-emerald-400">1080P H.264 SDR</span>
-                      <span className="text-slate-400 text-[8px] mt-0.5">Bitrate: 8 Mbps</span>
+                      <span className="text-slate-400 font-extrabold uppercase text-micro tracking-wider mb-1">Destination</span>
+                      <span className="text-white font-black uppercase text-meta italic text-emerald-400">1080P H.264 SDR</span>
+                      <span className="text-slate-400 text-label mt-0.5">Bitrate: 8 Mbps</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-[9px] border-t border-white/5 pt-3 relative z-20 crt-text text-slate-300 text-left">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-tag border-t border-white/5 pt-3 relative z-20 crt-text text-slate-300 text-left">
                     <div className="space-y-1.5">
                       <div className="flex justify-between">
                         <span>Intel UHD Graphics 730 Load</span>
@@ -1141,7 +1150,7 @@ const WorkloadLayer = () => {
                 </div>
              )}
 
-              <p className="text-[11px] text-slate-500 italic mt-4 leading-relaxed px-2 text-left">
+              <p className="text-meta-lg text-slate-400 italic mt-4 leading-relaxed px-2 text-left">
                 Runs as a native host-OS application for direct access to <strong>Intel QuickSync GPU</strong> instructions during 4K hardware transcoding, avoiding containerized driver overhead. Pragmatic rather than ideological — containerising it is a tracked roadmap item, not a settled decision.
               </p>
           </Card>
@@ -1153,18 +1162,18 @@ const WorkloadLayer = () => {
             <div className="space-y-6">
               {/* Real-time Observability Sparklines HUD */}
               <div className="p-4 bg-black/60 border border-white/5 rounded-2xl space-y-4 crt-screen">
-                <div className="flex justify-between items-center text-[10px] font-black uppercase text-emerald-400 border-b border-white/5 pb-1 relative z-20 crt-text">
+                <div className="flex justify-between items-center text-meta font-black uppercase text-emerald-400 border-b border-white/5 pb-1 relative z-20 crt-text">
                   <span>Grafana Live Telemetry</span>
                   <span className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" /> Real-time
                   </span>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-2 relative z-20 font-mono text-[9px] text-left">
+                <div className="grid grid-cols-3 gap-2 relative z-20 font-mono text-tag text-left">
                   {/* CPU Sparkline */}
                   <div className="flex flex-col bg-white/5 border border-white/5 rounded-xl p-2 text-slate-300">
-                    <span className="text-slate-500 font-extrabold uppercase text-[7px] leading-none mb-1">Sim CPU</span>
-                    <span className={`text-[11px] font-black italic ${ddosActive ? 'text-red-400' : 'text-emerald-400'}`}>
+                    <span className="text-slate-400 font-extrabold uppercase text-micro leading-none mb-1">Sim CPU</span>
+                    <span className={`text-meta-lg font-black italic ${ddosActive ? 'text-red-400' : 'text-emerald-400'}`}>
                       {ddosActive ? '94.6%' : '14.2%'}
                     </span>
                     <div className="mt-1">
@@ -1174,8 +1183,8 @@ const WorkloadLayer = () => {
 
                   {/* Net Sparkline */}
                   <div className="flex flex-col bg-white/5 border border-white/5 rounded-xl p-2 text-slate-300">
-                    <span className="text-slate-500 font-extrabold uppercase text-[7px] leading-none mb-1">Sim Net</span>
-                    <span className={`text-[11px] font-black italic ${ddosActive ? 'text-red-400 animate-pulse' : 'text-emerald-400'}`}>
+                    <span className="text-slate-400 font-extrabold uppercase text-micro leading-none mb-1">Sim Net</span>
+                    <span className={`text-meta-lg font-black italic ${ddosActive ? 'text-red-400 animate-pulse' : 'text-emerald-400'}`}>
                       {ddosActive ? '892 MB/s' : '412 KB/s'}
                     </span>
                     <div className="mt-1">
@@ -1185,8 +1194,8 @@ const WorkloadLayer = () => {
 
                   {/* Disk IO Sparkline */}
                   <div className="flex flex-col bg-white/5 border border-white/5 rounded-xl p-2 text-slate-300">
-                    <span className="text-slate-500 font-extrabold uppercase text-[7px] leading-none mb-1">Sim Disk</span>
-                    <span className={`text-[11px] font-black italic ${(drStep === 2 || drStep === 3) ? 'text-amber-400 animate-pulse' : 'text-emerald-400'}`}>
+                    <span className="text-slate-400 font-extrabold uppercase text-micro leading-none mb-1">Sim Disk</span>
+                    <span className={`text-meta-lg font-black italic ${(drStep === 2 || drStep === 3) ? 'text-amber-400 animate-pulse' : 'text-emerald-400'}`}>
                       {(drStep === 2 || drStep === 3) ? '280 MB/s' : '1.8 MB/s'}
                     </span>
                     <div className="mt-1">
@@ -1195,7 +1204,7 @@ const WorkloadLayer = () => {
                   </div>
                 </div>
 
-                <p className="relative z-20 text-[8px] font-mono text-slate-500 leading-relaxed m-0 pt-1">
+                <p className="relative z-20 text-label font-mono text-slate-400 leading-relaxed m-0 pt-1">
                   Simulated for this page — the live equivalents are Prometheus-scraped
                   and rendered in Grafana against 30 days of retained metrics.
                 </p>
@@ -1210,17 +1219,17 @@ const WorkloadLayer = () => {
                 </div>
                 {OBSERVABILITY_GROUPS.map((group) => (
                   <div key={group.id}>
-                    <div className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">
+                    <div className="text-label font-black uppercase tracking-[0.2em] text-slate-400 mb-2">
                       {group.label}
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {group.items.map((item) => (
                         <span
                           key={item.name}
-                          className={`px-2 py-1 rounded-lg border text-[9px] font-mono inline-flex items-baseline gap-1.5 ${OBS_CHIP[group.color]}`}
+                          className={`px-2 py-1 rounded-lg border text-tag font-mono inline-flex items-baseline gap-1.5 ${OBS_CHIP[group.color]}`}
                         >
                           <span className="font-black">{item.name}</span>
-                          <span className="opacity-50 text-[8px]">{item.detail}</span>
+                          <span className="opacity-50 text-label">{item.detail}</span>
                         </span>
                       ))}
                     </div>
@@ -1232,10 +1241,10 @@ const WorkloadLayer = () => {
 
               {/* The design decision worth stating out loud. */}
               <div className="p-4 bg-azure/[0.04] border border-azure/20 rounded-2xl">
-                <div className="text-[10px] font-black uppercase tracking-widest text-azure-light mb-2">
+                <div className="text-meta font-black uppercase tracking-widest text-azure-light mb-2">
                   {OUT_OF_BAND_NOTE.title}
                 </div>
-                <p className="text-[10px] text-slate-300 leading-relaxed m-0">
+                <p className="text-meta text-slate-300 leading-relaxed m-0">
                   {OUT_OF_BAND_NOTE.body}
                 </p>
               </div>
@@ -1251,11 +1260,11 @@ const WorkloadLayer = () => {
                   <span className="text-2xl font-black italic text-emerald-400 leading-none">
                     {SECURITY_HEADLINE.stat}
                   </span>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  <span className="text-tag font-black uppercase tracking-widest text-slate-400">
                     {SECURITY_HEADLINE.label}
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400 leading-relaxed m-0 mb-3">
+                <p className="text-meta text-slate-400 leading-relaxed m-0 mb-3">
                   {SECURITY_HEADLINE.body}
                 </p>
 
@@ -1263,25 +1272,25 @@ const WorkloadLayer = () => {
                   {EDGE_SECURITY.map((item) => (
                     <span
                       key={item.name}
-                      className={`px-2 py-1 rounded-lg border text-[9px] font-mono inline-flex items-baseline gap-1.5 ${OBS_CHIP.muted}`}
+                      className={`px-2 py-1 rounded-lg border text-tag font-mono inline-flex items-baseline gap-1.5 ${OBS_CHIP.muted}`}
                     >
                       <span className="font-black">{item.name}</span>
-                      <span className="opacity-50 text-[8px]">{item.detail}</span>
+                      <span className="opacity-50 text-label">{item.detail}</span>
                     </span>
                   ))}
                 </div>
               </div>
 
               <div className="mt-8 pt-6 border-t border-white/5">
-                 <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-4 italic">Future Roadmap</h4>
+                 <h4 className="text-meta font-extrabold text-slate-400 uppercase tracking-widest mb-4 italic">Future Roadmap</h4>
                  <div className="flex flex-wrap gap-1.5 mb-3">
                    {SECURITY_ROADMAP.map((item) => (
                      <span
                        key={item.name}
-                       className="px-2 py-1 rounded-lg border border-dashed border-white/15 bg-transparent text-[9px] font-mono inline-flex items-baseline gap-1.5 text-slate-500"
+                       className="px-2 py-1 rounded-lg border border-dashed border-white/15 bg-transparent text-tag font-mono inline-flex items-baseline gap-1.5 text-slate-400"
                      >
                        <span className="font-black">{item.name}</span>
-                       <span className="opacity-60 text-[8px]">{item.detail}</span>
+                       <span className="opacity-60 text-label">{item.detail}</span>
                      </span>
                    ))}
                  </div>
@@ -1298,7 +1307,7 @@ const WorkloadLayer = () => {
       <RationaleSection title="Rationale: Container-First Abstraction" color="azure" icon={Boxes}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
-            <h6 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-4 flex items-center gap-2">
+            <h6 className="text-meta font-black uppercase tracking-[0.3em] text-white/55 mb-4 flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-azure" /> Strategic Abstraction
             </h6>
             <p className="text-slate-400 text-xs font-medium leading-relaxed italic border-l-2 border-white/5 pl-4 ml-1">
@@ -1306,7 +1315,7 @@ const WorkloadLayer = () => {
             </p>
           </div>
           <div>
-            <h6 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-4 flex items-center gap-2">
+            <h6 className="text-meta font-black uppercase tracking-[0.3em] text-white/55 mb-4 flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Operational Flow
             </h6>
             <ul className="text-slate-400 text-xs space-y-3 list-none p-0">
@@ -1366,8 +1375,8 @@ const ServiceItem = ({ name, tag, color, onClick }) => {
       <div className={`absolute top-0 left-0 bottom-0 w-1 transition-opacity ${glowColors[color]}`} />
       <div className="flex items-center gap-3">
         <div className="flex flex-col">
-          <span className="text-[13px] font-black text-white italic tracking-tight uppercase leading-none mb-1 group-hover/item:text-azure-light transition-colors">{name}</span>
-          <span className="text-[9px] text-slate-500 uppercase tracking-widest font-black opacity-60 italic">{tag}</span>
+          <span className="text-copy font-black text-white italic tracking-tight uppercase leading-none mb-1 group-hover/item:text-azure-light transition-colors">{name}</span>
+          <span className="text-tag text-slate-400 uppercase tracking-widest font-black opacity-60 italic">{tag}</span>
         </div>
       </div>
       <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${glowColors[color]}`} />

@@ -22,7 +22,7 @@ import { useSimEvent, SIM_EVENTS, usePrefersReducedMotion } from '../lib/simBus'
 const PIPELINE_STAGES = [
   { id: 'git', label: 'Git Push', sub: 'homelab-infra', x: 35 },
   { id: 'ci', label: 'CI Validate', sub: 'gitleaks · checkov · trivy', x: 117 },
-  { id: 'packer', label: 'Packer Image', sub: 'ubuntu-2404-golden', x: 199 },
+  { id: 'packer', label: 'Packer Image', sub: 'build pending', x: 199 },
   { id: 'terraform', label: 'Terraform', sub: 'plan · apply', x: 281 },
   { id: 'ansible', label: 'Ansible', sub: 'converge', x: 363 },
 ];
@@ -37,7 +37,22 @@ const PipelineStrip = () => {
   });
 
   return (
-    <div className="relative w-full h-[110px] border border-white/5 bg-slate-950/40 rounded-2xl overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]">
+    /*
+      The five stage chips are positioned absolutely at fixed percentages, so
+      their spacing scales with the container while their width is set by the
+      label text. At the old 7px the widest neighbouring pair needed 66.5px of
+      the 70px available at 390px; the V5.6 floor (9px on mobile) pushed that to
+      85px and they began to overlap and clip below ~430px.
+
+      Rather than shrink the labels back under the legibility floor, give the
+      strip its natural width and let it scroll — the same horizontal-scroll
+      idiom the knowledge carousels already use. Measured: overlap hits zero at
+      440px, so 460 gives a margin while keeping the scroll distance short —
+      four of the five stages are visible at 390px without moving. Desktop is
+      unaffected (`sm:min-w-0`, and `sm:contents` drops the wrapper entirely).
+    */
+    <div className="overflow-x-auto no-scrollbar sm:contents">
+    <div className="relative w-full min-w-[460px] sm:min-w-0 h-[110px] border border-white/5 bg-slate-950/40 rounded-2xl overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]">
       {/* Cyber grid background */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
 
@@ -75,7 +90,7 @@ const PipelineStrip = () => {
             className="absolute -translate-x-1/2 flex flex-col items-center gap-1 text-center z-10"
             style={{ left: `${(stage.x / 400) * 100}%`, top: '26%' }}
           >
-            <div className={`px-2 py-1.5 rounded-xl border transition-all duration-500 font-mono text-[7px] sm:text-[8px] font-black uppercase tracking-wider
+            <div className={`px-2 py-1.5 rounded-xl border transition-all duration-500 font-mono text-micro font-black uppercase tracking-wider
               ${lit
                 ? 'bg-violet-500/15 border-violet-400 text-violet-300 shadow-[0_0_15px_rgba(139,92,246,0.35)] scale-105'
                 : 'bg-slate-900/60 border-white/10 text-slate-400'
@@ -83,10 +98,11 @@ const PipelineStrip = () => {
             >
               {stage.label}
             </div>
-            <span className="text-[5.5px] sm:text-[6px] text-slate-600 font-mono leading-none">{stage.sub}</span>
+            <span className="hidden sm:block text-micro text-slate-500 font-mono leading-none">{stage.sub}</span>
           </div>
         );
       })}
+    </div>
     </div>
   );
 };
@@ -145,7 +161,7 @@ const AutomationLayer = () => (
               <TerraformLogo className="w-5 h-5 text-[#7B42BC]" />
               <div className="flex flex-col text-left">
                 <span className="leading-tight">Terraform Control Plane</span>
-                <span className="text-[10px] uppercase tracking-[0.2em] text-violet-400/70 font-black mt-1">Run the plan → apply pipeline</span>
+                <span className="text-meta uppercase tracking-[0.2em] text-violet-400/90 font-black mt-1">Run the plan → apply pipeline</span>
               </div>
             </div>
             <GitBranch size={14} className="text-slate-600 hidden sm:block" />
@@ -194,14 +210,15 @@ const AutomationLayer = () => (
         } glowColor="rgba(2, 168, 239, 0.1)" className="h-full">
           <div className="flex flex-col gap-4">
             <p className="text-xs text-slate-400 italic leading-relaxed">
-              <strong>Packer</strong> bakes the <span className="font-mono text-slate-300">ubuntu-2404-golden</span> template
-              (VMID 9001) with cloud-init and qemu-guest-agent preinstalled — the same template the
-              plan's <span className="font-mono text-slate-300">clone</span> block provisions from.
+              <strong>Packer</strong> templates for Ubuntu 24.04 and Windows Server 2025 are written and
+              validated in CI; the first image build is still pending. Until it runs, the plan's{' '}
+              <span className="font-mono text-slate-300">clone</span> block provisions from the existing
+              cloud-init golden template (VMID 9001).
             </p>
             <div className="flex flex-wrap gap-2">
-              <Badge color="muted">Template 9001</Badge>
-              <Badge color="muted">Cloud-Init Baked</Badge>
-              <Badge color="muted">CI Built</Badge>
+              <Badge color="muted">HCL Written</Badge>
+              <Badge color="muted">CI Validated</Badge>
+              <Badge color="muted">Build Pending</Badge>
             </div>
           </div>
         </Card>
@@ -217,11 +234,14 @@ const AutomationLayer = () => (
           <div className="flex flex-col gap-4">
             <p className="text-xs text-slate-400 italic leading-relaxed">
               <strong>RedHat Ansible</strong> takes over after provisioning — desired-state configuration
-              of OS packages, user identities, and security hardening across the fleet.
+              of OS packages, user identities, and security hardening across the fleet. It runs from{' '}
+              <strong>GitLab CI on a schedule</strong>: nightly Vaultwarden and SQLite backups, a weekly
+              cleanup and a reboot audit. A rolling maintenance pass covers five hosts in under two
+              minutes, and automated volume pruning is banned by standard.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Badge color="muted">Playbooks</Badge>
-              <Badge color="muted">Inventory HA</Badge>
+              <Badge color="muted">GitLab CI Schedules</Badge>
+              <Badge color="muted">Rolling Maintenance</Badge>
               <Badge color="muted">Vault Vars</Badge>
             </div>
           </div>
@@ -234,19 +254,19 @@ const AutomationLayer = () => (
       <div className="mt-6 p-4 bg-slate-950/40 border border-white/5 rounded-2xl flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-center gap-2 shrink-0">
           <Layers size={13} className="text-violet-400" />
-          <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/40">IaC Coverage</span>
+          <span className="text-tag font-black uppercase tracking-[0.25em] text-white/55">IaC Coverage</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {COVERAGE.map((item) => (
             <span
               key={item.label}
-              className={`px-2.5 py-1 rounded-lg border font-mono text-[9px] font-bold transition-colors ${COVERAGE_STYLE[item.via]}`}
+              className={`px-2.5 py-1 rounded-lg border font-mono text-tag font-bold transition-colors ${COVERAGE_STYLE[item.via]}`}
             >
               {item.via} · {item.label}
             </span>
           ))}
         </div>
-        <span className="text-[9px] text-slate-500 italic sm:ml-auto shrink-0">
+        <span className="text-tag text-slate-400 italic sm:ml-auto shrink-0">
           Fully codified — but by the right tool for each layer, not one tool everywhere.
         </span>
       </div>
@@ -255,24 +275,25 @@ const AutomationLayer = () => (
     <RationaleSection title="Rationale: Declarative State & GitOps" color="emerald" icon={TerminalIcon}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <div>
-          <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4 flex items-center gap-2">
+          <h6 className="text-meta font-black uppercase tracking-[0.2em] text-white/55 mb-4 flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Infrastructure as Code (IaC)
           </h6>
           <p className="text-slate-400 text-xs font-medium leading-relaxed italic border-l-2 border-white/5 pl-4 ml-1">
             Treating infrastructure as "cattle, not pets" is central to this design. Core nodes are
-            provisioned via <strong>Terraform</strong> from <strong>Packer</strong> golden images and
+            provisioned via <strong>Terraform</strong> from a cloud-init golden template (a{' '}
+            <strong>Packer</strong> pipeline to bake it is written, first build pending) and
             configured via <strong>Ansible</strong>. This ensures the environment is reproducible and
             version-controlled — a destroyed VM is a five-minute rebuild, not a weekend.
           </p>
         </div>
         <div>
-          <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4 flex items-center gap-2">
+          <h6 className="text-meta font-black uppercase tracking-[0.2em] text-white/55 mb-4 flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-azure" /> Strategic Decision
           </h6>
           <ul className="text-slate-400 text-xs space-y-3 list-none p-0">
             <li className="flex items-start gap-3">
               <span className="text-emerald-500 font-bold">◃</span>
-              <span><strong>Desired State:</strong> Systemd timers execute automated reconciliation to sync cluster state with Git repositories.</span>
+              <span><strong>Desired State:</strong> Scheduled GitLab CI pipelines run the fleet playbooks against the inventory in Git, so recurring operations are versioned and logged rather than living in ad-hoc cron jobs.</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-emerald-500 font-bold">◃</span>

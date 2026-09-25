@@ -19,11 +19,11 @@ const RationaleSection = ({ title = "Architectural Rationale", children, icon: I
           <div className={`p-1.5 rounded-lg bg-black/40 border ${accentBorder} ${accentText} group-hover:scale-110 transition-transform`}>
             <Icon size={14} />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">{title}</span>
+          <span className="text-meta font-black uppercase tracking-[0.2em] text-slate-300">{title}</span>
         </div>
         <ChevronDown 
           size={16} 
-          className={`text-slate-500 transition-transform duration-500 ${isOpen ? 'rotate-180 text-white' : ''}`} 
+          className={`text-slate-400 transition-transform duration-500 ${isOpen ? 'rotate-180 text-white' : ''}`} 
         />
       </button>
 

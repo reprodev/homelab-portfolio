@@ -116,7 +116,7 @@ const ServiceDeskSimDetails = ({ onBack }) => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-3 px-6 py-3 rounded-full border transition-all duration-500 text-[10px] font-black uppercase tracking-widest ${
+            className={`flex items-center gap-3 px-6 py-3 rounded-full border transition-all duration-500 text-meta font-black uppercase tracking-widest ${
               activeTab === tab.id 
               ? 'bg-violet-600 border-violet-400 text-white shadow-[0_0_30px_rgba(139,92,246,0.3)]' 
               : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
@@ -151,10 +151,10 @@ const ServiceDeskSimDetails = ({ onBack }) => {
               
               <div className="w-full lg:w-2/3 text-center lg:text-left">
                 <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
-                  <span className="px-3 py-1 bg-violet-500/10 border border-violet-500/30 rounded-md text-[10px] font-black uppercase tracking-widest text-violet-400">
+                  <span className="px-3 py-1 bg-violet-500/10 border border-violet-500/30 rounded-md text-meta font-black uppercase tracking-widest text-violet-400">
                     {current.role}
                   </span>
-                  <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-md text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-md text-meta font-black uppercase tracking-widest text-slate-400">
                     Stack: {current.stack}
                   </span>
                 </div>
@@ -175,8 +175,8 @@ const ServiceDeskSimDetails = ({ onBack }) => {
               {current.specs.map((spec, i) => (
                 <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center group hover:border-violet-500/30 transition-all">
                   <div className="text-3xl font-black text-white mb-1 tracking-tighter">{spec.value}</div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-violet-400 mb-1">{spec.label}</div>
-                  <div className="text-[10px] text-slate-500">{spec.detail}</div>
+                  <div className="text-meta font-black uppercase tracking-widest text-violet-400 mb-1">{spec.label}</div>
+                  <div className="text-meta text-slate-400">{spec.detail}</div>
                 </div>
               ))}
             </div>
@@ -204,7 +204,7 @@ const ServiceDeskSimDetails = ({ onBack }) => {
         {/* Footer CTAs */}
         <div className="flex flex-col items-center gap-12 pt-12 border-t border-white/5">
           <div className="text-center space-y-4">
-            <h5 className="text-[10px] font-black uppercase tracking-[0.4em] text-violet-400 opacity-50">Authorized External Portals</h5>
+            <h5 className="text-meta font-black uppercase tracking-[0.4em] text-violet-400 opacity-50">Authorized External Portals</h5>
             <div className="flex flex-wrap items-center justify-center gap-6">
               <button 
                 onClick={onBack}

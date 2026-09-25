@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, SkipForward, X, Compass } from 'lucide-react';
 import { TOUR_STEPS, TOUR_START_EVENT } from '../lib/tourScript';
 import { resetSims, triggerExpand, usePrefersReducedMotion } from '../lib/simBus';
+import { SIM_DISPATCH_DELAY, COLLAPSIBLE_IDS } from '../lib/sectionNav';
+import { navigate, ROUTES } from '../lib/route';
+import useIsMobile from '../hooks/useIsMobile';
 
 /*
   GuidedTour — a self-running cinematic demo reel.
@@ -17,18 +20,33 @@ import { resetSims, triggerExpand, usePrefersReducedMotion } from '../lib/simBus
 */
 
 /*
-  Gap between opening a section and dispatching its sim. Collapsed
-  CollapsibleSections unmount their children, so a sim fired in the same tick as
-  `triggerExpand` has no listener to receive it. One commit is enough in
-  principle; 150ms matches LayerHUD's existing 120ms delay with margin and stays
-  far inside every step's dwell time (shortest is 6000ms).
+  SIM_DISPATCH_DELAY (src/lib/sectionNav.js, 150ms) is the gap between opening a
+  section and dispatching its sim. Collapsed CollapsibleSections unmount their
+  children, so a sim fired in the same tick as `triggerExpand` has no listener to
+  receive it. The bento CTAs share the constant.
 */
-const SIM_DISPATCH_DELAY = 150;
-const GuidedTour = () => {
+const GuidedTour = ({ route }) => {
+  const isMobile = useIsMobile(1024);
+  const onHome = !route || route.path === ROUTES.home;
   const reducedMotion = usePrefersReducedMotion();
   const [active, setActive] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+
+  /*
+    V6: the floating pill waits until the hero is scrolled past. At the top of the
+    lab page the Hero's own "Play Guided Tour" button is on screen, and the pill
+    sat on top of the skim strip (desktop) and the profile links (phones).
+    The other pages have no hero, so it shows there straight away.
+  */
+  const [pastHero, setPastHero] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setPastHero(window.scrollY > 560);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  const showPill = !active && (!onHome || pastHero);
 
   const timerRef = useRef(null);
   const remainingRef = useRef(0);
@@ -79,10 +97,12 @@ const GuidedTour = () => {
   }, [stepIndex]);
 
   const start = useCallback(() => {
+    // The tour drives the lab page's sims, so it can only run there (V6 routes).
+    if (!onHome) navigate(ROUTES.home);
     setStepIndex(0);
     setPaused(false);
     setActive(true);
-  }, []);
+  }, [onHome]);
 
   // External start trigger (Hero CTA, etc.)
   useEffect(() => {
@@ -112,14 +132,25 @@ const GuidedTour = () => {
     produced no output at all. LayerHUD.scrollToSection already delays for the same
     reason. Tracked in a ref so exiting mid-step can't fire a sim into a dead tour.
   */
+  /*
+    V6: scroll + expand are also deferred, by one macrotask. When the tour starts
+    from another page it navigates home, and this effect runs in the same commit
+    that mounts the lab page — before the sections below it have subscribed to the
+    expand bus (sibling effects run in tree order) and before the shell's
+    route-change scroll-to-top. A 0ms timer lands after all of that.
+  */
   useEffect(() => {
-    if (!active) return undefined;
+    if (!active || !onHome) return undefined;
     const step = TOUR_STEPS[stepIndex];
     if (!step) return undefined;
     remainingRef.current = step.durationMs;
-    const el = document.getElementById(step.sectionId);
-    if (el) el.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
-    triggerExpand(step.sectionId);
+    const scrollTimer = setTimeout(() => {
+      if (!step.sectionId) return;
+      const el = document.getElementById(step.sectionId);
+      if (el) el.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
+      // Only real accordions: firing it for a plain <section> collapses the rest.
+      if (COLLAPSIBLE_IDS.has(step.sectionId)) triggerExpand(step.sectionId);
+    }, 0);
 
     clearEnterTimer();
     if (step.onEnter) {
@@ -128,12 +159,15 @@ const GuidedTour = () => {
         step.onEnter();
       }, SIM_DISPATCH_DELAY);
     }
-    return clearEnterTimer;
-  }, [active, stepIndex, reducedMotion]);
+    return () => {
+      clearTimeout(scrollTimer);
+      clearEnterTimer();
+    };
+  }, [active, stepIndex, reducedMotion, onHome]);
 
   // Dwell timer: schedule advancement; on pause/unmount bank the remaining time.
   useEffect(() => {
-    if (!active || paused) return undefined;
+    if (!active || paused || !onHome) return undefined;
     const step = TOUR_STEPS[stepIndex];
     if (!step) return undefined;
     stepStartRef.current = Date.now();
@@ -143,7 +177,7 @@ const GuidedTour = () => {
       const elapsed = Date.now() - stepStartRef.current;
       remainingRef.current = Math.max(0, remainingRef.current - elapsed);
     };
-  }, [active, paused, stepIndex, advance]);
+  }, [active, paused, stepIndex, advance, onHome]);
 
   const step = TOUR_STEPS[stepIndex];
 
@@ -151,20 +185,23 @@ const GuidedTour = () => {
     <>
       {/* Persistent entry pill */}
       <AnimatePresence>
-        {!active && (
+        {showPill && (
           <motion.button
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            transition={{ delay: 1.6, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             onClick={start}
             aria-label="Play guided tour of the infrastructure"
-            className="fixed bottom-6 left-6 z-[65] group flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-2xl bg-azure/15 border border-azure/30 backdrop-blur-xl text-azure-light hover:bg-azure/25 hover:border-azure/50 hover:text-white transition-all active:scale-95 shadow-[0_0_30px_rgba(96,165,250,0.15)]"
+            /* V6: bottom-right on desktop (the rail owns the left edge); above the
+               bottom tab bar on phones. */
+            style={isMobile ? { bottom: 'calc(5rem + env(safe-area-inset-bottom))' } : undefined}
+            className="fixed right-4 bottom-6 lg:right-6 z-[65] group flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-2xl bg-azure/15 border border-azure/30 backdrop-blur-xl text-azure-light hover:bg-azure/25 hover:border-azure/50 hover:text-white transition-all active:scale-95 shadow-[0_0_30px_rgba(96,165,250,0.15)]"
           >
             <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-azure/20 group-hover:bg-azure/30 transition-colors">
               <Play size={14} fill="currentColor" />
             </span>
-            <span className="text-[11px] font-black uppercase tracking-[0.18em]">Play Tour</span>
+            <span className="text-meta-lg font-black uppercase tracking-[0.18em]">Play Tour</span>
           </motion.button>
         )}
       </AnimatePresence>
@@ -177,7 +214,8 @@ const GuidedTour = () => {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 120, opacity: 0 }}
             transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.5 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[80] w-[calc(100%-3rem)] max-w-2xl"
+            style={isMobile ? { bottom: 'calc(5rem + env(safe-area-inset-bottom))' } : undefined}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[80] w-[calc(100%-2rem)] max-w-2xl"
           >
             <div className="relative overflow-hidden rounded-2xl bg-slate-950/90 border border-azure/25 backdrop-blur-2xl shadow-[0_0_50px_rgba(0,0,0,0.6)]">
               {/* per-step progress rail */}
@@ -199,12 +237,12 @@ const GuidedTour = () => {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-[8px] font-mono font-black uppercase tracking-[0.25em] text-azure-light/70">
+                    <span className="text-label font-mono font-black uppercase tracking-[0.25em] text-azure-light/70">
                       Step {stepIndex + 1} / {TOUR_STEPS.length}
                     </span>
                   </div>
                   <h4 className="text-sm font-black text-white italic tracking-tight leading-tight truncate">{step.title}</h4>
-                  <p className="text-[11px] text-slate-400 leading-snug line-clamp-2">{step.caption}</p>
+                  <p className="text-meta-lg text-slate-400 leading-snug line-clamp-2">{step.caption}</p>
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">

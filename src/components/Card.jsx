@@ -63,7 +63,7 @@ const Card = ({ title, children, className = "", glowColor = "rgba(59, 130, 246,
       )}
       
       {title && (
-        <h4 className={`text-xs font-mono uppercase tracking-[0.3em] ${isMobile ? 'text-white/60' : 'text-white/30'} mb-6 border-b border-white/5 pb-4 relative z-10`}>
+        <h4 className={`text-xs font-mono uppercase tracking-[0.3em] ${isMobile ? 'text-white/60' : 'text-white/55'} mb-6 border-b border-white/5 pb-4 relative z-10`}>
           {title}
         </h4>
       )}

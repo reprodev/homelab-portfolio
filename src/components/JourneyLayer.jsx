@@ -104,7 +104,7 @@ const JourneyLayer = () => {
         },
         {
           title: "Veeam S3 & Glacier Deep Archive Target",
-          desc: "Transitioning cold offsite copy jobs from Dropbox directly to encrypted AWS S3 buckets. Bootstrapping bucket lifecycle rules to auto-transition historic backups to Glacier Deep Archive, securing 99.999999999% durability at less than $0.00099/GB.",
+          desc: "Moving the daily offsite backup copy from Dropbox directly to encrypted AWS S3 buckets. Bootstrapping bucket lifecycle rules to auto-transition historic backups to Glacier Deep Archive, securing 99.999999999% durability at less than $0.00099/GB.",
           evidence: "Restricted AWS IAM user policies, bucket KMS key rotation, lifecycle transitions."
         },
         {
@@ -122,12 +122,12 @@ const JourneyLayer = () => {
   ];
 
   return (
-    <div className="space-y-8 font-mono text-[10px] text-slate-300">
+    <div className="space-y-8 font-mono text-meta text-slate-300">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* Month Selector Buttons - 4 Columns */}
         <div className="lg:col-span-4 space-y-4">
-          <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-6 flex items-center gap-2">
+          <h4 className="text-meta font-black uppercase tracking-[0.3em] text-white/55 mb-6 flex items-center gap-2">
             <Calendar size={12} className="text-azure-light" /> Modernization Phases
           </h4>
           
@@ -157,19 +157,19 @@ const JourneyLayer = () => {
                       : 'bg-slate-950/20 border-white/5 hover:border-white/10 opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <div className={`p-2 bg-black/40 rounded-xl border border-white/5 ${isActive ? accentColor : 'text-slate-500'}`}>
+                  <div className={`p-2 bg-black/40 rounded-xl border border-white/5 ${isActive ? accentColor : 'text-slate-400'}`}>
                     <Icon size={16} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="font-black italic text-white uppercase text-[9px] tracking-tight truncate">
+                      <span className="font-black italic text-white uppercase text-tag tracking-tight truncate">
                         {phase.month === 4 ? 'Future' : `Month ${phase.month}`}
                       </span>
-                      <span className={`text-[7px] font-black px-1.5 py-0.5 border rounded uppercase tracking-tighter ${accentColor}`}>
+                      <span className={`text-micro font-black px-1.5 py-0.5 border rounded uppercase tracking-tighter ${accentColor}`}>
                         {phase.status}
                       </span>
                     </div>
-                    <p className="text-[8px] text-slate-500 font-medium truncate">{phase.subtitle}</p>
+                    <p className="text-label text-slate-400 font-medium truncate">{phase.subtitle}</p>
                   </div>
                   
                   {isActive && (
@@ -238,16 +238,16 @@ const JourneyLayer = () => {
                             <div className={`absolute -left-[5px] top-1.5 w-2 h-2 rounded-full border border-[#050505] ${dotClass}`} />
                             
                             <div className="space-y-1.5 flex-1 min-w-0">
-                              <h5 className="text-[11px] font-black text-white italic uppercase tracking-tight flex items-center gap-2">
+                              <h5 className="text-meta-lg font-black text-white italic uppercase tracking-tight flex items-center gap-2">
                                 <span>{item.title}</span>
                                 {StatusIcon}
                               </h5>
-                              <p className="text-[10px] text-slate-400 font-medium leading-relaxed italic">
+                              <p className="text-meta text-slate-400 font-medium leading-relaxed italic">
                                 {item.desc}
                               </p>
                               <div className="flex items-center gap-1.5 pt-1">
-                                <span className="text-[7.5px] font-black uppercase text-slate-600 tracking-wider">Telemetry Evidence:</span>
-                                <span className={`text-[8px] font-mono font-bold tracking-tight border px-2 py-0.5 rounded-md truncate
+                                <span className="text-micro font-black uppercase text-slate-400 tracking-wider">Telemetry Evidence:</span>
+                                <span className={`text-label font-mono font-bold tracking-tight border px-2 py-0.5 rounded-md truncate
                                   ${isComplete 
                                     ? 'bg-emerald-950/10 border-emerald-500/10 text-emerald-300' 
                                     : isInProgress 

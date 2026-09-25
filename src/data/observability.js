@@ -33,6 +33,10 @@ export const OBSERVABILITY_GROUPS = [
       { name: 'Uptime Kuma', detail: 'Dual instance' },
       { name: 'Blackbox Exporter', detail: 'Synthetic probes' },
       { name: 'Healthchecks', detail: "Dead man's switch" },
+      // V5.7 — each verified running in the lab's handover log (2026-09).
+      { name: 'Healthcheck Watchdog', detail: '87% container coverage' },
+      { name: 'SLA Reports', detail: 'Monthly, from Uptime Kuma' },
+      { name: 'CVE Watchdog', detail: 'CISA KEV · every 4h' },
     ],
   },
   {

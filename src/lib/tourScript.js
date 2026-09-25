@@ -4,7 +4,8 @@ import { triggerDdos, triggerDr, triggerTranscode, triggerTerraform } from './si
   tourScript — the scripted sequence the GuidedTour controller plays back.
 
   Each step:
-    sectionId   DOM id to scroll to (matches CollapsibleSection / section ids)
+    sectionId   DOM id to scroll to (matches CollapsibleSection / section ids), or
+                null for a narration-only step
     title       short heading shown in the narration bar
     caption     one-line narration
     durationMs  how long to dwell before advancing (>= any sim it triggers)
@@ -62,10 +63,16 @@ export const TOUR_STEPS = [
     onEnter: () => triggerDr(1),
     onExit: () => triggerDr(0),
   },
+  /*
+    V6: Knowledge moved to its own page (#/writing). The tour stays on the lab page
+    — navigating mid-tour would unmount every section it has been driving — so the
+    last step points at the nav instead of going there. `sectionId: null` = no
+    scroll/expand for this step.
+  */
   {
-    sectionId: 'knowledge-base',
-    title: 'Lifecycle 05 — Learn: Knowledge & Projects',
-    caption: 'Deep-dive guides and open-source tools — the story behind the stack.',
+    sectionId: null,
+    title: 'Next: Blog & Builds',
+    caption: 'The write-ups and open-source tools behind the stack live on their own page — open Blog & Builds from the nav.',
     durationMs: 6000,
   },
 ];

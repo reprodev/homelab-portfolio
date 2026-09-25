@@ -84,7 +84,7 @@ const OriginStory = ({ onBack, onOpenCaseStudy }) => {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-xs font-mono uppercase tracking-[0.5em] text-white/40 mb-6 px-4">Collaborative Intelligence Layer</h3>
+            <h3 className="text-xs font-mono uppercase tracking-[0.5em] text-white/55 mb-6 px-4">Collaborative Intelligence Layer</h3>
             {aiArchetypes.map((ai) => (
               <motion.div 
                 key={ai.name}
@@ -98,7 +98,7 @@ const OriginStory = ({ onBack, onOpenCaseStudy }) => {
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
                       <span className="text-lg font-black text-white">{ai.name}</span>
-                      <span className="text-[10px] font-mono tracking-widest text-white/30 uppercase border border-white/10 px-2 py-0.5 rounded-full">{ai.role}</span>
+                      <span className="text-meta font-mono tracking-widest text-white/55 uppercase border border-white/10 px-2 py-0.5 rounded-full">{ai.role}</span>
                     </div>
                     <p className="text-xs text-white/50 leading-relaxed font-medium">
                       {ai.desc}
@@ -112,12 +112,12 @@ const OriginStory = ({ onBack, onOpenCaseStudy }) => {
 
         {/* Learning Section (Prompt Insight) */}
         <div className="w-full max-w-4xl p-10 rounded-[2.5rem] bg-slate-950 border border-white/5 shadow-2xl mb-16 relative overflow-hidden">
-          <div className="absolute top-0 left-0 p-4 font-mono text-[10px] text-white/20 uppercase tracking-widest">Prompt Logic Trace v1.5</div>
+          <div className="absolute top-0 left-0 p-4 font-mono text-meta text-white/55 uppercase tracking-widest">Prompt Logic Trace v1.5</div>
           <div className="flex flex-col gap-6 mt-6">
             <div className="flex items-start gap-4">
               <div className="w-2 h-2 rounded-full bg-emerald-500 mt-2 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
               <div className="space-y-2">
-                <p className="text-sm font-mono text-white/40">USER@ANTI-GRAVITY: ~/</p>
+                <p className="text-sm font-mono text-white/55">USER@ANTI-GRAVITY: ~/</p>
                 <p className="text-base font-bold text-azure-light">
                   "Initialize a multi-stage digital gateway using Vite and Framer Motion. 
                   Unify the three operational sectors (Music, KB, Homelab) into a single high-fidelity entry point. 
@@ -129,7 +129,7 @@ const OriginStory = ({ onBack, onOpenCaseStudy }) => {
             <div className="flex items-start gap-4 opacity-60">
               <div className="w-2 h-2 rounded-full bg-azure mt-2" />
               <div className="space-y-2">
-                <p className="text-xs font-mono text-white/40">SYSTEM_LOG:</p>
+                <p className="text-xs font-mono text-white/55">SYSTEM_LOG:</p>
                 <p className="text-sm text-white/80">
                   Scaffolding selection tiles... Syncing gradient tokens... 
                   Implementing stage persistence... Injecting haptic feedback nodes...

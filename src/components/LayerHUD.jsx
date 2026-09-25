@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Database, Cpu, Repeat, LayoutGrid, Menu, X, Volume2, VolumeX, Sliders, Network, ArrowUp, Map, BookOpen, GitBranch } from 'lucide-react';
-import { triggerExpand } from '../lib/simBus.js';
+import { VolumeX, Sliders } from 'lucide-react';
 import { playSound, getAudioContext, setUiSoundsEnabled } from '../lib/audio';
 import useIsMobile from '../hooks/useIsMobile';
 
 const LayerHUD = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const isMobile = useIsMobile(1024);
   
   // Audio state
@@ -14,10 +12,6 @@ const LayerHUD = () => {
   const [humActive, setHumActive] = useState(false); // Off by default to respect user gesture
   const [clickActive, setClickActive] = useState(true);
   const [showAudioSettings, setShowAudioSettings] = useState(false);
-
-  // Scrollspy & Scroll To Top
-  const [activeSection, setActiveSection] = useState('topology');
-  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Audio Context Web API references
   const audioCtxRef = useRef(null);
@@ -173,75 +167,6 @@ const LayerHUD = () => {
     }
   }, [volume, humActive]);
 
-  // Order mirrors the lifecycle layout in App.jsx <main> (Code → Provision →
-  // Run → Protect → Learn). Ids are legacy addresses — never rename them here
-  // without the matching App.jsx/tourScript sweep (see Decision Record 2026-07-11).
-  /*
-    `collapsible: false` marks the two targets that are plain <section>s in App.jsx
-    rather than CollapsibleSections. Firing the accordion event for them made every
-    real layer take the "close everything else" branch — so glancing at the 3D map
-    collapsed and unmounted whatever the user had open, destroying an in-progress
-    sim or container inspector. If one of these ever becomes collapsible, flip the
-    flag here too.
-  */
-  const sections = [
-    { id: 'topology', icon: <Network size={18} />, label: '3D Topology', collapsible: false },
-    { id: 'layer-code', icon: <GitBranch size={18} />, label: 'Code / IaC' },
-    { id: 'layer-2', icon: <Database size={18} />, label: 'Hardware' },
-    { id: 'layer-1', icon: <Shield size={18} />, label: 'Edge & Ingress' },
-    { id: 'layer-3', icon: <Cpu size={18} />, label: 'Fleet' },
-    { id: 'layer-4', icon: <LayoutGrid size={18} />, label: 'Workloads' },
-    { id: 'layer-dr', icon: <Repeat size={18} />, label: 'Disaster Recovery' },
-    { id: 'layer-journey', icon: <Map size={18} />, label: 'Roadmap' },
-    { id: 'knowledge-base', icon: <BookOpen size={18} />, label: 'Knowledge', collapsible: false },
-  ];
-  const isCollapsible = (id) => sections.find((s) => s.id === id)?.collapsible !== false;
-
-  // Scroll-to-top visibility — passive listener, no layout reads
-  useEffect(() => {
-    const handleScroll = () => setShowScrollTop(window.scrollY > 350);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Scrollspy via IntersectionObserver — replaces the per-scroll-event
-  // offsetTop/offsetHeight walk (which forced synchronous layout on every
-  // scroll tick). The active section is whichever intersects a band near
-  // the top quarter of the viewport.
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-            break;
-          }
-        }
-      },
-      { rootMargin: '-15% 0px -65% 0px' }
-    );
-    // CollapsibleSections mount their wrappers immediately, so observing on
-    // mount is safe even while collapsed.
-    sections.forEach(({ id }) => {
-      const el = document.getElementById(id);
-      if (el) obs.observe(el);
-    });
-    return () => obs.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const scrollToSection = (id) => {
-    // Only drive the accordion for targets that actually are one.
-    if (isCollapsible(id)) triggerExpand(id);
-    setTimeout(() => {
-      const element = document.getElementById(id);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 120);
-    if (isMobile) setIsOpen(false);
-  };
-
   const toggleHum = () => {
     initAudio();
     if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
@@ -251,21 +176,22 @@ const LayerHUD = () => {
     playSynthesizedSound('click');
   };
 
-  const hudVariants = {
-    hidden: { x: 100, opacity: 0 },
-    show: { x: 0, opacity: 1 },
-  };
-
+  /*
+    V6: LayerHUD is now ONLY the acoustic cockpit. Its section nav, scrollspy and
+    scroll-to-top moved to StageNav (rail on desktop, bottom bar on phones). It
+    still lives in the persistent shell in App.jsx — the hum engine above must
+    never unmount on a route change, or it tears the hum down (see teardown).
+    One instance, repositioned by breakpoint rather than rendered in two places,
+    so crossing 1024px never remounts it either.
+  */
   return (
-    <motion.div 
-      initial="hidden"
-      animate="show"
-      variants={hudVariants}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ delay: 1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 z-[60] select-none"
+      className={`fixed z-[60] select-none ${isMobile ? 'top-6 right-[5.5rem]' : 'bottom-6 left-3'}`}
     >
-      <div className="flex flex-col-reverse lg:flex-col gap-3 p-2.5 lg:p-3 rounded-2xl bg-slate-950/85 border border-azure/20 backdrop-blur-xl shadow-[0_0_30px_rgba(0,102,204,0.15)] relative">
-        
+      <div className="relative">
         {/* Toggle Audio Controls Button */}
         <button
           onClick={() => {
@@ -273,7 +199,7 @@ const LayerHUD = () => {
             setShowAudioSettings(!showAudioSettings);
           }}
           aria-label="Toggle Audio Control Panel"
-          className={`flex items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-azure/25 hover:border-azure/40 text-slate-300 hover:text-white transition-all duration-300 active:scale-95 z-30 ${showAudioSettings ? 'bg-azure/20 border-azure/50 text-white' : ''}`}
+          className={`flex items-center justify-center w-11 h-11 lg:w-12 lg:h-12 rounded-xl bg-slate-950/85 border border-white/10 backdrop-blur-xl hover:bg-azure/25 hover:border-azure/40 text-slate-300 hover:text-white transition-all duration-300 active:scale-95 z-30 ${showAudioSettings ? 'bg-azure/20 border-azure/50 text-white' : ''}`}
         >
           {humActive && volume > 0 ? (
             <div className="flex items-center gap-0.5 justify-center h-[18px] w-[18px]">
@@ -293,10 +219,10 @@ const LayerHUD = () => {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="absolute bottom-full right-0 lg:bottom-auto lg:top-0 lg:right-full mb-3 lg:mb-0 lg:mr-3 p-4 rounded-xl bg-slate-950/90 border border-azure/30 backdrop-blur-2xl shadow-[0_0_30px_rgba(96,165,250,0.2)] w-60 z-50 text-slate-300 text-left"
+              className="absolute top-full right-0 mt-3 lg:top-auto lg:right-auto lg:bottom-0 lg:left-full lg:mt-0 lg:ml-3 p-4 rounded-xl bg-slate-950/90 border border-azure/30 backdrop-blur-2xl shadow-[0_0_30px_rgba(96,165,250,0.2)] w-60 z-50 text-slate-300 text-left"
             >
               <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
-                <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-azure-light uppercase">ACOUSTIC CORE</span>
+                <span className="text-meta font-mono font-bold tracking-[0.2em] text-azure-light uppercase">ACOUSTIC CORE</span>
                 <Sliders size={12} className="text-azure-light" />
               </div>
 
@@ -304,8 +230,8 @@ const LayerHUD = () => {
                 {/* Server Room Ambient Hum Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-white">Chassis Fan Hum</span>
-                    <span className="text-[9px] font-mono text-slate-500">Low-Freq LFO Synthesizer</span>
+                    <span className="text-meta-lg font-bold text-white">Chassis Fan Hum</span>
+                    <span className="text-tag font-mono text-slate-400">Low-Freq LFO Synthesizer</span>
                   </div>
                   <button
                     onClick={toggleHum}
@@ -318,8 +244,8 @@ const LayerHUD = () => {
                 {/* Click Feedbacks Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-white">Tactile Click Synth</span>
-                    <span className="text-[9px] font-mono text-slate-500">Sine Wave Tick Synthesizer</span>
+                    <span className="text-meta-lg font-bold text-white">Tactile Click Synth</span>
+                    <span className="text-tag font-mono text-slate-400">Sine Wave Tick Synthesizer</span>
                   </div>
                   <button
                     onClick={() => {
@@ -334,7 +260,7 @@ const LayerHUD = () => {
 
                 {/* Master Volume Controller */}
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-[10px] font-mono">
+                  <div className="flex items-center justify-between text-meta font-mono">
                     <span>VOLUME</span>
                     <span className="text-azure-light">{volume}%</span>
                   </div>
@@ -355,87 +281,6 @@ const LayerHUD = () => {
           )}
         </AnimatePresence>
 
-        <button
-          onClick={() => {
-            playSynthesizedSound('click');
-            if (isMobile) setIsOpen(!isOpen);
-          }}
-          aria-label={isOpen ? "Close Navigation HUD" : "Open Navigation HUD"}
-          className={`flex items-center justify-center p-3 rounded-xl bg-azure/25 border border-azure/40 text-white lg:hidden transition-all active:scale-90 z-30`}
-        >
-          {isOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
-
-        <div className="hidden lg:block text-[8px] font-mono font-bold text-azure-light/70 uppercase tracking-[0.25em] text-center mb-1 drop-shadow-[0_0_6px_rgba(96,165,250,0.3)]">
-          NAV_HUD
-        </div>
-        
-        {/* Scroll To Top Button (Triggered dynamically on scroll) */}
-        <AnimatePresence>
-          {showScrollTop && (
-            <motion.button
-              initial={{ scale: 0, opacity: 0, height: 0 }}
-              animate={{ scale: 1, opacity: 1, height: 'auto' }}
-              exit={{ scale: 0, opacity: 0, height: 0 }}
-              onClick={() => {
-                playSynthesizedSound('click');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              title="Scroll to Top"
-              className="flex items-center justify-center p-3.5 lg:p-3 rounded-xl bg-azure/10 border border-azure/30 text-azure-light hover:bg-azure/20 hover:border-azure/50 hover:text-white transition-all active:scale-90 mb-1.5 relative z-30 shadow-[0_0_12px_rgba(96,165,250,0.2)]"
-            >
-              <ArrowUp size={18} className="animate-bounce" />
-            </motion.button>
-          )}
-        </AnimatePresence>
-        
-        <AnimatePresence>
-          {(isOpen || !isMobile) && (
-            <motion.div 
-              initial={isMobile ? { height: 0, opacity: 0, marginBottom: 0 } : {}}
-              animate={isMobile ? { height: 'auto', opacity: 1, marginBottom: 12 } : {}}
-              exit={isMobile ? { height: 0, opacity: 0, marginBottom: 0 } : {}}
-              className="flex flex-col gap-3 overflow-hidden"
-            >
-              {sections.map((section) => {
-                const isActive = activeSection === section.id;
-                return (
-                  <button
-                    key={section.id}
-                    onClick={() => {
-                      playSynthesizedSound('click');
-                      scrollToSection(section.id);
-                    }}
-                    aria-label={`Scroll to ${section.label}`}
-                    className={`group relative flex items-center justify-center p-3.5 lg:p-3 rounded-xl transition-all active:scale-90 border z-30 ${
-                      isActive 
-                        ? 'bg-azure/25 border-azure text-azure-light shadow-[0_0_15px_rgba(96,165,250,0.3)] scale-[1.08]' 
-                        : 'bg-white/5 border-white/10 text-slate-300 hover:bg-azure/25 hover:border-azure/40 hover:text-white hover:shadow-[0_0_15px_rgba(96,165,250,0.3)]'
-                    }`}
-                  >
-                    {section.icon}
-                    
-                    {/* Active pulse tag */}
-                    {isActive && (
-                      <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-azure rounded-full animate-ping" />
-                    )}
-                    
-                    {/* Label (Desktop Tooltip / Mobile Inline) */}
-                    <div className="absolute right-full mr-4 px-3 py-1.5 rounded-lg bg-black/90 border border-white/10 text-white text-[10px] font-mono uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden lg:block shadow-2xl">
-                      {section.label}
-                    </div>
-                    
-                    {isMobile && (
-                      <span className="absolute right-full mr-4 text-[9px] font-mono font-bold text-azure-light uppercase tracking-widest pointer-events-none whitespace-nowrap drop-shadow-[0_0_6px_rgba(96,165,250,0.3)]">
-                        {section.label}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </motion.div>
   );

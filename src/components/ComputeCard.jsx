@@ -48,7 +48,7 @@ const ComputeCard = ({ name, sub, status = "active", managedBy, glowColor = "eme
                   }`} 
                 />
               </div>
-              <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest leading-none pt-0.5">{status}</p>
+              <p className="text-meta font-mono text-slate-400 uppercase tracking-widest leading-none pt-0.5">{status}</p>
             </div>
           </div>
         </div>
@@ -58,7 +58,7 @@ const ComputeCard = ({ name, sub, status = "active", managedBy, glowColor = "eme
       </div>
 
       <div className="space-y-3 relative z-10">
-        <p className="text-[11px] text-slate-400 font-medium leading-relaxed bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 inline-block w-full italic">
+        <p className="text-meta-lg text-slate-400 font-medium leading-relaxed bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 inline-block w-full italic">
           {sub}
         </p>
       </div>

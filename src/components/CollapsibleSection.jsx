@@ -3,8 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useSimEvent, SIM_EVENTS } from '../lib/simBus';
 import { playSound } from '../lib/audio';
+import StageTitle from './StageTitle.jsx';
 
-const CollapsibleSection = ({ children, id, layerId, title, defaultExpanded = false }) => {
+/*
+  V6: a stage is now header → always-visible `summary` (the StageBento) → body.
+  The body keeps the old contract exactly: it only exists while expanded
+  (collapsed children unmount — sims rely on that for teardown), and the
+  `homelab-expand` bus opens one section and closes the rest.
+
+  `compact` is for the three Run sub-sections, which sit under one shared stage
+  header and bento, so they get a smaller header with no numeral or Proves line.
+*/
+const CollapsibleSection = ({
+  children, id, layerId, title, num, proves, summary, compact = false, defaultExpanded = false,
+}) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   // Accordion Focus Mode: open the target layer and close all others
@@ -33,10 +45,12 @@ const CollapsibleSection = ({ children, id, layerId, title, defaultExpanded = fa
   return (
     <div
       id={id}
-      className={`transition-all duration-500 pt-12 -mt-12 ${
-        !isExpanded
-          ? 'bg-white/[0.01] hover:bg-white/[0.02] rounded-[2rem] p-6 lg:p-8 border border-white/5 my-6 hover:border-azure/20'
-          : 'bg-transparent my-0'
+      className={`scroll-mt-6 transition-colors duration-500 rounded-[2rem] border ${
+        compact ? 'p-4 lg:p-6' : 'p-5 lg:p-8'
+      } ${
+        isExpanded
+          ? 'bg-white/[0.015] border-white/10'
+          : 'bg-white/[0.01] hover:bg-white/[0.02] border-white/5 hover:border-azure/20'
       }`}
     >
       {/* Persistent Header.
@@ -57,35 +71,32 @@ const CollapsibleSection = ({ children, id, layerId, title, defaultExpanded = fa
         /* Only reference the region while it exists — AnimatePresence unmounts it
            when collapsed, so an unconditional aria-controls is a dangling IDREF. */
         aria-controls={isExpanded ? `${id}-content` : undefined}
-        className="flex items-center justify-between group cursor-pointer select-none py-2 hover:opacity-90 transition-all rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-azure/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+        className="flex items-start justify-between gap-4 group cursor-pointer select-none rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-azure/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
       >
-        <div className="flex flex-col">
-          {layerId && (
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 mb-1.5">
-              {layerId}
-            </span>
-          )}
-          <h3 className={`text-xl md:text-2xl font-extralight tracking-tight text-white m-0 transition-all ${!isExpanded ? 'italic text-slate-300' : 'italic font-normal'}`}>
-            {title}
-          </h3>
-        </div>
+        <StageTitle
+          num={num}
+          eyebrow={layerId}
+          title={title}
+          proves={proves}
+          compact={compact}
+          muted={!isExpanded}
+        />
 
-        <div className="flex items-center gap-4">
-          {/* Action indicator for premium interactive feel */}
-          <span className="hidden md:inline-block text-[9px] font-mono text-azure-light/60 opacity-0 group-hover:opacity-100 transition-all duration-300 tracking-[0.2em] uppercase">
-            {isExpanded ? '[ click to collapse layer ]' : '[ click to expand layer ]'}
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="hidden md:inline-block text-tag font-mono font-black text-azure-light/80 tracking-[0.2em] uppercase group-hover:text-white transition-colors">
+            {isExpanded ? 'Close' : 'Explore'}
           </span>
-
-          {/* Springy chevron capsule (V5.0 showstopper pass) */}
           <motion.div
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 18 }}
-            className={`p-2.5 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-105 transition-colors duration-300 ${isExpanded ? 'bg-white/10 border-white/20 shadow-[0_0_15px_rgba(0,102,204,0.3)]' : ''}`}
+            className={`flex items-center justify-center w-11 h-11 rounded-2xl bg-white/5 border border-white/10 group-hover:border-azure/40 transition-colors duration-300 ${isExpanded ? 'bg-white/10 border-white/20' : ''}`}
           >
             <ChevronDown size={18} className="text-white/60 group-hover:text-white transition-colors" />
           </motion.div>
         </div>
       </div>
+
+      {summary}
 
       <AnimatePresence initial={false}>
         {isExpanded && (

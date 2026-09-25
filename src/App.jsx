@@ -1,62 +1,27 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { motion, AnimatePresence, useScroll, useSpring, useTransform } from 'framer-motion';
-import Hero from './components/Hero.jsx';
-import AutomationLayer from './components/AutomationLayer.jsx';
-import NetworkLayer from './components/NetworkLayer.jsx';
-import HardwareLayer from './components/HardwareLayer.jsx';
-import LogicalLayer from './components/LogicalLayer.jsx';
-import WorkloadLayer from './components/WorkloadLayer.jsx';
-import DRPipeline from './components/DRPipeline.jsx';
-import KnowledgeLayer from './components/KnowledgeLayer.jsx';
-import JourneyLayer from './components/JourneyLayer.jsx';
-import CollapsibleSection from './components/CollapsibleSection.jsx';
-import InstructionalTip from './components/InstructionalTip.jsx';
+import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import LayerHUD from './components/LayerHUD.jsx';
 import GuidedTour from './components/GuidedTour.jsx';
-import { LayoutGrid, Network } from 'lucide-react';
-import { useSimEvent, SIM_EVENTS } from './lib/simBus.js';
+import StageNav from './components/StageNav.jsx';
+import CockpitHUD from './components/CockpitHUD.jsx';
+import HomelabPage from './pages/HomelabPage.jsx';
+import WritingPage from './pages/WritingPage.jsx';
+import JourneyPage from './pages/JourneyPage.jsx';
+import { LayoutGrid } from 'lucide-react';
+import { useSimEvent, SIM_EVENTS, resetSims } from './lib/simBus.js';
 import { lockScroll, unlockScroll } from './lib/scrollLock.js';
+import { useRoute, hasDeepLink, ROUTES } from './lib/route.js';
 import Reveal from './components/Reveal.jsx';
+import useIsMobile from './hooks/useIsMobile.js';
 
 const SplashHub = React.lazy(() => import('./components/SplashHub.jsx'));
-const Topology3D = React.lazy(() => import('./components/Topology3D.jsx'));
-
-// Cockpit labels for the canonical simBus DR step vocabulary (0 idle → 4 restored).
-const DR_STEP_LABELS = [
-  '6/6 HOSTS ONLINE',
-  'OUTAGE DETECTED (STEP 1/4)',
-  'RECONCILING (STEP 2/4)',
-  'VERIFYING (STEP 3/4)',
-  '6/6 HOSTS RESTORED',
-];
-
-// Cockpit stat that springs toward each new telemetry value instead of
-// snapping — the count-up sells the "live instrument" feel.
-const AnimatedStat = ({ value, decimals = 0 }) => {
-  const spring = useSpring(value, { stiffness: 90, damping: 22 });
-  const display = useTransform(spring, (v) => v.toFixed(decimals));
-  useEffect(() => { spring.set(value); }, [value, spring]);
-  return <motion.span>{display}</motion.span>;
-};
-
-// Mounts its children only once they scroll near the viewport, so the heavy
-// WebGL topology chunk never costs first paint.
-const LazyInView = ({ children, className, rootMargin = '300px' }) => {
-  const ref = React.useRef(null);
-  const [visible, setVisible] = React.useState(false);
-  React.useEffect(() => {
-    const node = ref.current;
-    if (!node || visible) return undefined;
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { rootMargin }
-    );
-    obs.observe(node);
-    return () => obs.disconnect();
-  }, [visible, rootMargin]);
-  return <div ref={ref} className={className}>{visible ? children : null}</div>;
-};
-
+/*
+  App — the persistent SHELL (V6). Pages swap underneath it; everything here must
+  survive a route change: the ambient orbs and their theme, the sim listeners and
+  cockpit state (DR/DDoS/terraform recolour the whole site), LayerHUD's hum engine
+  (unmounting it tears the hum down), the guided tour and the stage nav.
+  Pages: src/pages/. Router: src/lib/route.js (hash-based, no dependency).
+*/
 function App() {
   const [showSplash, setShowSplash] = useState(null); // 'null' for the initial checking frame
   const [ambientTheme, setAmbientTheme] = useState('default');
@@ -66,6 +31,25 @@ function App() {
   const [tfActive, setTfActive] = useState(false);
   const [tfResource, setTfResource] = useState(0);
   const [vitals, setVitals] = useState({ watts: 92, temp: 42.7 });
+  // 1024 matches the 3D/flat fallback gate: below it we are on a touch device
+  // with a mobile compositor, so the decorative layers get cut down.
+  const isMobile = useIsMobile(1024);
+
+  const route = useRoute();
+
+  /*
+    Route change: start the new page at the top (a pending anchor scroll runs
+    after this), drop any hover theme whose mouseleave will never fire, and when
+    leaving the lab page reset every sim. The sims live on that page only; their
+    DDoS and transcode toggles never stop on their own, so without this the shell
+    would stay red or amber on a page that has no way to end it (deviations #16's
+    cousin — DRPipeline also resets itself on unmount now).
+  */
+  useEffect(() => {
+    if (!route.anchor) window.scrollTo(0, 0);
+    setAmbientTheme('default');
+    if (route.path !== ROUTES.home) resetSims();
+  }, [route.path]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -78,7 +62,11 @@ function App() {
     // Check if splash should be shown
     const isPermanentlyHidden = localStorage.getItem('hideSplashPermanently');
 
-    if (isPermanentlyHidden === 'true') {
+    /* A deep link (#/writing, or a legacy #layer-3 from a reprodev post) means the
+       visitor asked for a specific place — don't put the splash in front of it.
+       Session-only: `hideSplashPermanently` is NOT written, so the bare URL still
+       shows the splash and showstoppers §5 (manual override) is untouched. */
+    if (isPermanentlyHidden === 'true' || hasDeepLink()) {
       setShowSplash(false);
     } else {
       setShowSplash(true);
@@ -142,7 +130,7 @@ function App() {
   // Avoid FOUC (flash of unstyled content) or dashboard flicker
   if (showSplash === null) return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-      <div className="text-white/20 text-[11px] md:text-sm font-mono uppercase tracking-[0.6em] animate-pulse">
+      <div className="text-white/55 text-meta-lg md:text-sm font-mono uppercase tracking-[0.6em] animate-pulse">
         Infrastructure Initializing...
       </div>
     </div>
@@ -217,13 +205,23 @@ function App() {
 
   const orbs = getOrbColors();
 
+  /*
+    The ambient orbs are the heaviest thing on the page for a phone. Each theme
+    string pairs a fill with a 120-180px `shadow-[...]` spread, and that shadow
+    sits *underneath* an orb already carrying a 100-140px blur — on mobile it
+    buys no visible glow while costing a second full-size composited layer per
+    orb. Strip it there and keep getOrbColors() as the single palette source
+    rather than forking ten theme cases into mobile/desktop variants.
+  */
+  const orbClass = (cls) => (isMobile ? cls.replace(/\s*shadow-\[[^\]]*\]/, '') : cls);
+
   return (
     <div className="min-h-screen relative selection:bg-azure/30 selection:text-white bg-[#050505] overflow-x-hidden">
       <AnimatePresence mode="wait">
         {showSplash ? (
           <Suspense fallback={
             <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-              <div className="text-white/20 text-[10px] md:text-xs font-mono uppercase tracking-[0.6em] animate-pulse">
+              <div className="text-white/55 text-meta md:text-xs font-mono uppercase tracking-[0.6em] animate-pulse">
                 Establishing Quantum Connection...
               </div>
             </div>
@@ -247,18 +245,32 @@ function App() {
             {/* Texture Overlay */}
             <div className="noise-overlay" />
 
-            {/* Moving Background Orbs */}
+            {/* Moving Background Orbs.
+
+                Mobile gets the same ambient colour wash at a fraction of the
+                fill cost: smaller, `blur-2xl` instead of a 100-140px blur, no
+                shadow spread and no `animate-float`. Three fixed 400-600px
+                layers being re-blurred every frame, stacked under ~28
+                backdrop-filter panels, was enough to push the tab past what a
+                phone will hold — which presents as the browser silently
+                reloading the page mid-scroll. SplashHub already gated its own
+                orbs this way (blur-2xl on isMobile); this is the dashboard
+                catching up. `transition-colors`, not `transition-all`, so a
+                breakpoint cross doesn't animate blur and size too. */}
             <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-              <div className={`absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-[120px] animate-float transition-all duration-1000 ${orbs.orb1}`} />
-              <div className={`absolute bottom-1/4 right-1/4 w-[600px] h-[600px] rounded-full blur-[140px] animate-float animation-delay-2000 transition-all duration-1000 ${orbs.orb2}`} />
-              <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full blur-[100px] animate-float animation-delay-4000 transition-all duration-1000 ${orbs.orb3}`} />
+              <div className={`absolute top-1/4 left-1/4 rounded-full transition-colors duration-1000 ${isMobile ? 'w-[280px] h-[280px] blur-2xl' : 'w-[500px] h-[500px] blur-[120px] animate-float'} ${orbClass(orbs.orb1)}`} />
+              <div className={`absolute bottom-1/4 right-1/4 rounded-full transition-colors duration-1000 ${isMobile ? 'w-[320px] h-[320px] blur-2xl' : 'w-[600px] h-[600px] blur-[140px] animate-float animation-delay-2000'} ${orbClass(orbs.orb2)}`} />
+              <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-1000 ${isMobile ? 'w-[240px] h-[240px] blur-2xl' : 'w-[400px] h-[400px] blur-[100px] animate-float animation-delay-4000'} ${orbClass(orbs.orb3)}`} />
             </div>
 
-            {/* Nav HUD & Portal Switcher */}
+            {/* Acoustic cockpit (hum engine) — shell-level so it never unmounts */}
             <LayerHUD />
 
+            {/* Stage rail (desktop) / bottom tab bar (phones) */}
+            <StageNav route={route} />
+
             {/* Guided cinematic auto-tour controller */}
-            <GuidedTour />
+            <GuidedTour route={route} />
             
             <motion.button
               initial={{ scale: 0, opacity: 0 }}
@@ -275,139 +287,37 @@ function App() {
               <LayoutGrid size={24} className="text-azure-light group-hover:rotate-90 transition-transform duration-500" />
             </motion.button>
 
-            {/* Main Content Container */}
-            <div className="relative z-10 w-full">
-              <Hero />
-              
-              {/* Global Infrastructure Status Cockpit HUD */}
-              <div className="max-w-[1300px] mx-auto px-6 mt-6 relative z-30">
-                <div className="p-4 bg-slate-950/75 backdrop-blur-xl border border-white/10 rounded-3xl grid grid-cols-2 md:grid-cols-4 gap-6 font-mono text-[10px] shadow-2xl relative overflow-hidden blueprint-dots">
-                  {/* Sonar sweep style border indicator */}
-                  <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-azure/50 to-transparent" />
-                  
-                  {/* Node Status Indicator — DR owns this tile during a drill;
-                      terraform provisioning shows only while drStep === 0 */}
-                  <div className="flex flex-col gap-1.5 items-start text-left pl-3 border-l border-white/10 md:border-l-0">
-                    <span className="text-slate-400 font-extrabold uppercase text-[8px] tracking-wider leading-none">Cluster Node Status</span>
-                    <span className={`text-[11px] font-black italic flex items-center gap-1.5 ${drActive ? 'text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] animate-pulse' : tfActive && drStep === 0 ? 'text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.5)] animate-pulse' : 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]'}`}>
-                      <span className={`w-2 h-2 rounded-full ${drActive ? 'bg-amber-400 animate-ping' : tfActive && drStep === 0 ? 'bg-violet-400 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
-                      {tfActive && drStep === 0 ? `PROVISIONING (${tfResource}/3)` : DR_STEP_LABELS[drStep] || DR_STEP_LABELS[0]}
-                    </span>
-                  </div>
- 
-                  {/* Ingress Shield */}
-                  <div className="flex flex-col gap-1.5 items-start text-left pl-3 border-l border-white/10">
-                    <span className="text-slate-400 font-extrabold uppercase text-[8px] tracking-wider leading-none">Edge Security Ingress</span>
-                    <span className={`text-[11px] font-black italic flex items-center gap-1.5 ${ddosActive ? 'text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse' : 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]'}`}>
-                      <span className={`w-2 h-2 rounded-full ${ddosActive ? 'bg-red-400 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
-                      {ddosActive ? 'MITIGATING ATTACK' : 'SHIELD SECURE'}
-                    </span>
-                  </div>
- 
-                  {/* Power Draw Indicator */}
-                  <div className="flex flex-col gap-1.5 items-start text-left pl-3 border-l border-white/10">
-                    <span className="text-slate-400 font-extrabold uppercase text-[8px] tracking-wider leading-none">Fleet Power Draw</span>
-                    <span className="text-white text-[11px] font-black italic flex items-baseline gap-1">
-                      <span className="text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]">
-                        <AnimatedStat value={vitals.watts} />
-                      </span>
-                      <span className="text-[8px] text-slate-400 font-normal uppercase">Watts</span>
-                    </span>
-                  </div>
- 
-                  {/* Heat core temp */}
-                  <div className="flex flex-col gap-1.5 items-start text-left pl-3 border-l border-white/10">
-                    <span className="text-slate-400 font-extrabold uppercase text-[8px] tracking-wider leading-none">CPU Thermal Core</span>
-                    <span className="text-white text-[11px] font-black italic flex items-baseline gap-1">
-                      <span className={ddosActive ? 'text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]' : drActive ? 'text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]' : 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]'}>
-                        <AnimatedStat value={vitals.temp} decimals={1} />
-                      </span>
-                      <span className="text-[8px] text-slate-400 font-normal uppercase">°C</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
+            {/* Main Content Container. lg:pl-16 reserves the rail's column so the
+                nav can never sit on top of content (deviations #22); pb-24 on
+                phones keeps the footer clear of the bottom bar. */}
+            <div className="relative z-10 w-full lg:pl-16 pb-24 lg:pb-0">
+              {route.path === ROUTES.writing ? (
+                <WritingPage />
+              ) : route.path === ROUTES.journey ? (
+                <JourneyPage />
+              ) : (
+                <HomelabPage
+                  anchor={route.anchor}
+                  setAmbientTheme={setAmbientTheme}
+                  cockpit={
+                    <CockpitHUD
+                      ddosActive={ddosActive}
+                      drActive={drActive}
+                      drStep={drStep}
+                      tfActive={tfActive}
+                      tfResource={tfResource}
+                      vitals={vitals}
+                    />
+                  }
+                />
+              )}
 
-              <InstructionalTip />
-              
-              <main className="max-w-[1300px] mx-auto px-6 py-12 space-y-12">
-                {/* Live 3D Infrastructure Topology — the WebGL centerpiece */}
-                <section id="topology" className="scroll-mt-24">
-                  <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-6 gap-2 border-b border-white/5 pb-4">
-                    <h3 className="text-2xl md:text-3xl font-extralight tracking-tight text-white m-0 italic flex items-center gap-3">
-                      <Network size={22} className="text-azure-light" /> Live Infrastructure Topology
-                    </h3>
-                    <span className="text-sm font-mono text-slate-400">
-                      Interactive 3D map · <strong className="text-azure-light font-normal uppercase tracking-tighter">reacts to every simulation</strong>
-                    </span>
-                  </div>
-                  <LazyInView>
-                    <Suspense fallback={
-                      <div className="w-full h-[460px] md:h-[560px] rounded-[2rem] border border-white/10 bg-black/40 flex items-center justify-center">
-                        <div className="text-white/20 text-[10px] md:text-xs font-mono uppercase tracking-[0.6em] animate-pulse">
-                          Rendering Topology...
-                        </div>
-                      </div>
-                    }>
-                      <Topology3D />
-                    </Suspense>
-                  </LazyInView>
-                </section>
-
-                {/* Lifecycle order (Decision Record 2026-07-11): Code → Provision →
-                    Run → Protect → Learn. Section ids are legacy addresses — the
-                    lifecycle naming lives ONLY in eyebrows/titles (do not rename ids). */}
-                <CollapsibleSection id="layer-code" layerId="Lifecycle 01 · Code" title="Infrastructure as Code Pipeline" defaultExpanded={true}>
-                  <div onMouseEnter={() => setAmbientTheme('layer-code')} onMouseLeave={() => setAmbientTheme('default')}>
-                    <AutomationLayer />
-                  </div>
-                </CollapsibleSection>
-
-                <CollapsibleSection id="layer-2" layerId="Lifecycle 02 · Provision" title="Bare-Metal & Hypervisor">
-                  <div onMouseEnter={() => setAmbientTheme('layer-2')} onMouseLeave={() => setAmbientTheme('default')}>
-                    <HardwareLayer />
-                  </div>
-                </CollapsibleSection>
-
-                <CollapsibleSection id="layer-1" layerId="Lifecycle 03 · Run — Edge" title="Edge & Auth Ingress">
-                  <div onMouseEnter={() => setAmbientTheme('layer-1')} onMouseLeave={() => setAmbientTheme('default')}>
-                    <NetworkLayer />
-                  </div>
-                </CollapsibleSection>
-
-                <CollapsibleSection id="layer-3" layerId="Lifecycle 03 · Run — Fleet" title="Compute Fleet & Orchestration">
-                  <div onMouseEnter={() => setAmbientTheme('layer-3')} onMouseLeave={() => setAmbientTheme('default')}>
-                    <LogicalLayer />
-                  </div>
-                </CollapsibleSection>
-
-                <CollapsibleSection id="layer-4" layerId="Lifecycle 03 · Run — Workloads" title="Distributed Workloads">
-                  <div onMouseEnter={() => setAmbientTheme('layer-4')} onMouseLeave={() => setAmbientTheme('default')}>
-                    <WorkloadLayer />
-                  </div>
-                </CollapsibleSection>
-
-                <CollapsibleSection id="layer-dr" layerId="Lifecycle 04 · Protect" title="Disaster Recovery & Continuity">
-                  <div onMouseEnter={() => setAmbientTheme('layer-dr')} onMouseLeave={() => setAmbientTheme('default')}>
-                    <DRPipeline />
-                  </div>
-                </CollapsibleSection>
-
-                <CollapsibleSection id="layer-journey" layerId="Lifecycle 05 · Learn" title="Enterprise Modernization Journey">
-                  <div>
-                    <JourneyLayer />
-                  </div>
-                </CollapsibleSection>
-
-                <KnowledgeLayer />
-              </main>
-
-              <footer className="py-24 border-t border-white/5 text-center px-6">
+              <footer className="py-16 md:py-24 border-t border-white/5 text-center px-6">
                 <Reveal y={16}>
                   <p className="text-white font-bold tracking-tight mb-3 text-sm md:text-base">
                     Khurram Nazir &copy; 2026
                   </p>
-                  <p className="text-slate-400 text-[11px] md:text-xs uppercase tracking-widest font-medium">
+                  <p className="text-slate-400 text-meta-lg md:text-xs uppercase tracking-widest font-medium">
                     Built with <span className="text-azure-light">React</span> & <span className="text-emerald-400">Tailwind CSS</span> • Infrastructure Visualizer
                   </p>
                 </Reveal>

@@ -92,6 +92,37 @@
   background-attachment: fixed;
 }
 
+/* `background-attachment: fixed` is "high performance" on a desktop compositor
+   only. On touch devices it is the opposite: the background can't be promoted to
+   a scrollable cached layer, so the browser repaints it across the full element
+   on every scroll frame — and .blueprint-dots is applied to the entire dashboard
+   wrapper (App.jsx) as well as the cockpit HUD. iOS Safari doesn't honour it
+   during momentum scroll anyway, so the parallax it buys is largely imaginary
+   there. Scroll-attached below the touch breakpoint: for a 24px repeating dot
+   grid the visual difference is close to nil, and the scroll jank goes away. */
+@media (max-width: 1024px), (hover: none) {
+  .blueprint-dots {
+    background-attachment: scroll;
+  }
+}
+
+/* Cap backdrop blur radius on mobile. There are ~28 backdrop-filter panels on
+   the dashboard and each one is a separate readback-and-blur pass over whatever
+   sits behind it; the cost scales with the blur radius. Overriding Tailwind's
+   `--tw-backdrop-blur` (rather than `backdrop-filter` wholesale) keeps the other
+   backdrop functions in the composite intact. Same 20px-class ceiling the
+   Capture Protocol already established for .hud-glass and Card.jsx — this just
+   applies it site-wide instead of one component at a time. */
+@media (max-width: 1024px), (hover: none) {
+  .backdrop-blur-3xl,
+  .backdrop-blur-2xl {
+    --tw-backdrop-blur: blur(16px);
+  }
+  .backdrop-blur-xl {
+    --tw-backdrop-blur: blur(12px);
+  }
+}
+
 /* High-Performance phosphor-CRT Monitor Effect */
 .crt-screen {
   position: relative;

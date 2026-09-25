@@ -295,28 +295,28 @@ function TopologyFallback({ mode }) {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-6 py-10 px-4">
       <div className={`${tierBox} ${accent} w-48`}>
-        <div className="text-[13px] font-black italic text-white">Cloudflare Edge</div>
-        <div className="text-[9px] uppercase tracking-widest opacity-70">Zero Trust Tunnel</div>
+        <div className="text-copy font-black italic text-white">Cloudflare Edge</div>
+        <div className="text-tag uppercase tracking-widest opacity-70">Zero Trust Tunnel</div>
       </div>
       <div className="text-slate-700 text-xl">↓</div>
       <div className="flex gap-4">
         {['pibuster4', 'ha01'].map((n) => (
           <div key={n} className={`${tierBox} border-azure/20 text-azure-light bg-azure/5 w-28`}>
-            <div className="text-[11px] font-black italic text-white">{n}</div>
-            <div className="text-[8px] uppercase tracking-widest opacity-70">CF Tunnel</div>
+            <div className="text-meta-lg font-black italic text-white">{n}</div>
+            <div className="text-label uppercase tracking-widest opacity-70">CF Tunnel</div>
           </div>
         ))}
       </div>
       <div className="text-slate-700 text-xl">↓</div>
       <div className={`${tierBox} ${mode === 'dr' ? 'border-amber-500/40 text-amber-300 bg-amber-500/5' : 'border-amber-500/30 text-amber-300 bg-amber-500/5'} w-44`}>
-        <div className="text-[13px] font-black italic text-white">Proxmox VE</div>
-        <div className="text-[9px] uppercase tracking-widest opacity-70">Hypervisor Core</div>
+        <div className="text-copy font-black italic text-white">Proxmox VE</div>
+        <div className="text-tag uppercase tracking-widest opacity-70">Hypervisor Core</div>
       </div>
       <div className="text-slate-700 text-xl">↓</div>
       <div className="grid grid-cols-2 gap-3">
         {['ZuluServer', 'Docker Pool', 'OMV NAS', 'Veeam Repo'].map((n) => (
           <div key={n} className={`${tierBox} border-emerald-500/20 text-emerald-300 bg-emerald-500/5 w-28`}>
-            <div className="text-[11px] font-black italic text-white">{n}</div>
+            <div className="text-meta-lg font-black italic text-white">{n}</div>
           </div>
         ))}
       </div>
@@ -324,8 +324,8 @@ function TopologyFallback({ mode }) {
           from the chain above rather than beneath an arrow, for the same reason. */}
       <div className="pt-2 border-t border-white/5 w-48 flex justify-center">
         <div className={`${tierBox} border-azure/20 text-azure-light bg-azure/5 w-40 mt-4`}>
-          <div className="text-[11px] font-black italic text-white">Monitor Node</div>
-          <div className="text-[8px] uppercase tracking-widest opacity-70">Out-of-Band</div>
+          <div className="text-meta-lg font-black italic text-white">Monitor Node</div>
+          <div className="text-label uppercase tracking-widest opacity-70">Out-of-Band</div>
         </div>
       </div>
     </div>
@@ -368,10 +368,10 @@ export default function Topology3D() {
       {/* Status badge */}
       <div className="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-950/80 border border-white/10 backdrop-blur-md">
         <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${statusColor.replace('text-', 'bg-')}`} />
-        <span className={`text-[9px] font-mono font-black uppercase tracking-[0.2em] ${statusColor}`}>{statusLabel}</span>
+        <span className={`text-tag font-mono font-black uppercase tracking-[0.2em] ${statusColor}`}>{statusLabel}</span>
       </div>
       {!useFlat && (
-        <div className="absolute bottom-4 right-4 z-20 text-[8px] font-mono uppercase tracking-[0.2em] text-white/30 pointer-events-none">
+        <div className="absolute bottom-4 right-4 z-20 text-label font-mono uppercase tracking-[0.2em] text-white/55 pointer-events-none">
           Drag to orbit • Scroll to zoom • Click node to inspect
         </div>
       )}
@@ -385,13 +385,13 @@ export default function Topology3D() {
           <div className="absolute bottom-4 left-4 z-20 max-w-[260px] px-4 py-3 rounded-2xl bg-slate-950/85 border border-white/10 backdrop-blur-md shadow-2xl pointer-events-none">
             <div className="flex items-center gap-2 mb-1">
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: node.color, boxShadow: `0 0 8px ${node.color}` }} />
-              <span className="text-[12px] font-black italic text-white leading-none">{node.label}</span>
+              <span className="text-copy font-black italic text-white leading-none">{node.label}</span>
               {selectedNode === activeId && (
-                <span className="text-[7px] font-mono uppercase tracking-[0.2em] text-azure-light/70 border border-azure/20 rounded px-1 py-0.5">Pinned</span>
+                <span className="text-micro font-mono uppercase tracking-[0.2em] text-azure-light/70 border border-azure/20 rounded px-1 py-0.5">Pinned</span>
               )}
             </div>
-            <div className="text-[9px] font-mono uppercase tracking-[0.15em] text-slate-400 mb-1.5">{node.sub}</div>
-            <div className="text-[10px] text-slate-300 leading-relaxed">{NODE_DETAILS[activeId]}</div>
+            <div className="text-tag font-mono uppercase tracking-[0.15em] text-slate-400 mb-1.5">{node.sub}</div>
+            <div className="text-meta text-slate-300 leading-relaxed">{NODE_DETAILS[activeId]}</div>
           </div>
         );
       })()}
