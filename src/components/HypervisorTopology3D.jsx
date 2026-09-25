@@ -153,10 +153,10 @@ function HypervisorNode({ id, data, isHovered, onHover, onUnhover, reducedMotion
 
       <Html center distanceFactor={10} position={[0, -radius - 0.4, 0]} zIndexRange={[10, 0]}>
         <div className="pointer-events-none text-center select-none">
-          <div className={`text-[12px] font-black italic text-white transition-all duration-300 ${isHovered ? 'scale-105 text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]' : 'drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)]'}`}>
+          <div className={`text-copy font-black italic text-white transition-all duration-300 ${isHovered ? 'scale-105 text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.6)]' : 'drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)]'}`}>
             {data.label}
           </div>
-          <div className="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider leading-none mt-0.5 opacity-90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+          <div className="text-label text-slate-400 font-extrabold uppercase tracking-wider leading-none mt-0.5 opacity-90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
             {data.sub}
           </div>
         </div>
@@ -226,7 +226,7 @@ function HypervisorScene({ hoveredNode, onHover, onUnhover, reducedMotion }) {
                   center
                   distanceFactor={10}
                 >
-                  <div className="px-2 py-0.5 bg-slate-950/95 border border-emerald-500/35 rounded-md font-mono text-[7px] font-black uppercase text-emerald-400 tracking-wider shadow-[0_0_10px_rgba(16,185,129,0.35)] whitespace-nowrap animate-pulse select-none pointer-events-none">
+                  <div className="px-2 py-0.5 bg-slate-950/95 border border-emerald-500/35 rounded-md font-mono text-micro font-black uppercase text-emerald-400 tracking-wider shadow-[0_0_10px_rgba(16,185,129,0.35)] whitespace-nowrap animate-pulse select-none pointer-events-none">
                     {link.label}
                   </div>
                 </Html>
@@ -299,7 +299,7 @@ function HypervisorFallback({ hoveredNode, setHoveredNode }) {
         className={`px-5 py-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition-all duration-300 ${getCardStyle('core', NODES.core)}`}
       >
         <Server size={14} />
-        <div className="text-[12px] font-black uppercase tracking-wider">Proxmox VE (Hypervisor)</div>
+        <div className="text-copy font-black uppercase tracking-wider">Proxmox VE (Hypervisor)</div>
       </div>
 
       <div className="w-[1px] h-4 bg-slate-800" />
@@ -314,8 +314,8 @@ function HypervisorFallback({ hoveredNode, setHoveredNode }) {
             className={`p-3 rounded-lg border flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${getCardStyle(id, n)}`}
           >
             <Cpu size={12} className="mb-1" />
-            <div className="text-[10px] font-black text-white">{n.label}</div>
-            <div className="text-[7px] text-slate-500 uppercase tracking-widest">{n.sub}</div>
+            <div className="text-meta font-black text-white">{n.label}</div>
+            <div className="text-micro text-slate-400 uppercase tracking-widest">{n.sub}</div>
           </div>
         ))}
       </div>
@@ -332,8 +332,8 @@ function HypervisorFallback({ hoveredNode, setHoveredNode }) {
             className={`p-3 rounded-lg border flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${getCardStyle(id, n)}`}
           >
             <Database size={12} className="mb-1" />
-            <div className="text-[10px] font-black text-white">{n.label}</div>
-            <div className="text-[7px] text-slate-500 uppercase tracking-widest">{n.sub}</div>
+            <div className="text-meta font-black text-white">{n.label}</div>
+            <div className="text-micro text-slate-400 uppercase tracking-widest">{n.sub}</div>
           </div>
         ))}
       </div>
@@ -355,13 +355,13 @@ export default function HypervisorTopology3D() {
       {/* Top Banner HUD instructions */}
       <div className="absolute top-3 left-4 z-20 flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-slate-950/80 border border-white/10 backdrop-blur-md">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        <span className="text-[8px] font-mono font-black uppercase tracking-[0.2em] text-emerald-400">
+        <span className="text-label font-mono font-black uppercase tracking-[0.2em] text-emerald-400">
           {hoveredNode ? `CONNECTED TO: ${NODES[hoveredNode]?.label}` : 'HYPERVISOR INTERACTIVE MESH'}
         </span>
       </div>
 
       {!useFlat && (
-        <div className="absolute bottom-3 right-4 z-20 text-[7px] font-mono uppercase tracking-[0.2em] text-white/30 pointer-events-none select-none">
+        <div className="absolute bottom-3 right-4 z-20 text-micro font-mono uppercase tracking-[0.2em] text-white/55 pointer-events-none select-none">
           Hover node to inspect disk pass-through • Drag to orbit
         </div>
       )}

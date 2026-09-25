@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Card from './Card';
+import TerminalPanel from './TerminalPanel.jsx';
+import { lastLine } from '../lib/logs';
 import Badge from './Badge';
 import RationaleSection from './RationaleSection';
 import { ShieldCheck, ShieldAlert, Terminal, Key, RefreshCw } from 'lucide-react';
@@ -60,7 +62,11 @@ const NetworkLayer = () => {
     if (!inView) return undefined;
     if (!seededRef.current) {
       seededRef.current = true;
-      setLogs(Array.from({ length: 5 }, () => getStandardLog()));
+      // Prepend, never replace: a bento CTA or the tour can fire the DDoS alert
+      // before the section has scrolled into view (the sim goes out 150ms after
+      // opening; a smooth scroll takes longer), and replacing here wiped the
+      // `[WAF-ALERT]` lines on phones. V6.
+      setLogs((prev) => [...Array.from({ length: 5 }, () => getStandardLog()), ...prev]);
     }
 
     const interval = setInterval(() => {
@@ -146,14 +152,14 @@ const NetworkLayer = () => {
         <div className="flex items-center justify-between w-full">
           <div className="flex flex-col text-left">
             <span>Live Zero Trust Ingress Architecture</span>
-            <span className="text-[10px] uppercase tracking-[0.25em] text-slate-400 mt-1 font-bold">Secure Gateways & WAF Simulator</span>
+            <span className="text-meta uppercase tracking-[0.25em] text-slate-400 mt-1 font-bold">Secure Gateways & WAF Simulator</span>
           </div>
 
           {/* Action triggers */}
           <div className="flex items-center gap-2">
             <button
               onClick={toggleDdos}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-mono font-black uppercase tracking-tight transition-all active:scale-95 shadow-md border
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-meta font-mono font-black uppercase tracking-tight transition-all active:scale-95 shadow-md border
                 ${ddosActive 
                   ? 'bg-red-500/10 border-red-500/30 text-red-400 animate-pulse' 
                   : 'bg-white/5 border-white/10 text-slate-300 hover:bg-red-500/10 hover:border-red-500/20'
@@ -165,7 +171,7 @@ const NetworkLayer = () => {
             <button
               onClick={toggleVpn}
               disabled={ddosActive}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-mono font-black uppercase tracking-tight transition-all active:scale-95 shadow-md border
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-meta font-mono font-black uppercase tracking-tight transition-all active:scale-95 shadow-md border
                 ${vpnActive 
                   ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
                   : ddosActive
@@ -193,11 +199,11 @@ const NetworkLayer = () => {
           <div className="mt-4 px-4 py-2.5 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-between text-red-400 animate-pulse transition-all">
             <div className="flex items-center gap-3">
               <ShieldAlert size={16} />
-              <span className="text-[10px] font-mono uppercase font-black tracking-widest">
+              <span className="text-meta font-mono uppercase font-black tracking-widest">
                 DDoS Attack Mitigation Active: Banning Malicious IPs at Edge Cloudflare Tunnels!
               </span>
             </div>
-            <span className="text-[9px] font-mono font-black uppercase italic bg-red-500/20 px-2 py-0.5 rounded-md">WAF High</span>
+            <span className="text-tag font-mono font-black uppercase italic bg-red-500/20 px-2 py-0.5 rounded-md">WAF High</span>
           </div>
         )}
 
@@ -347,23 +353,30 @@ const NetworkLayer = () => {
           </div>
         </div>
 
-        {/* Live Active WAF/Firewall Terminal Stream */}
-        <div className="mt-8 bg-black/60 border border-white/5 rounded-3xl p-6 relative overflow-hidden flex flex-col h-[200px] shadow-inner font-mono text-[10px] leading-relaxed group/waf focus-within:border-azure/30 transition-all duration-300 crt-screen">
+        {/* Live Active WAF/Firewall Terminal Stream — compact result card on phones */}
+        <TerminalPanel
+          title="Edge WAF log"
+          line={lastLine(logs)}
+          tone={ddosActive ? 'alert' : vpnActive ? 'ok' : 'idle'}
+          live={ddosActive}
+          className="mt-8"
+        >
+        <div className="mt-8 bg-black/60 border border-white/5 rounded-3xl p-6 relative overflow-hidden flex flex-col h-[200px] shadow-inner font-mono text-meta leading-relaxed group/waf focus-within:border-azure/30 transition-all duration-300 crt-screen">
           
           {/* Log title header */}
           <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-3 relative z-20">
             <div className="flex items-center gap-2">
               <Terminal size={12} className="text-azure animate-pulse" />
-              <span className="text-[9px] uppercase tracking-widest font-black text-slate-400">
+              <span className="text-tag uppercase tracking-widest font-black text-slate-400">
                 Edge WAF Firewalls & Tunnels Log Console
               </span>
             </div>
-            <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border transition-all duration-500
+            <span className={`text-label font-black uppercase px-2 py-0.5 rounded border transition-all duration-500
               ${ddosActive 
                 ? 'bg-red-500/10 border-red-500/30 text-red-400' 
                 : vpnActive
                   ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                  : 'bg-white/5 border-white/10 text-slate-500'
+                  : 'bg-white/5 border-white/10 text-slate-400'
               }`}
             >
               {ddosActive ? "⚠️ HIGH THREAT" : vpnActive ? "🔐 ADMIN ESTABLISHED" : "🛡️ PROTECTED"}
@@ -391,12 +404,13 @@ const NetworkLayer = () => {
             })}
           </div>
         </div>
+        </TerminalPanel>
       </Card>
 
       <RationaleSection title="Rationale: Why Zero Trust Ingress?" color="azure" icon={ShieldCheck}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
-            <h6 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-4 flex items-center gap-2">
+            <h6 className="text-meta font-black uppercase tracking-[0.3em] text-white/55 mb-4 flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-azure" /> The Architecture Choice
             </h6>
             <p className="text-slate-400 text-xs leading-relaxed italic border-l-2 border-white/5 pl-4 ml-1">
@@ -404,7 +418,7 @@ const NetworkLayer = () => {
             </p>
           </div>
           <div>
-            <h6 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-4 flex items-center gap-2">
+            <h6 className="text-meta font-black uppercase tracking-[0.3em] text-white/55 mb-4 flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Operational Flow
             </h6>
             <ul className="text-slate-400 text-xs space-y-3 list-none p-0">
@@ -446,8 +460,8 @@ const Node = ({ icon, name, tag, color, isMobile, className = "" }) => {
       className={`bg-slate-950/60 border border-white/10 p-6 rounded-2xl flex flex-col items-center gap-2 w-full lg:w-fit text-center backdrop-blur-xl border-t-2 ${colors[color]} ${className}`}
     >
       <div className="w-14 h-14 bg-white/[0.03] rounded-full flex items-center justify-center text-2xl mb-1 shadow-inner">{icon}</div>
-      <span className="font-black text-[13px] text-white uppercase italic tracking-tight">{name}</span>
-      <div className="text-[9px] font-black px-2 py-1 bg-white/5 rounded-md text-slate-400 uppercase tracking-widest">{tag}</div>
+      <span className="font-black text-copy text-white uppercase italic tracking-tight">{name}</span>
+      <div className="text-tag font-black px-2 py-1 bg-white/5 rounded-md text-slate-400 uppercase tracking-widest">{tag}</div>
     </motion.div>
   );
 };
@@ -463,8 +477,8 @@ const NodeSmall = ({ name, details, isMobile, className = "" }) => {
       whileTap={{ scale: 0.9 }}
       className={`bg-slate-900/40 border border-white/5 p-4 rounded-xl text-center w-full lg:w-fit lg:max-w-[150px] backdrop-blur-md transition-all ${className}`}
     >
-      <div className="text-[11px] font-black text-white italic uppercase mb-1">{name}</div>
-      <div className="text-[9px] text-slate-500 font-medium leading-tight">{details}</div>
+      <div className="text-meta-lg font-black text-white italic uppercase mb-1">{name}</div>
+      <div className="text-tag text-slate-400 font-medium leading-tight">{details}</div>
     </motion.div>
   );
 };

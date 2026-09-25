@@ -62,14 +62,14 @@ const CaseStudyPost = ({ onBack }) => {
       <div className="mb-20 pt-10 px-6 border-b border-white/10 pb-16">
         <button 
           onClick={onBack}
-          className="flex items-center gap-2 text-white/40 hover:text-white transition-colors mb-12 text-sm font-mono uppercase tracking-widest group"
+          className="flex items-center gap-2 text-white/55 hover:text-white transition-colors mb-12 text-sm font-mono uppercase tracking-widest group"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Origin
         </button>
 
         <div className="flex items-center gap-4 mb-6">
-          <span className="px-3 py-1 bg-azure/20 text-azure-light text-[10px] font-mono font-bold tracking-[0.2em] rounded-full uppercase border border-azure/30">Case Study V1.5.0</span>
-          <div className="flex items-center gap-2 text-white/30 text-xs font-mono">
+          <span className="px-3 py-1 bg-azure/20 text-azure-light text-meta font-mono font-bold tracking-[0.2em] rounded-full uppercase border border-azure/30">Case Study V1.5.0</span>
+          <div className="flex items-center gap-2 text-white/55 text-xs font-mono">
             <Calendar size={14} /> April 2026
           </div>
         </div>

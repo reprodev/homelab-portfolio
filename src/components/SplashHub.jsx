@@ -269,9 +269,9 @@ const PortalCard = ({ card, index, isMobile, hoveredId, setHoveredId, handleActi
 
          <div className="space-y-1 mb-4">
            <div className="flex items-center gap-2 flex-wrap">
-             <span className="text-[10px] font-mono tracking-[0.3em] text-white/50 uppercase font-bold">{card.tag}</span>
+             <span className="text-meta font-mono tracking-[0.3em] text-white/50 uppercase font-bold">{card.tag}</span>
              {card.id === 'servicedesk' && (
-               <span className="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-400/30 text-[8px] font-mono uppercase tracking-wider text-blue-300 font-bold flex items-center gap-1">
+               <span className="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-400/30 text-label font-mono uppercase tracking-wider text-blue-300 font-bold flex items-center gap-1">
                  <svg className="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                    <path d="M12 0C5.38 0 0 5.38 0 12c0 5.58 3.82 10.28 9 11.62V15.7c-.8-.34-1.36-1.12-1.36-2.05 0-1.22 1-2.22 2.22-2.22.25 0 .48.04.7.12l2.67-3.83c-.02-.15-.04-.3-.04-.46 0-1.78 1.44-3.22 3.22-3.22s3.22 1.44 3.22 3.22c0 1.78-1.44 3.22-3.22 3.22-.26 0-.5-.04-.73-.1l-3.5 2.53c.03.17.05.34.05.52 0 .6-.2 1.15-.55 1.6l2.36 1c4.28-1.16 7.4-5.06 7.4-9.7C24 5.38 18.62 0 12 0zm5.22 6.58c0-.73.6-1.33 1.33-1.33s1.33.6 1.33 1.33c0 .73-.6 1.33-1.33 1.33s-1.33-.6-1.33-1.33zm-9.35 6.07c0-.62.5-1.12 1.12-1.12.16 0 .3.03.44.1l-1.33 1.6c-.14-.15-.23-.35-.23-.58zm1.12 2.24c-.62 0-1.12-.5-1.12-1.12 0-.08.02-.16.04-.24l1.37-1.65c.57.17.97.7 1 1.3-.02.94-.65 1.7-1.3 1.71z"/>
                  </svg>
@@ -477,7 +477,7 @@ const SplashHub = ({ onDismiss }) => {
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.3, duration: isMobile ? 0.6 : 0.8, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <span className={`text-[12px] md:text-sm font-mono font-bold text-azure-light tracking-[0.5em] uppercase mb-8 ${isMobile ? 'opacity-90' : 'opacity-60'} block`}>
+                  <span className={`text-copy md:text-sm font-mono font-bold text-azure-light tracking-[0.5em] uppercase mb-8 ${isMobile ? 'opacity-90' : 'opacity-60'} block`}>
                     Digital Presence Portal
                   </span>
                   
@@ -572,7 +572,7 @@ const SplashHub = ({ onDismiss }) => {
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                       </div>
                     </div>
-                    <span className="text-white/40 text-[10px] font-mono uppercase tracking-[0.2em] group-hover:text-white/70 transition-colors">Don't show this splash again</span>
+                    <span className="text-white/55 text-meta font-mono uppercase tracking-[0.2em] group-hover:text-white/70 transition-colors">Don't show this splash again</span>
                   </label>
                 </div>
                 
@@ -581,7 +581,7 @@ const SplashHub = ({ onDismiss }) => {
                     playSound('enter');
                     handleAction('homelab');
                   }}
-                  className="text-white/30 hover:text-white transition-colors text-[10px] font-mono uppercase tracking-[0.15em] flex items-center gap-4 group mb-20"
+                  className="text-white/55 hover:text-white transition-colors text-meta font-mono uppercase tracking-[0.15em] flex items-center gap-4 group mb-20"
                   aria-label="Skip Introduction"
                 >
                   <div className="h-px w-8 bg-white/20 group-hover:w-12 transition-all" />
@@ -611,7 +611,7 @@ const SplashHub = ({ onDismiss }) => {
               exit={{ opacity: 0, y: 20 }}
               className="fixed bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none z-50 px-6 py-3 rounded-full bg-black/40 backdrop-blur-md border border-white/5"
             >
-              <span className="text-white/40 text-[9px] font-mono uppercase tracking-[0.3em] font-bold">Scroll to Explore</span>
+              <span className="text-white/55 text-tag font-mono uppercase tracking-[0.3em] font-bold">Scroll to Explore</span>
               <motion.div
                 animate={{ y: [0, 5, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}

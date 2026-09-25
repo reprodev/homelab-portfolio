@@ -59,7 +59,7 @@ const Hero = () => {
   };
 
   return (
-    <header className="py-16 md:py-24 border-b border-white/[0.03]">
+    <header className="pt-16 pb-6 md:pt-20 md:pb-8">
       <motion.div 
         variants={container}
         initial="hidden"
@@ -79,7 +79,7 @@ const Hero = () => {
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className={`px-4 py-1.5 rounded-full bg-azure/10 border border-azure/20 text-azure-light text-[10px] font-mono font-bold tracking-[0.2em] uppercase ${isMobile ? 'opacity-90' : ''}`}
+                  className={`px-4 py-1.5 rounded-full bg-azure/10 border border-azure/20 text-azure-light text-meta font-mono font-bold tracking-[0.2em] uppercase ${isMobile ? 'opacity-90' : ''}`}
                 >
                   Welcome Back, Khurram 🔐
                 </motion.div>
@@ -105,7 +105,7 @@ const Hero = () => {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0 }}
-                  className={`flex items-center gap-3 text-[10px] font-mono ${isMobile ? 'text-emerald-400' : 'text-emerald-400/90'} uppercase tracking-[0.3em] mb-8 bg-emerald-500/10 px-4 py-2 rounded-lg border border-emerald-500/20 w-fit drop-shadow-[0_0_8px_rgba(52,211,153,0.2)]`}
+                  className={`flex items-center gap-3 text-meta font-mono ${isMobile ? 'text-emerald-400' : 'text-emerald-400/90'} uppercase tracking-[0.3em] mb-8 bg-emerald-500/10 px-4 py-2 rounded-lg border border-emerald-500/20 w-fit drop-shadow-[0_0_8px_rgba(52,211,153,0.2)]`}
                 >
                   <Terminal size={12} className="animate-pulse" />
                   {bootLog}
@@ -130,7 +130,7 @@ const Hero = () => {
                   <Play size={16} fill="currentColor" className="ml-0.5" />
                 </span>
                 <span className="flex flex-col items-start leading-tight">
-                  <span className="text-[9px] font-mono font-black uppercase tracking-[0.25em] text-azure-light/80">Auto Demo</span>
+                  <span className="text-tag font-mono font-black uppercase tracking-[0.25em] text-azure-light/80">Auto Demo</span>
                   <span className="text-sm">Play Guided Tour</span>
                 </span>
               </button>
@@ -177,8 +177,8 @@ const Hero = () => {
           </motion.div>
         </div>
  
-        <motion.div variants={item} className="mt-12 flex flex-wrap gap-3">
-          {["Linux Ecosystem", "Terraform Core", "Packer Golden Images", "Kubernetes (K3s)", "Ansible Automation", "Proxmox Bare-metal", "Zero Trust Edge"].map((skill) => (
+        <motion.div variants={item} className="mt-8 flex flex-wrap gap-2.5">
+          {["Linux Ecosystem", "Terraform Core", "Golden Images (Packer)", "Kubernetes (K3s)", "Ansible Automation", "Proxmox Bare-metal", "Zero Trust Edge"].map((skill) => (
             <span 
               key={skill} 
               onMouseEnter={() => playSound('click')}

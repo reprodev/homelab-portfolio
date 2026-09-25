@@ -4,6 +4,8 @@ import { Play, Zap, RefreshCw, GitBranch } from 'lucide-react';
 import { playSound } from '../lib/audio';
 import { triggerTerraform, useSimEvent, SIM_EVENTS, usePrefersReducedMotion } from '../lib/simBus';
 import useInViewPause from '../hooks/useInViewPause';
+import TerminalPanel from './TerminalPanel.jsx';
+import { lastLine } from '../lib/logs';
 
 /*
   TerraformSim — the "terraform plan → apply" showstopper sim (Lifecycle 01 · Code).
@@ -38,7 +40,7 @@ const PLAN_SCRIPT = [
   { t: 3000, text: '  +   cores     = 1' },
   { t: 3120, text: '  +   memory    = 2048' },
   { t: 3240, text: '  +   ipv4      = "10.20.0.53/24"' },
-  { t: 3360, text: '  +   clone     { vm_id = 9001 }    # packer: ubuntu-2404-golden' },
+  { t: 3360, text: '  +   clone     { vm_id = 9001 }    # cloud-init golden template' },
   { t: 3480, text: '    }' },
   { t: 3800, text: '  # proxmox_virtual_environment_vm.zuluserver will be updated in-place' },
   { t: 3920, text: '  ~ resource "proxmox_virtual_environment_vm" "zuluserver" {' },
@@ -84,8 +86,8 @@ const classifyLine = (text) => {
   if (text.startsWith('$ ')) return 'text-amberGold font-black';
   if (text.startsWith('  + ')) return 'text-emerald-400';
   if (text.startsWith('  ~ ')) return 'text-amber-300';
-  if (text.startsWith('  # ')) return 'text-slate-500';
-  if (text.startsWith('── ')) return 'text-slate-500 italic';
+  if (text.startsWith('  # ')) return 'text-slate-400';
+  if (text.startsWith('── ')) return 'text-slate-400 italic';
   if (text.startsWith('Plan:') || text.startsWith('Apply complete!')) return 'text-white font-semibold';
   if (text.startsWith('Outputs:')) return 'text-emerald-300 font-bold';
   if (text.includes('complete after')) return 'text-emerald-300';
@@ -273,7 +275,7 @@ const TerraformSim = () => {
       {/* ── Terminal panel ─────────────────────────────────────────────── */}
       <div className="flex flex-col bg-[#020202] border border-white/10 rounded-2xl overflow-hidden shadow-2xl crt-screen">
         <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/[0.02] relative z-20">
-          <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-wider text-slate-400">
+          <div className="flex items-center gap-2 font-mono text-tag uppercase tracking-wider text-slate-400">
             <GitBranch size={11} className="text-violet-400" />
             <span className="hidden sm:inline">knightbox:~/homelab-infra</span>
             <span className="sm:hidden">homelab-infra</span>
@@ -287,9 +289,17 @@ const TerraformSim = () => {
           </div>
         </div>
 
-        <div className="flex-1 h-[240px] md:h-[320px] p-4 font-mono text-[10px] leading-relaxed overflow-y-auto no-scrollbar scroll-smooth space-y-0.5 crt-text relative z-20">
+        {/* Output only — header, status strip and controls stay visible on phones */}
+        <TerminalPanel
+          title="terraform"
+          line={lastLine(logs)}
+          tone={simState === 'done' ? 'ok' : simState === 'idle' ? 'idle' : 'info'}
+          live={simState === 'planning' || simState === 'applying'}
+          className="p-2"
+        >
+        <div className="flex-1 h-[240px] md:h-[320px] p-4 font-mono text-meta leading-relaxed overflow-y-auto no-scrollbar scroll-smooth space-y-0.5 crt-text relative z-20">
           {logs.length === 0 && (
-            <div className="text-slate-500">
+            <div className="text-slate-400">
               <span className="text-emerald-400/80">knightbox</span>
               <span>:</span>
               <span className="text-azure-light">~/homelab-infra</span>
@@ -304,10 +314,11 @@ const TerraformSim = () => {
           ))}
           <div ref={terminalEndRef} />
         </div>
+        </TerminalPanel>
 
         {/* Status strip */}
         <div className="px-4 py-2 border-t border-white/5 bg-black/60 relative z-20">
-          <span className={`text-[9px] font-mono font-black uppercase tracking-wider ${statusChip.cls}`}>
+          <span className={`text-tag font-mono font-black uppercase tracking-wider ${statusChip.cls}`}>
             {statusChip.text}
           </span>
         </div>
@@ -320,7 +331,7 @@ const TerraformSim = () => {
               triggerTerraform('plan');
             }}
             disabled={!planEnabled}
-            className={`flex-1 min-h-[44px] md:min-h-0 flex items-center justify-center gap-2 py-2 rounded-lg border text-[9px] font-mono font-black uppercase tracking-wider transition-all
+            className={`flex-1 min-h-[44px] md:min-h-0 flex items-center justify-center gap-2 py-2 rounded-lg border text-tag font-mono font-black uppercase tracking-wider transition-all
               ${simState === 'planning'
                 ? 'bg-violet-500/10 border-violet-500/30 text-violet-400 cursor-not-allowed'
                 : planEnabled
@@ -337,7 +348,7 @@ const TerraformSim = () => {
               triggerTerraform('apply');
             }}
             disabled={!applyEnabled}
-            className={`flex-1 min-h-[44px] md:min-h-0 flex items-center justify-center gap-2 py-2 rounded-lg border text-[9px] font-mono font-black uppercase tracking-wider transition-all
+            className={`flex-1 min-h-[44px] md:min-h-0 flex items-center justify-center gap-2 py-2 rounded-lg border text-tag font-mono font-black uppercase tracking-wider transition-all
               ${simState === 'applying'
                 ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 cursor-not-allowed animate-pulse'
                 : applyEnabled
@@ -354,7 +365,7 @@ const TerraformSim = () => {
               triggerTerraform('idle');
             }}
             disabled={simState === 'idle'}
-            className={`md:px-3 min-h-[44px] md:min-h-0 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-[9px] font-mono font-black uppercase tracking-wider transition-all
+            className={`md:px-3 min-h-[44px] md:min-h-0 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-tag font-mono font-black uppercase tracking-wider transition-all
               ${simState === 'idle'
                 ? 'border-white/5 text-slate-600 cursor-not-allowed'
                 : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:border-white/20 active:scale-95'
@@ -367,14 +378,25 @@ const TerraformSim = () => {
       </div>
 
       {/* ── Resource graph panel (spec §e) ─────────────────────────────── */}
+      {/* Same fix as the IaC pipeline strip: the node chips are absolutely
+          positioned at fixed percentages, so the V5.6 legibility floor widened
+          them past the gaps their layout assumes. Give the graph its natural
+          width on mobile and let it scroll rather than shrinking the labels.
+          Measured: overlap hits zero at ~300px, so 330 gives margin while still
+          fitting the whole graph on a 390px screen with no scrolling at all. */}
+      {/* `lg:contents` removes this wrapper from the box tree above the
+          breakpoint. Without it the wrapper — not the graph — becomes the grid
+          child, so the graph's `lg:h-auto` stops stretching to the row height
+          and all four leaf chips collapse onto one line. */}
+      <div className="overflow-x-auto no-scrollbar lg:contents">
       <div
         ref={graphRef}
-        className="relative h-[260px] lg:h-auto bg-slate-950/60 border border-white/5 rounded-2xl overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]"
+        className="relative min-w-[330px] lg:min-w-0 h-[260px] lg:h-auto bg-slate-950/60 border border-white/5 rounded-2xl overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]"
       >
         {/* Cyber grid background */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:12px_12px] pointer-events-none" />
 
-        <div className="absolute top-3 left-4 z-20 text-[8px] font-mono font-black uppercase tracking-[0.25em] text-white/30">
+        <div className="absolute top-3 left-4 z-20 text-label font-mono font-black uppercase tracking-[0.25em] text-white/55">
           Resource Graph · Desired State
         </div>
 
@@ -447,7 +469,7 @@ const TerraformSim = () => {
           { id: 'pve', label: 'pve', sub: 'Proxmox VE', x: '58.75%', y: '50%' },
         ].map((n) => (
           <div key={n.id} className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-center z-10" style={{ left: n.x, top: n.y }}>
-            <div className={`px-2.5 py-1.5 rounded-xl border font-mono text-[8px] font-black uppercase tracking-wider transition-all duration-500
+            <div className={`px-2.5 py-1.5 rounded-xl border font-mono text-label font-black uppercase tracking-wider transition-all duration-500
               ${chainLit
                 ? 'bg-violet-500/10 border-violet-500/40 text-violet-300 shadow-[0_0_12px_rgba(139,92,246,0.2)]'
                 : 'bg-slate-900/60 border-white/5 text-slate-500'
@@ -455,7 +477,7 @@ const TerraformSim = () => {
             >
               {n.label}
             </div>
-            <span className="text-[6px] text-slate-600 font-mono leading-none">{n.sub}</span>
+            <span className="hidden sm:block text-micro text-slate-500 font-mono leading-none">{n.sub}</span>
           </div>
         ))}
 
@@ -464,7 +486,7 @@ const TerraformSim = () => {
           const state = leafState(n.k);
           return (
             <div key={n.id} className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-center z-10" style={{ left: '86.25%', top: `${(n.y / 240) * 100}%` }}>
-              <div className={`relative px-2.5 py-1.5 rounded-xl border font-mono text-[8px] font-black uppercase tracking-wider transition-all duration-500 ${leafChipCls[state]}`}>
+              <div className={`relative px-2.5 py-1.5 rounded-xl border font-mono text-label font-black uppercase tracking-wider transition-all duration-500 ${leafChipCls[state]}`}>
                 {state === 'applying' && !reducedMotion && (
                   <motion.span
                     className="absolute inset-0 rounded-xl border border-amber-400/60"
@@ -474,7 +496,7 @@ const TerraformSim = () => {
                 )}
                 {state === 'applied' ? '✓ ' : state !== 'pending' ? `${n.badge} ` : ''}{n.label}
               </div>
-              <span className="text-[6px] text-slate-600 font-mono leading-none">{n.sub}</span>
+              <span className="hidden sm:block text-micro text-slate-500 font-mono leading-none">{n.sub}</span>
             </div>
           );
         })}
@@ -482,11 +504,12 @@ const TerraformSim = () => {
         {/* pibuster4 honesty node — never lights. Outside *this* graph because
             Terraform can't provision bare metal, not because it's unmanaged. */}
         <div className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 text-center z-10" style={{ left: '86.25%', top: `${(PIBUSTER_Y / 240) * 100}%` }}>
-          <div className="px-2.5 py-1.5 rounded-xl border border-dashed border-white/15 bg-transparent font-mono text-[8px] font-bold uppercase tracking-wider text-slate-600">
+          <div className="px-2.5 py-1.5 rounded-xl border border-dashed border-white/15 bg-transparent font-mono text-label font-bold uppercase tracking-wider text-slate-400">
             pibuster4
           </div>
-          <span className="text-[6px] text-slate-600 font-mono leading-none">ansible-managed</span>
+          <span className="hidden sm:block text-micro text-slate-500 font-mono leading-none">ansible-managed</span>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -62,8 +62,22 @@ const DRPipeline = () => {
     }, 7000));
   };
 
-  // Cancel any in-flight drill timeline on unmount (section collapse, page swap)
-  useEffect(() => clearDrillTimers, []);
+  // Mirror of drillStep for the unmount cleanup below (its closure would be stale).
+  const stepRef = useRef(0);
+  useEffect(() => { stepRef.current = drillStep; }, [drillStep]);
+
+  /*
+    Unmount mid-drill (section collapse, route change): cancel the timeline AND
+    tell everyone it is over. Before V6 only the timers were cleared, so the
+    cockpit, orbs and 3D topology stayed stuck in DR theming with nothing left to
+    send the next step (deviations #16). DRPipeline owns this sequence, so it is
+    the one that may end it — TerraformSim's unmount `idle` broadcast is the
+    precedent. A finished drill (step 4) is already inactive and is left alone.
+  */
+  useEffect(() => () => {
+    clearDrillTimers();
+    if (stepRef.current > 0 && stepRef.current < 4) triggerDr(0);
+  }, []);
 
   // step 1 = start request (button or tour); step 0 = reset. Steps 2-4 are
   // emitted by runDrill itself and ignored here as control signals.
@@ -125,7 +139,7 @@ const DRPipeline = () => {
             <VeeamLogo className="w-6 h-6 text-emerald-400" />
             <div className="flex flex-col text-left">
               <span className="leading-tight">3-2-1 Backup Strategy</span>
-              <span className="text-[10px] uppercase tracking-[0.2em] text-emerald-400/70 font-black mt-1">Enterprise-Grade Resilience</span>
+              <span className="text-meta uppercase tracking-[0.2em] text-emerald-400/70 font-black mt-1">Enterprise-Grade Resilience</span>
             </div>
           </div>
           
@@ -170,7 +184,7 @@ const DRPipeline = () => {
               ) : (
                 <AlertOctagon size={16} className="animate-bounce" />
               )}
-              <span className="text-[10px] font-mono tracking-wider uppercase font-black">
+              <span className="text-meta font-mono tracking-wider uppercase font-black">
                 {drillStep === 1 && "CRITICAL OUTAGE DRILL ACTIVE: ZULUSERVER OFFLINE!"}
                 {drillStep === 2 && `FAILOVER RUNNING: SPINNING UP STANDBY VM (${progress}%)`}
                 {drillStep === 3 && `RE-BINDING LAN NETWORK interfaces (${progress}%)`}
@@ -178,7 +192,7 @@ const DRPipeline = () => {
               </span>
             </div>
             {drillStep < 4 && (
-              <span className="text-[9px] font-mono opacity-60 uppercase font-black italic">RTO Timer Running</span>
+              <span className="text-tag font-mono opacity-60 uppercase font-black italic">RTO Timer Running</span>
             )}
           </div>
         )}
@@ -253,7 +267,7 @@ const DRPipeline = () => {
                 >
                   {drillStep === 1 ? "⚠️" : "🖥️"}
                 </div>
-                <div className={`absolute -bottom-2 -right-2 px-2 py-1 border rounded-lg text-[9px] font-black uppercase tracking-tighter backdrop-blur-md transition-all
+                <div className={`absolute -bottom-2 -right-2 px-2 py-1 border rounded-lg text-tag font-black uppercase tracking-tighter backdrop-blur-md transition-all
                   ${drillStep === 1 
                     ? 'bg-red-500/20 border-red-500/30 text-red-400' 
                     : drillStep === 2 || drillStep === 3
@@ -270,7 +284,7 @@ const DRPipeline = () => {
               </h5>
               
               <div className="flex flex-col gap-2 w-full max-w-[200px]">
-                <div className={`flex justify-between items-center px-4 py-2 border rounded-xl font-mono text-[10px] font-bold tracking-wider uppercase transition-all duration-500
+                <div className={`flex justify-between items-center px-4 py-2 border rounded-xl font-mono text-meta font-bold tracking-wider uppercase transition-all duration-500
                   ${drillStep === 1 
                     ? 'bg-red-500/10 border-red-500/20 text-red-400' 
                     : drillStep === 2 || drillStep === 3
@@ -281,11 +295,11 @@ const DRPipeline = () => {
                   <span>ZuluServer</span>
                   <span>{drillStep === 1 ? "OFFLINE" : drillStep === 2 || drillStep === 3 ? "REBUILDING" : "ONLINE"}</span>
                 </div>
-                <Badge color="amber" className="justify-center text-[10px] py-1.5 opacity-80 uppercase tracking-widest font-black italic">HA Cluster</Badge>
+                <Badge color="amber" className="justify-center text-meta py-1.5 opacity-80 uppercase tracking-widest font-black italic">HA Cluster</Badge>
                 {/* Was "K3s Payloads" — implied K3s runs production workloads that
                     are DR-protected. It's a rebuildable sandbox (see fleet.js), so
                     this now names what the drill actually restores. */}
-                <Badge color="success" className="justify-center text-[10px] py-1.5 opacity-80 uppercase tracking-widest font-black italic">Docker Stack</Badge>
+                <Badge color="success" className="justify-center text-meta py-1.5 opacity-80 uppercase tracking-widest font-black italic">Docker Stack</Badge>
               </div>
             </div>
 
@@ -303,22 +317,22 @@ const DRPipeline = () => {
                   <VeeamLogo className={`w-12 h-12 transition-all ${drillStep === 2 || drillStep === 3 ? 'text-amber-400' : 'text-emerald-400'}`} />
                   <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/60 px-1.5 py-0.5 rounded-full border border-emerald-500/40">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[8px] font-black text-emerald-400 uppercase">Live</span>
+                    <span className="text-label font-black text-emerald-400 uppercase">Live</span>
                   </div>
                 </div>
-                <div className="absolute -bottom-2 -right-2 flex items-center gap-2 px-2 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-[9px] font-black text-emerald-400 uppercase tracking-tighter backdrop-blur-md italic">
+                <div className="absolute -bottom-2 -right-2 flex items-center gap-2 px-2 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-tag font-black text-emerald-400 uppercase tracking-tighter backdrop-blur-md italic">
                   <WindowsLogo className="w-2.5 h-2.5 mb-0.5" />
                   Target: Local
                 </div>
               </div>
               <h5 className="font-bold text-lg text-white mb-2 italic uppercase tracking-tight leading-none tracking-tighter">Veeam Backup Repo</h5>
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-black border-b border-white/5 pb-2 mb-4">Host: Knightbox</p>
+              <p className="text-meta text-slate-400 uppercase tracking-widest font-black border-b border-white/5 pb-2 mb-4">Host: Knightbox</p>
               
               {/* Dynamic Timeline / Progress bar during drill */}
               <div className="w-full max-w-[220px]">
                 {drillActive ? (
-                  <div className="flex flex-col p-4 bg-white/5 border border-white/10 rounded-2xl text-left space-y-3 font-mono text-[9px] leading-relaxed crt-screen">
-                    <div className="flex justify-between items-center text-[10px] font-black uppercase text-amberGold border-b border-white/5 pb-1 relative z-20">
+                  <div className="flex flex-col p-4 bg-white/5 border border-white/10 rounded-2xl text-left space-y-3 font-mono text-tag leading-relaxed crt-screen">
+                    <div className="flex justify-between items-center text-meta font-black uppercase text-amberGold border-b border-white/5 pb-1 relative z-20">
                       <span>Restoration Log</span>
                       <span className="animate-pulse">Active</span>
                     </div>
@@ -332,7 +346,7 @@ const DRPipeline = () => {
                     
                     {drillStep < 4 && (
                       <div className="space-y-1.5 pt-1 border-t border-white/5">
-                        <div className="flex justify-between text-[8px] text-slate-400 font-bold uppercase tracking-wider">
+                        <div className="flex justify-between text-label text-slate-400 font-bold uppercase tracking-wider">
                           <span>Recompiling Blocks</span>
                           <span>{progress}%</span>
                         </div>
@@ -348,13 +362,13 @@ const DRPipeline = () => {
                 ) : (
                   <div className="flex flex-col p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl hover:bg-emerald-500/10 transition-colors">
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Workflow</span>
-                      <span className="text-[9px] text-slate-500 font-mono">06:30 UTC</span>
+                      <span className="text-meta font-black text-emerald-400 uppercase tracking-widest">Workflow</span>
+                      <span className="text-tag text-slate-400 font-mono">06:30 UTC</span>
                     </div>
                     <div className="space-y-2">
-                      <div className="px-2 py-1 bg-black/40 border border-white/5 rounded text-[9px] text-slate-400 italic">LZ4 Dynamic Compression</div>
-                      <div className="px-2 py-1 bg-black/40 border border-white/5 rounded text-[9px] text-slate-400 italic">Saturday Active Fulls</div>
-                      <div className="px-2 py-1 bg-emerald-400/10 border border-emerald-400/20 rounded text-[9px] text-emerald-400 font-black uppercase tracking-widest">7 Restore Points</div>
+                      <div className="px-2 py-1 bg-black/40 border border-white/5 rounded text-tag text-slate-400 italic">LZ4 Dynamic Compression</div>
+                      <div className="px-2 py-1 bg-black/40 border border-white/5 rounded text-tag text-slate-400 italic">Saturday Active Fulls</div>
+                      <div className="px-2 py-1 bg-emerald-400/10 border border-emerald-400/20 rounded text-tag text-emerald-400 font-black uppercase tracking-widest">7 Restore Points</div>
                     </div>
                   </div>
                 )}
@@ -369,28 +383,28 @@ const DRPipeline = () => {
                 <div className="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center shadow-2xl border border-white/10 group-hover:scale-110 transition-transform duration-500">
                   <DropboxLogo className="w-10 h-10 text-[#0061FF]" />
                 </div>
-                <div className="absolute -bottom-2 -right-2 px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-[9px] font-black text-purple-400 uppercase tracking-tighter backdrop-blur-md italic">Target: Cloud</div>
+                <div className="absolute -bottom-2 -right-2 px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg text-tag font-black text-purple-400 uppercase tracking-tighter backdrop-blur-md italic">Target: Cloud</div>
               </div>
               <h5 className="font-bold text-lg text-white mb-4 italic uppercase tracking-tight leading-none tracking-tighter">Offsite Archive</h5>
               
               <div className="flex flex-col gap-2 w-full max-w-[200px]">
                 {drillStep === 4 ? (
-                  <div className="p-4 border border-emerald-500/20 bg-emerald-500/5 rounded-2xl text-left space-y-2.5 font-mono text-[9px]">
-                    <div className="font-black uppercase tracking-wider text-emerald-400 text-[10px] border-b border-white/5 pb-1 flex items-center gap-1.5">
+                  <div className="p-4 border border-emerald-500/20 bg-emerald-500/5 rounded-2xl text-left space-y-2.5 font-mono text-tag">
+                    <div className="font-black uppercase tracking-wider text-emerald-400 text-meta border-b border-white/5 pb-1 flex items-center gap-1.5">
                       <CheckCircle2 size={10} /> Failover Analytics
                     </div>
                     <ul className="space-y-1 text-slate-300 leading-tight">
-                      <li className="flex justify-between"><span className="text-slate-500 italic">RTO Restored</span><span className="text-white font-bold">4.8s</span></li>
-                      <li className="flex justify-between"><span className="text-slate-500 italic">RPO Window</span><span className="text-white font-bold">&lt; 24h</span></li>
-                      <li className="flex justify-between"><span className="text-slate-500 italic">Data Loss</span><span className="text-emerald-400 font-bold">0.00%</span></li>
-                      <li className="flex justify-between"><span className="text-slate-500 italic">Integrity</span><span className="text-emerald-400 font-bold">100% OK</span></li>
+                      <li className="flex justify-between"><span className="text-slate-400 italic">RTO Restored</span><span className="text-white font-bold">4.8s</span></li>
+                      <li className="flex justify-between"><span className="text-slate-400 italic">RPO Window</span><span className="text-white font-bold">&lt; 24h</span></li>
+                      <li className="flex justify-between"><span className="text-slate-400 italic">Data Loss</span><span className="text-emerald-400 font-bold">0.00%</span></li>
+                      <li className="flex justify-between"><span className="text-slate-400 italic">Integrity</span><span className="text-emerald-400 font-bold">100% OK</span></li>
                     </ul>
                   </div>
                 ) : (
                   <>
-                    <Badge color="danger" className="justify-center text-[10px] py-1.5 opacity-80 uppercase tracking-widest font-black italic tracking-tighter">Dropbox Sync</Badge>
+                    <Badge color="danger" className="justify-center text-meta py-1.5 opacity-80 uppercase tracking-widest font-black italic tracking-tighter">Dropbox Sync</Badge>
                     <div className="p-3 border border-white/5 rounded-xl bg-black/20">
-                      <span className="text-[9px] text-slate-500 leading-tight block italic">Air-gapped protection via encrypted cloud Copy Jobs.</span>
+                      <span className="text-tag text-slate-400 leading-tight block italic">Daily scripted offsite sync to Dropbox, restore-tested.</span>
                     </div>
                   </>
                 )}
@@ -403,7 +417,7 @@ const DRPipeline = () => {
       <RationaleSection title="Rationale: Data Durability & The 3-2-1 Rule" color="emerald" icon={ShieldCheck}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
-            <h6 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-4 flex items-center gap-2">
+            <h6 className="text-meta font-black uppercase tracking-[0.3em] text-white/55 mb-4 flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Business Continuity
             </h6>
             <p className="text-slate-400 text-xs font-medium leading-relaxed italic border-l-2 border-white/5 pl-4 ml-1">
@@ -411,7 +425,7 @@ const DRPipeline = () => {
             </p>
           </div>
           <div>
-            <h6 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-4 flex items-center gap-2">
+            <h6 className="text-meta font-black uppercase tracking-[0.3em] text-white/55 mb-4 flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-azure" /> The Logic Flow
             </h6>
             <ul className="text-slate-400 text-xs space-y-3 list-none p-0">
@@ -425,7 +439,11 @@ const DRPipeline = () => {
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-emerald-500 font-bold">◃</span>
-                <span><strong>Cloud Bridge:</strong> A secondary Copy Job pushes encrypted data to Dropbox for long-term offsite archival.</span>
+                <span><strong>Cloud Bridge:</strong> A daily scheduled job copies Veeam backup chains to Dropbox, and a restore from that offsite copy (<span className="font-mono text-slate-300">Import-VBRBackup</span>) has been tested end to end.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-emerald-500 font-bold">◃</span>
+                <span><strong>App-level Backups:</strong> Nightly SQLite (six databases, integrity-checked, gzipped) and Vaultwarden backups run from CI alongside the image-level Veeam jobs.</span>
               </li>
             </ul>
           </div>

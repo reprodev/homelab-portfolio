@@ -62,13 +62,13 @@ const HardwareLayer = () => {
     <section className="mb-8 select-none">
       {/* Control HUD Header with 3D Grid Toggle */}
       <div className="flex justify-between items-center mb-6 px-1">
-        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-slate-500 flex items-center gap-2">
+        <span className="text-meta font-mono uppercase tracking-[0.25em] text-slate-400 flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#E57000]/60 animate-ping" />
           Hardware Cluster // Proxmox VE Workspace
         </span>
         <button
           onClick={() => setView3D(!view3D)}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono text-[9px] font-black uppercase transition-all duration-300 border relative z-30 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono text-tag font-black uppercase transition-all duration-300 border relative z-30 ${
             view3D 
               ? 'bg-[#E57000]/15 text-[#E57000] border-[#E57000]/40 shadow-[0_0_15px_rgba(229,112,0,0.2)] hover:bg-[#E57000]/25' 
               : 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white shadow-md'
@@ -91,7 +91,7 @@ const HardwareLayer = () => {
           >
             <Suspense fallback={
               <div className="w-full h-[400px] md:h-[460px] rounded-2xl border border-white/10 bg-slate-950/40 flex items-center justify-center">
-                <div className="text-white/20 text-[10px] md:text-xs font-mono uppercase tracking-[0.6em] animate-pulse">
+                <div className="text-white/55 text-meta md:text-xs font-mono uppercase tracking-[0.6em] animate-pulse">
                   Initializing 3D Hypervisor Canvas...
                 </div>
               </div>
@@ -117,7 +117,7 @@ const HardwareLayer = () => {
                       <ProxmoxLogo className="h-5 w-5 text-[#E57000]" />
                       <span className="text-sm font-black tracking-tighter text-white">PROXMOX <span className="text-[#E57000]">VE</span></span>
                     </div>
-                    <span className="hidden sm:inline text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 mt-0.5 opacity-50">Local Hypervisor</span>
+                    <span className="hidden sm:inline text-tag font-black uppercase tracking-[0.3em] text-slate-400 mt-0.5 opacity-50">Local Hypervisor</span>
                   </div>
                   <a 
                     href="https://reprodev.com/is-the-reign-of-esxi-as-the-hypervisor-of-choice-for-learning-at-home-virtually-over/" 
@@ -134,7 +134,7 @@ const HardwareLayer = () => {
             >
               <div className="flex flex-col md:flex-row gap-8">
                 <div className="flex-1">
-                  <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-6 border-b border-white/5 pb-2 italic">Host Vitals</h4>
+                  <h4 className="text-meta font-extrabold text-slate-400 uppercase tracking-widest mb-6 border-b border-white/5 pb-2 italic">Host Vitals</h4>
                   <ul className="space-y-4">
                     <li className="flex justify-between items-center border-b border-white/5 pb-4">
                       <span className="text-sm text-slate-300 font-medium tracking-tight italic">Processor</span>
@@ -161,15 +161,15 @@ const HardwareLayer = () => {
                 
                 <div className="flex-[2] text-left">
                   <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-2">
-                    <h4 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest italic m-0">Active Virtual Nodes</h4>
+                    <h4 className="text-meta font-extrabold text-slate-400 uppercase tracking-widest italic m-0">Active Virtual Nodes</h4>
                     <div className="flex items-center gap-3">
                       {scanStatusMessage && (
-                        <span className="text-[9px] font-mono text-emerald-400 animate-pulse uppercase tracking-wider">{scanStatusMessage}</span>
+                        <span className="text-tag font-mono text-emerald-400 animate-pulse uppercase tracking-wider">{scanStatusMessage}</span>
                       )}
                       <button 
                         onClick={startSonarScan}
                         disabled={scanningIndex !== -1}
-                        className={`px-2.5 py-1 rounded-md font-mono text-[8px] font-black uppercase transition-all duration-300 relative z-20 ${
+                        className={`px-2.5 py-1 rounded-md font-mono text-label font-black uppercase transition-all duration-300 relative z-20 ${
                           scanningIndex !== -1 
                             ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5' 
                             : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 shadow-[0_0_8px_rgba(16,185,129,0.1)]'
@@ -216,7 +216,7 @@ const HardwareLayer = () => {
                           hypervisor's storage controller — marked so the list
                           doesn't imply they're all attached the same way. */}
                       {disk.external && (
-                        <span className="px-1.5 py-0.5 rounded border border-azure/30 text-azure-light font-mono text-[8px] font-black uppercase tracking-wider not-italic">
+                        <span className="px-1.5 py-0.5 rounded border border-azure/30 text-azure-light font-mono text-label font-black uppercase tracking-wider not-italic">
                           USB3
                         </span>
                       )}
@@ -233,7 +233,7 @@ const HardwareLayer = () => {
       <RationaleSection title="Rationale: Decoupled Compute & Resilience" color="amber" icon={HardDrive}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
-            <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4 flex items-center gap-2">
+            <h6 className="text-meta font-black uppercase tracking-[0.2em] text-white/55 mb-4 flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Decoupled Responsibility
             </h6>
             <p className="text-slate-400 text-xs font-medium leading-relaxed italic border-l-2 border-white/5 pl-4 ml-1">
@@ -241,13 +241,13 @@ const HardwareLayer = () => {
             </p>
           </div>
           <div>
-            <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4 flex items-center gap-2">
+            <h6 className="text-meta font-black uppercase tracking-[0.2em] text-white/55 mb-4 flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Operational Flow
             </h6>
             <ul className="text-slate-400 text-xs space-y-3 list-none p-0">
               <li className="flex items-start gap-3">
                 <span className="text-amber-500 font-bold">◃</span>
-                <span><strong>Provisioning:</strong> VMs are cloned from Packer golden images and provisioned by Terraform; Ansible converges config — see Lifecycle 01 · Code.</span>
+                <span><strong>Provisioning:</strong> VMs are cloned from a cloud-init golden template and provisioned by Terraform; Ansible converges config — see Lifecycle 01 · Code.</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-amber-500 font-bold">◃</span>

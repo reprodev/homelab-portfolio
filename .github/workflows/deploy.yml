@@ -14,25 +14,33 @@ jobs:
 
     steps:
       - name: 📁 Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
+      # Node 24 = Active LTS (supported to April 2028) and the same major used for
+      # local development. Node 18 went end-of-life in April 2025.
       - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 18
+          node-version: 24
           cache: 'npm'
 
+      # `npm ci`, not `npm install`: installs exactly what package-lock.json pins and
+      # fails if the lockfile has drifted from package.json, so the deployed build uses
+      # the same dependency tree that was built and tested locally.
       - name: 📦 Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: 🏗️ Build Dashboard (Production)
         run: npm run build
         env:
           VITE_GA_ID: ${{ secrets.VITE_GA_ID }}
 
+      # (A `force_push: true` input used to sit here. It has never been an input of
+      # this action, in v3 or v4, so it was silently ignored on every deploy. Removed
+      # rather than swapped for `force_orphan`, which would change behaviour by
+      # wiping gh-pages history each run.) public/CNAME reaches dist/ via Vite.
       - name: 🚀 Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          force_push: true

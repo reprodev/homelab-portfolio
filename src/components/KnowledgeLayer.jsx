@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import {
   Terminal, HardDrive, ExternalLink, Cpu, Code, Zap, Archive, Github,
   ChevronLeft, ChevronRight, Monitor, Network, Database, Music,
-  Cloud, Layers, MessageSquare, Server,
+  Cloud, Layers, MessageSquare, Server, ShieldCheck,
 } from 'lucide-react';
 import Card from './Card';
 import Reveal from './Reveal.jsx';
@@ -15,7 +15,7 @@ const ICONS = {
   cloud: Cloud, layers: Layers, message: MessageSquare, archive: Archive,
   server: Server, database: Database, harddrive: HardDrive, network: Network,
   cpu: Cpu, terminal: Terminal, code: Code, zap: Zap, github: Github,
-  monitor: Monitor, music: Music,
+  monitor: Monitor, music: Music, shield: ShieldCheck,
 };
 
 // `tags` defaults to [] so a new entry authored without one cannot crash the card
@@ -45,7 +45,7 @@ const TutorialCard = ({ title, desc, iconKey, link, tags = [], time, type = "Gui
           {/* Part count gives series cards their own visual weight — one card
               here stands for up to nine posts. */}
           {parts > 1 && (
-            <span className="relative z-10 px-2 py-1 rounded-lg border border-azure/30 bg-azure/5 text-azure-light font-mono text-[9px] font-black uppercase tracking-wider">
+            <span className="relative z-10 px-2 py-1 rounded-lg border border-azure/30 bg-azure/5 text-azure-light font-mono text-tag font-black uppercase tracking-wider">
               {parts} parts
             </span>
           )}
@@ -59,19 +59,19 @@ const TutorialCard = ({ title, desc, iconKey, link, tags = [], time, type = "Gui
             {/* "New" is derived from the post date, not authored — see
                 isRecent() in src/data/knowledge.js. */}
             {isNew && (
-              <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded-md text-[9px] font-black uppercase tracking-widest text-emerald-400">
+              <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded-md text-tag font-black uppercase tracking-widest text-emerald-400">
                 New
               </span>
             )}
             {tags.map(tag => (
-              <span key={tag} className="px-2 py-0.5 bg-white/5 border border-white/5 rounded-md text-[9px] font-black uppercase tracking-widest text-slate-400">
+              <span key={tag} className="px-2 py-0.5 bg-white/5 border border-white/5 rounded-md text-tag font-black uppercase tracking-widest text-slate-400">
                 {tag}
               </span>
             ))}
           </div>
 
           <h4 className="text-lg font-bold text-white mb-3 tracking-tight leading-tight">{title}</h4>
-          <p className="text-sm text-slate-500 leading-relaxed mb-6">{desc}</p>
+          <p className="text-sm text-slate-400 leading-relaxed mb-6">{desc}</p>
 
           {image && (
             <div className="mt-4 rounded-xl overflow-hidden border border-white/10 group-hover/link:border-azure/30 transition-all shadow-2xl bg-black relative aspect-video flex items-center justify-center p-2">
@@ -90,10 +90,10 @@ const TutorialCard = ({ title, desc, iconKey, link, tags = [], time, type = "Gui
         </div>
 
         <div className="mt-8 flex items-center justify-between pt-4 border-t border-white/5">
-          <span className="text-[10px] uppercase font-black tracking-widest text-slate-500">
+          <span className="text-meta uppercase font-black tracking-widest text-slate-400">
             {type === "Project" ? "View Project" : parts > 1 ? "Read Series" : "Read Guide"}
           </span>
-          <span className="text-[10px] font-mono text-slate-600">{time}</span>
+          <span className="text-meta font-mono text-slate-400">{time}</span>
         </div>
       </a>
     </Card>
@@ -106,7 +106,7 @@ const CarouselHeader = ({ title, subtitle, badgeText, badgeColor, onScroll, show
     <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 border-b border-white/5 pb-6">
       <div className="flex-1">
         <h3 className="text-3xl font-extralight tracking-tight text-white m-0 italic">{title}</h3>
-        <span className={`text-[10px] uppercase font-black tracking-[0.3em] mt-2 block h-4 ${badgeColor === 'emerald' ? 'text-emerald-400' : 'text-azure'}`}>{subtitle}</span>
+        <span className={`text-meta uppercase font-black tracking-[0.3em] mt-2 block h-4 ${badgeColor === 'emerald' ? 'text-emerald-400' : 'text-azure'}`}>{subtitle}</span>
       </div>
       
       <div className="flex items-center gap-6 self-end md:self-auto">
@@ -135,7 +135,7 @@ const CarouselHeader = ({ title, subtitle, badgeText, badgeColor, onScroll, show
         
         <div className={`flex items-center gap-2 px-3 py-1 bg-white/5 border rounded-full w-fit ${badgeColor === 'emerald' ? 'border-emerald-500/20' : 'border-azure/20'}`}>
           <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${badgeColor === 'emerald' ? 'bg-emerald-400' : 'bg-azure'}`} />
-          <span className={`text-[10px] font-black uppercase tracking-widest leading-none ${badgeColor === 'emerald' ? 'text-emerald-400' : 'text-azure'}`}>{badgeText}</span>
+          <span className={`text-meta font-black uppercase tracking-widest leading-none ${badgeColor === 'emerald' ? 'text-emerald-400' : 'text-azure'}`}>{badgeText}</span>
         </div>
       </div>
     </div>
@@ -158,10 +158,10 @@ const KnowledgeLayer = () => {
   const visible = KNOWLEDGE.filter((item) => matchesFacet(item, activeFacet));
 
   return (
-    <section id="knowledge-base" className="mb-24 scroll-mt-24">
+    <section id="knowledge-base" className="mb-12 scroll-mt-24">
       {/* Knowledge Row — series + individual guides, filterable */}
       <CarouselHeader
-        title="Lifecycle 05: Knowledge Base & Library"
+        title="Series & Guides"
         subtitle="Series, guides and field notes from reprodev.com"
         badgeText={`${KNOWLEDGE.length} Collections`}
         badgeColor="emerald"
@@ -180,7 +180,7 @@ const KnowledgeLayer = () => {
               key={facet.id}
               onClick={() => setFacetId(facet.id)}
               aria-pressed={active}
-              className={`min-h-[44px] px-3.5 py-2 rounded-xl border font-mono text-[10px] font-black uppercase tracking-wider transition-colors ${
+              className={`min-h-[44px] px-3.5 py-2 rounded-xl border font-mono text-meta font-black uppercase tracking-wider transition-colors ${
                 active
                   ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
                   : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
@@ -214,7 +214,7 @@ const KnowledgeLayer = () => {
 
       {/* Projects Row */}
       <CarouselHeader
-        title="Developer Portfolio & Tools"
+        title="Builds & Tools"
         subtitle="Custom Development & PowerShell Automation"
         badgeText={`${PROJECTS.length} Projects`}
         badgeColor="azure"
